@@ -17,6 +17,7 @@ import { formatShortcut } from "../../utils/shortcuts";
 import { useVoiceSnapshot } from "../../utils/voiceBus";
 import { BlueprintSchematics } from "./BlueprintSchematics";
 import { CockpitReactor, type ReactorState } from "./CockpitReactor";
+import { ExplodedView } from "./ExplodedView";
 import { CockpitTelemetry } from "./CockpitTelemetry";
 import { CockpitVoiceBar } from "./CockpitVoiceBar";
 import { ModuleTable } from "./ModuleTable";
@@ -299,17 +300,20 @@ export function CommandCenterView({
         <CockpitTelemetry telemetry={telemetry} settings={settings} isOnline={isOnline} />
       </div>
 
-      {/* Blueprint deck: signal path + module registry */}
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        <SystemFlow voiceState={voice.state} />
-        <ModuleTable
-          isOnline={isOnline}
-          voiceState={voice.state}
-          engineLabel={engineLabel}
-          memoryCount={conversations.length}
-          automationCount={openTasks.length}
-          voiceEnabled={settings.voiceEnabled}
-        />
+      {/* Blueprint deck: exploded architecture + signal path + module registry */}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        <ExplodedView state={reactorState} />
+        <div className="grid min-w-0 gap-3">
+          <SystemFlow voiceState={voice.state} />
+          <ModuleTable
+            isOnline={isOnline}
+            voiceState={voice.state}
+            engineLabel={engineLabel}
+            memoryCount={conversations.length}
+            automationCount={openTasks.length}
+            voiceEnabled={settings.voiceEnabled}
+          />
+        </div>
       </div>
 
       {/* Quick access modules */}
@@ -334,9 +338,9 @@ export function CommandCenterView({
       {/* Voice console */}
       <CockpitVoiceBar settings={settings} onSignal={handleSignal} />
 
-      <div className="flex items-center justify-between px-1 text-[9px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">
-        <span>AURIX 2.0 · Nexus Cockpit</span>
-        <span>Powered by AM VEYRONIX</span>
+      <div className="flex items-center justify-between gap-3 px-1 text-[9px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">
+        <span className="truncate">AURIX/ core/ voice/ brain/ memory/ agents/ tools/ security/ interface/</span>
+        <span className="shrink-0">Powered by AM VEYRONIX</span>
       </div>
     </div>
   );

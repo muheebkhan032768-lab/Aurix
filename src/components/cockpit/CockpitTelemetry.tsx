@@ -14,9 +14,9 @@ interface BatteryLike {
   addEventListener: (type: string, listener: () => void) => void;
 }
 
-const TICKS = Array.from({ length: 24 }, (_, i) => i);
+const GAUGE_TICKS = Array.from({ length: 28 }, (_, i) => i);
 
-function Meter({
+function Gauge({
   value,
   label,
   valueText,
@@ -30,26 +30,54 @@ function Meter({
   accent?: string;
 }) {
   const pct = Math.max(0, Math.min(100, value));
-  const lit = Math.round((pct / 100) * TICKS.length);
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
   return (
-    <div>
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-[#94A8B8]">{label}</span>
-        <span className="text-[11px] font-semibold tabular-nums text-white">{valueText}</span>
-      </div>
-      <div className="mt-1.5 flex h-2.5 items-stretch gap-[2px]" aria-hidden="true">
-        {TICKS.map((i) => (
-          <span
-            key={i}
-            className="flex-1 rounded-[1px] transition-colors duration-300"
-            style={{
-              background: i < lit ? accent : "rgba(169,200,213,0.13)",
-              opacity: i < lit ? 0.55 + (i / TICKS.length) * 0.45 : 1,
-            }}
-          />
-        ))}
-      </div>
-      <div className="mt-1 truncate text-[9px] text-[#5B7185]">{detail}</div>
+    <div className="flex min-w-0 flex-col items-center gap-0.5 text-center">
+      <svg viewBox="0 0 56 56" className="h-14 w-14" aria-hidden="true">
+        <circle cx="28" cy="28" r="26" fill="none" stroke="rgba(169,200,213,0.1)" strokeWidth="0.8" />
+        {GAUGE_TICKS.map((i) => {
+          const angle = (i / GAUGE_TICKS.length) * Math.PI * 2 - Math.PI / 2;
+          const major = i % 7 === 0;
+          return (
+            <line
+              key={i}
+              x1={28 + Math.cos(angle) * (major ? 22.5 : 24)}
+              y1={28 + Math.sin(angle) * (major ? 22.5 : 24)}
+              x2={28 + Math.cos(angle) * 26}
+              y2={28 + Math.sin(angle) * 26}
+              stroke={accent}
+              strokeOpacity={major ? 0.55 : 0.22}
+              strokeWidth={major ? 1 : 0.6}
+            />
+          );
+        })}
+        <circle cx="28" cy="28" r={radius} fill="none" stroke="rgba(169,200,213,0.12)" strokeWidth="2.4" />
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke={accent}
+          strokeWidth="2.4"
+          strokeDasharray={`${(pct / 100) * circumference} ${circumference}`}
+          strokeLinecap="round"
+          transform="rotate(-90 28 28)"
+        />
+        <text
+          x="28"
+          y="30.5"
+          textAnchor="middle"
+          fill="#FFFFFF"
+          fontFamily="JetBrains Mono, ui-monospace, monospace"
+          fontSize="10"
+          fontWeight="600"
+        >
+          {valueText}
+        </text>
+      </svg>
+      <span className="text-[8px] font-mono uppercase tracking-[0.14em] text-[#94A8B8]">{label}</span>
+      <span className="w-full truncate text-[7.5px] text-[#5B7185]">{detail}</span>
     </div>
   );
 }
@@ -227,40 +255,32 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Meter
+      <div className="grid grid-cols-4 gap-1">
+        <Gauge
           value={cpuPct}
-          label="CPU Load"
+          label="CPU"
           valueText={`${Math.round(cpuPct)}%`}
-          detail={`${telemetry.cpuCores} threads · ${telemetry.loadAvg1m.toFixed(2)} avg`}
+          detail={`${telemetry.cpuCores} thr`}
         />
-        <Meter
+        <Gauge
           value={ramPct}
-          label="Memory"
-          valueText={`${(telemetry.usedMemoryBytes / 1024 ** 3).toFixed(1)} / ${telemetry.installedRamGb} GB`}
-          detail={`${(telemetry.freeMemoryBytes / 1024 ** 3).toFixed(1)} GB free`}
+          label="MEM"
+          valueText={`${Math.round(ramPct)}%`}
+          detail={`${(telemetry.usedMemoryBytes / 1024 ** 3).toFixed(1)} GB`}
           accent="#147DFF"
         />
-        <Meter
+        <Gauge
           value={diskPct}
-          label="Storage"
-          valueText={`${diskFreeGb} GB free`}
-          detail={`of ${(telemetry.diskTotalBytes / 1024 ** 3).toFixed(0)} GB`}
-          accent="#2FE9C6"
+          label="DISK"
+          valueText={`${Math.round(diskPct)}%`}
+          detail={`${diskFreeGb} GB free`}
+          accent="#00FF9D"
         />
-        <Meter
+        <Gauge
           value={battery ? battery.level : 0}
-          label="Battery"
-          valueText={battery ? `${battery.level}%` : batterySupported ? "Reading…" : "No sensor"}
-          detail={
-            battery
-              ? battery.charging
-                ? "Charging"
-                : "On battery"
-              : batterySupported
-                ? "Battery Status API"
-                : "Desktop has no battery sensor"
-          }
+          label="BATT"
+          valueText={battery ? `${battery.level}%` : "—"}
+          detail={battery ? (battery.charging ? "charging" : "battery") : batterySupported ? "reading" : "none"}
           accent={battery && battery.level < 20 && !battery.charging ? "#FB7185" : "#A9C8D5"}
         />
       </div>
