@@ -53,7 +53,7 @@ export function speakWithOfflineBritishVoice(
       }
       const gbVoices = voices.filter((v) => v.lang.toLowerCase().includes("gb"));
       const preferredMale = gbVoices.find((v) =>
-        /male|george|ryan|daniel|arthur|oliver|alfie/i.test(v.name)
+        /male|george|ryan|daniel|arthur|oliver|alfie|guy/i.test(v.name)
       );
       return (
         preferredMale ||
@@ -67,7 +67,7 @@ export function speakWithOfflineBritishVoice(
     if (chosen) utter.voice = chosen;
     utter.lang = language === "Urdu" ? "ur-PK" : language === "Hindi" ? "hi-IN" : "en-GB";
     utter.rate = Math.max(0.75, Math.min(1.25, speed * 0.98));
-    utter.pitch = 0.92;
+    utter.pitch = 0.86;
 
     utter.onstart = () => callbacks?.onStart?.();
     utter.onboundary = () => callbacks?.onBoundary?.();

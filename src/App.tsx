@@ -938,6 +938,7 @@ function AurixShell() {
         <VoiceCommandSystem
           settings={data.settings}
           tasks={data.tasks}
+          mediaConsent={mediaConsentChoice}
           emergencyStopActive={data.telemetry.emergencyStopActive}
           onNavigate={setActiveSection}
           onAddTask={saveTask}

@@ -70,6 +70,48 @@
   background: rgba(16, 185, 129, 0.55);
 }
 
+/* AURIX companion figure */
+@keyframes aurix-companion-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes aurix-companion-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.15); }
+}
+
+@keyframes aurix-companion-talk {
+  0%, 100% { transform: scaleY(0.45); }
+  50% { transform: scaleY(1); }
+}
+
+@keyframes aurix-companion-halo {
+  0% { transform: scale(0.85); opacity: 0.55; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.companion-orb {
+  animation: aurix-companion-float 4.5s ease-in-out infinite;
+}
+
+.companion-eye {
+  animation: aurix-companion-blink 5.2s ease-in-out infinite;
+}
+
+.companion-mouth.is-talking {
+  animation: aurix-companion-talk 0.34s ease-in-out infinite;
+}
+
+.companion-halo {
+  animation: aurix-companion-halo 2.1s ease-out infinite;
+}
+
+.companion-halo.is-delayed {
+  animation-delay: 1s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

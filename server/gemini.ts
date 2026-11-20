@@ -29,6 +29,9 @@ function getClient(): GoogleGenAI {
   return new GoogleGenAI({
     apiKey,
     httpOptions: {
+      // The SDK defaults to the v1 endpoint, where the transcribe and TTS
+      // models are not published. v1beta exposes every model this app uses.
+      apiVersion: "v1beta",
       headers: {
         "User-Agent": "aistudio-build",
       },
@@ -215,11 +218,10 @@ export async function synthesizeAurixVoice(params: {
   const voice = params.voiceName || settings.voiceName || "Charon";
   const lang = params.language || settings.language || "English";
   const speed = params.speed ?? settings.voiceSpeed ?? 1.0;
+  const paceNote = speed < 0.9 ? "slowly and calmly" : speed > 1.1 ? "at a brisk pace" : "naturally";
 
-  const paceNote =
-    speed < 0.9 ? "measured, unhurried pace" : speed > 1.1 ? "crisp, brisk pace" : "natural, poised speaking pace";
-
-  const stylePrompt = `Refined British male AI butler and personal strategist speaking in ${lang}: warm, friendly, deeply respectful, eloquent, and quietly confident, clear Received Pronunciation tone, ${paceNote}`;
+  // Gemini TTS reads a style instruction followed by the line to speak.
+  const prompt = `Say in a warm, refined British male butler voice, in ${lang}, ${paceNote}: ${params.text.slice(0, 2000)}`;
 
   const tryTtsModel = async (ttsModel: string) => {
     const response = await ai.models.generateContent({
@@ -229,10 +231,7 @@ export async function synthesizeAurixVoice(params: {
           role: "user",
           parts: [
             {
-              text: params.text.slice(0, 2000),
-              speechMetadata: {
-                style: stylePrompt,
-              },
+              text: prompt,
             },
           ],
         },
@@ -273,24 +272,36 @@ export async function transcribeAudioInput(params: {
     throw new Error("Offline mode active: use browser SpeechRecognition or type your command.");
   }
   const ai = getClient();
-  const response = await ai.models.generateContent({
-    model: "gemini-3.5-transcribe",
-    contents: {
-      parts: [
-        {
-          inlineData: {
-            mimeType: params.mimeType,
-            data: params.audioBase64,
+  let response: GenerateContentResponse;
+  try {
+    response = await ai.models.generateContent({
+      model: "gemini-3.5-transcribe",
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              mimeType: params.mimeType,
+              data: params.audioBase64,
+            },
           },
-        },
-        {
-          text: `Transcribe the spoken audio accurately. Expected language may include ${
-            params.languageHint || "English, Urdu, or Hindi"
-          }. Output only the clean verbatim transcription.`,
-        },
-      ],
-    },
-  });
+          {
+            text: `Transcribe the spoken audio accurately. Expected language may include ${
+              params.languageHint || "English, Urdu, or Hindi"
+            }. Output only the clean verbatim transcription.`,
+          },
+        ],
+      },
+    });
+  } catch (err) {
+    // Surface a readable sentence instead of the raw API JSON payload.
+    const raw = err instanceof Error ? err.message : "";
+    const detail = raw.match(/"message"\s*:\s*"([^"]+)"/)?.[1];
+    throw new Error(
+      detail
+        ? `I could not transcribe that recording. ${detail}`
+        : "I could not transcribe that recording. Please try again."
+    );
+  }
 
   const transcript = response.text?.trim();
   if (!transcript) {

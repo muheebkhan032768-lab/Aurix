@@ -15,7 +15,9 @@ import {
   X,
 } from "lucide-react";
 import type { AppSettings, AurixSectionId, NoteItem, TaskItem } from "../types/aurix";
-import { cancelOfflineVoice, speakWithOfflineBritishVoice } from "../utils/offlineVoice";
+import { cancelCompanionVoice, speakWithCompanionVoice } from "../utils/companionVoice";
+import { createAlwaysOnMic, type AlwaysOnMicController } from "../utils/alwaysOnMic";
+import { VoiceCompanionFigure } from "./VoiceCompanionFigure";
 import {
   parseVoiceCommand,
   VOICE_COMMAND_REFERENCE,
@@ -25,6 +27,7 @@ import {
 interface VoiceCommandSystemProps {
   settings: AppSettings;
   tasks: TaskItem[];
+  mediaConsent: string | null;
   emergencyStopActive: boolean;
   onNavigate: (section: AurixSectionId) => void;
   onAddTask: (task: Omit<TaskItem, "id" | "createdAt"> & { id?: string }) => Promise<void>;
@@ -103,6 +106,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 export function VoiceCommandSystem({
   settings,
   tasks,
+  mediaConsent,
   emergencyStopActive,
   onNavigate,
   onAddTask,
@@ -121,6 +125,7 @@ export function VoiceCommandSystem({
   const [processing, setProcessing] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [wakeListening, setWakeListening] = useState(false);
+  const [alwaysOnListening, setAlwaysOnListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ text: string; ok: boolean } | null>(null);
   const [history, setHistory] = useState<CommandLogEntry[]>([]);
@@ -133,11 +138,18 @@ export function VoiceCommandSystem({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const speakingRef = useRef(false);
+  const processingRef = useRef(false);
+  const listeningRef = useRef(false);
+  const lastSpeechEndRef = useRef(0);
+  const companionModeRef = useRef(false);
+  const autoStartedRef = useRef(false);
+  const micControllerRef = useRef<AlwaysOnMicController | null>(null);
+  const startAlwaysOnRef = useRef<() => Promise<boolean>>(async () => false);
   const inputRef = useRef<HTMLInputElement>(null);
   const runCommandRef = useRef<(raw: string, source?: CommandSource) => Promise<void>>(async () => {});
 
   const cancelSpeech = useCallback(() => {
-    cancelOfflineVoice();
+    cancelCompanionVoice();
     speakingRef.current = false;
     setSpeaking(false);
   }, []);
@@ -146,22 +158,34 @@ export function VoiceCommandSystem({
     (text: string, force = false) => {
       if (!text.trim()) return;
       if (!force && (!settings.voiceEnabled || settings.doNotDisturb || emergencyStopActive)) return;
-      cancelOfflineVoice();
+      cancelCompanionVoice();
       speakingRef.current = true;
       setSpeaking(true);
-      const started = speakWithOfflineBritishVoice(text, settings.language, settings.voiceSpeed, {
+      void speakWithCompanionVoice(text, {
+        voiceName: settings.voiceName,
+        language: settings.language,
+        speed: settings.voiceSpeed,
         onStart: () => setSpeaking(true),
         onEnd: () => {
           speakingRef.current = false;
+          lastSpeechEndRef.current = Date.now();
           setSpeaking(false);
         },
-      });
-      if (!started) {
+      }).then((started) => {
+        if (started) return;
         speakingRef.current = false;
+        lastSpeechEndRef.current = Date.now();
         setSpeaking(false);
-      }
+      });
     },
-    [settings.voiceEnabled, settings.doNotDisturb, settings.language, settings.voiceSpeed, emergencyStopActive]
+    [
+      settings.voiceEnabled,
+      settings.doNotDisturb,
+      settings.voiceName,
+      settings.language,
+      settings.voiceSpeed,
+      emergencyStopActive,
+    ]
   );
 
   const stopListening = useCallback(() => {
@@ -194,6 +218,7 @@ export function VoiceCommandSystem({
         if (event.data.size > 0) chunksRef.current.push(event.data);
       };
       recorder.onstop = async () => {
+        setListening(false);
         stream.getTracks().forEach((track) => track.stop());
         mediaStreamRef.current = null;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
@@ -224,6 +249,9 @@ export function VoiceCommandSystem({
               : "Could not transcribe that recording. Type the command below instead."
           );
           setStatus("error");
+        } finally {
+          // After the first recording the companion keeps listening on its own.
+          void startAlwaysOnRef.current();
         }
       };
       mediaRecorderRef.current = recorder;
@@ -242,6 +270,22 @@ export function VoiceCommandSystem({
       stopListening();
       return;
     }
+    if (wakeEnabledRef.current) {
+      // Pause the always-on listener so the mic is free for one recording.
+      wakeEnabledRef.current = false;
+      companionModeRef.current = false;
+      try {
+        wakeRecognitionRef.current?.stop();
+      } catch {
+        // Recognition may already be stopped.
+      }
+      wakeRecognitionRef.current = null;
+      setWakeListening(false);
+      return;
+    }
+    // Free the microphone for this one recording; it re-arms afterwards.
+    micControllerRef.current?.stop();
+    micControllerRef.current = null;
     setError(null);
     setTranscript("");
     cancelSpeech();
@@ -274,6 +318,9 @@ export function VoiceCommandSystem({
         setStatus("idle");
         if (code === "no-speech") {
           setError("I did not catch that. Try again or type the command below.");
+        } else if (code === "not-allowed" || code === "service-not-allowed" || code === "network") {
+          // Live recognition is blocked here — record with the microphone instead.
+          void startMicFallback();
         } else if (code !== "aborted") {
           setError("Live speech recognition is unavailable here. Type the command below instead.");
         }
@@ -283,6 +330,7 @@ export function VoiceCommandSystem({
         const said = (finalText || combined).trim();
         if (said) void runCommandRef.current(said, "voice");
         else setStatus("idle");
+        void startAlwaysOnRef.current();
       };
       recognitionRef.current = recognition;
       recognition.start();
@@ -296,6 +344,7 @@ export function VoiceCommandSystem({
 
   const stopWakeListening = useCallback(() => {
     wakeEnabledRef.current = false;
+    companionModeRef.current = false;
     awaitingWakeCommandRef.current = false;
     try {
       wakeRecognitionRef.current?.stop();
@@ -307,15 +356,17 @@ export function VoiceCommandSystem({
     setStatusMessage("Hands-free mode off.");
   }, []);
 
-  const startWakeListening = useCallback(() => {
+  const startWakeListening = useCallback((alwaysOn = false) => {
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
+      if (alwaysOn) return;
       setError("Hands-free wake phrases need browser speech recognition (Chrome or Edge). Use the mic button or type below.");
       setStatus("error");
       return;
     }
     setError(null);
-    setOpen(true);
+    companionModeRef.current = alwaysOn;
+    if (!alwaysOn) setOpen(true);
     try {
       const recognition = new Ctor();
       recognition.lang = localeFor(settings.language);
@@ -323,6 +374,7 @@ export function VoiceCommandSystem({
       recognition.interimResults = false;
       recognition.onresult = (event) => {
         if (speakingRef.current) return;
+        if (Date.now() - lastSpeechEndRef.current < 600) return;
         for (let i = event.resultIndex; i < event.results.length; i += 1) {
           const result = event.results[i];
           if (!result.isFinal) continue;
@@ -330,6 +382,11 @@ export function VoiceCommandSystem({
           if (!said) continue;
           const wake = settings.wakePhrase.trim().toLowerCase();
           const lower = said.toLowerCase();
+
+          if (alwaysOn) {
+            void runCommandRef.current(said, "wake");
+            continue;
+          }
 
           if (awaitingWakeCommandRef.current) {
             awaitingWakeCommandRef.current = false;
@@ -358,9 +415,12 @@ export function VoiceCommandSystem({
         const code = event.error || "";
         if (code === "not-allowed" || code === "service-not-allowed") {
           wakeEnabledRef.current = false;
+          companionModeRef.current = false;
           setWakeListening(false);
-          setError("Hands-free listening is blocked in this frame. Use the mic button or type below.");
-          setStatus("error");
+          if (!alwaysOn) {
+            setError("Hands-free listening is blocked in this frame. Use the mic button or type below.");
+            setStatus("error");
+          }
         }
       };
       recognition.onend = () => {
@@ -382,17 +442,104 @@ export function VoiceCommandSystem({
       recognition.start();
       setWakeListening(true);
       setStatus("idle");
-      setStatusMessage(`Hands-free mode armed — say "${settings.wakePhrase}".`);
+      setStatusMessage(
+        alwaysOn
+          ? "I am listening — just talk to me."
+          : `Hands-free mode armed — say "${settings.wakePhrase}".`
+      );
     } catch {
+      companionModeRef.current = false;
+      if (alwaysOn) {
+        setWakeListening(false);
+        return;
+      }
       setError("Hands-free listening could not start in this browser.");
       setStatus("error");
     }
   }, [settings.language, settings.wakePhrase]);
 
   const toggleWakeListening = useCallback(() => {
-    if (wakeListening) stopWakeListening();
-    else startWakeListening();
+    if (wakeListening) {
+      stopWakeListening();
+    } else {
+      micControllerRef.current?.stop();
+      micControllerRef.current = null;
+      startWakeListening();
+    }
   }, [wakeListening, stopWakeListening, startWakeListening]);
+
+  useEffect(() => {
+    processingRef.current = processing;
+  }, [processing]);
+
+  useEffect(() => {
+    listeningRef.current = listening;
+  }, [listening]);
+
+  // Keeps the microphone open and transcribes each spoken phrase, which also
+  // works where live browser speech recognition is unavailable.
+  const startAlwaysOnListening = useCallback(async () => {
+    if (micControllerRef.current) return true;
+    if (!navigator.mediaDevices?.getUserMedia) return false;
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") return false;
+    const controller = createAlwaysOnMic({
+      shouldPause: () =>
+        speakingRef.current ||
+        processingRef.current ||
+        listeningRef.current ||
+        Date.now() - lastSpeechEndRef.current < 700,
+      sensitivity: () => settings.micSensitivity,
+      onTranscript: (text) => void runCommandRef.current(text, "voice"),
+      onError: (message) => {
+        setError(message);
+        setStatus("error");
+      },
+      onStateChange: (active) => {
+        setAlwaysOnListening(active);
+        if (active) {
+          setStatus("idle");
+          setStatusMessage("I am listening — just talk to me.");
+        }
+      },
+    });
+    micControllerRef.current = controller;
+    const started = await controller.start();
+    if (!started) micControllerRef.current = null;
+    return started;
+  }, [settings.micSensitivity]);
+
+  useEffect(() => {
+    startAlwaysOnRef.current = startAlwaysOnListening;
+  }, [startAlwaysOnListening]);
+
+  // The companion starts by itself — no button and no wake phrase needed.
+  useEffect(() => {
+    if (autoStartedRef.current) return;
+    if (mediaConsent !== "granted") return;
+    if (!settings.voiceEnabled || settings.doNotDisturb || emergencyStopActive) return;
+    if (!navigator.mediaDevices?.getUserMedia) return;
+    autoStartedRef.current = true;
+    const timer = window.setTimeout(() => {
+      void startAlwaysOnListening().then((started) => {
+        if (!started) setStatusMessage("Tap me and press Speak to turn my microphone on.");
+      });
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [
+    mediaConsent,
+    settings.voiceEnabled,
+    settings.doNotDisturb,
+    emergencyStopActive,
+    startAlwaysOnListening,
+  ]);
+
+  // Muting, Do Not Disturb or an Emergency Stop closes the microphone.
+  useEffect(() => {
+    if (settings.voiceEnabled && !settings.doNotDisturb && !emergencyStopActive) return;
+    micControllerRef.current?.stop();
+    micControllerRef.current = null;
+    autoStartedRef.current = false;
+  }, [settings.voiceEnabled, settings.doNotDisturb, emergencyStopActive]);
 
   const runCommand = useCallback(
     async (raw: string, source: CommandSource = "typed") => {
@@ -556,6 +703,7 @@ export function VoiceCommandSystem({
                   command: intent.text,
                   language: settings.language,
                   withVoice: false,
+                  model: "gemini-3.1-flash-lite",
                 }),
               });
               const data = await res.json();
@@ -660,7 +808,9 @@ export function VoiceCommandSystem({
         mediaRecorderRef.current.stop();
       }
       mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-      cancelOfflineVoice();
+      micControllerRef.current?.stop();
+      micControllerRef.current = null;
+      cancelCompanionVoice();
     };
   }, []);
 
@@ -672,20 +822,42 @@ export function VoiceCommandSystem({
     void runCommand(value, "typed");
   };
 
-  const displayStatus: VoiceStatus = listening
-    ? "listening"
-    : processing
-      ? "processing"
-      : speaking
-        ? "success"
+  const micActive = listening || alwaysOnListening || wakeListening;
+
+  const displayStatus: VoiceStatus = processing
+    ? "processing"
+    : speaking
+      ? "success"
+      : micActive
+        ? "listening"
         : status;
 
-  const statusLabel = listening
-    ? "Listening"
-    : processing
-      ? "Working"
-      : speaking
-        ? "Speaking"
+  const companionState = processing
+    ? "processing"
+    : speaking
+      ? "speaking"
+      : micActive
+        ? "listening"
+        : status === "error"
+          ? "error"
+          : "idle";
+
+  const companionCaption = processing
+    ? "Working on that…"
+    : lastResult?.text
+      ? lastResult.text
+      : micActive
+        ? "I am listening — just talk to me."
+        : mediaConsent !== "granted"
+          ? "Tap me and press Speak to turn my microphone on."
+          : statusMessage;
+
+  const statusLabel = processing
+    ? "Working"
+    : speaking
+      ? "Speaking"
+      : micActive
+        ? "Listening"
         : status === "success"
           ? "Done"
           : status === "error"
@@ -705,28 +877,18 @@ export function VoiceCommandSystem({
 
   return (
     <>
-      <button
-        type="button"
-        data-testid="voice-command-launcher"
-        onClick={() => setOpen((value) => !value)}
-        aria-label={open ? "Close voice command system" : "Open voice command system"}
-        aria-expanded={open}
-        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold shadow-lg shadow-emerald-500/25 border border-emerald-400/50 cursor-pointer transition-colors"
-      >
-        <span className="relative flex items-center justify-center">
-          {wakeListening && (
-            <span className="absolute inset-0 rounded-full bg-white/50 animate-ping" aria-hidden="true" />
-          )}
-          <Mic className="w-4 h-4" />
-        </span>
-        <span className="hidden sm:inline">Voice Command</span>
-      </button>
+      <VoiceCompanionFigure
+        state={companionState}
+        caption={companionCaption}
+        open={open}
+        onToggle={() => setOpen((value) => !value)}
+      />
 
       {open && (
         <section
           data-testid="voice-command-panel"
           aria-label="AURIX voice command system"
-          className="fixed bottom-20 right-3 sm:right-5 z-40 w-[calc(100vw-1.5rem)] sm:w-[430px] max-h-[74vh] overflow-y-auto rounded-2xl border border-emerald-500/35 bg-white/95 dark:bg-[#0F1724]/95 backdrop-blur-md shadow-2xl"
+          className="fixed bottom-28 right-3 sm:right-5 z-40 w-[calc(100vw-1.5rem)] sm:w-[430px] max-h-[70vh] overflow-y-auto rounded-2xl border border-emerald-500/35 bg-white/95 dark:bg-[#0F1724]/95 backdrop-blur-md shadow-2xl"
         >
           <div className="sticky top-0 z-10 flex items-start justify-between gap-3 px-4 pt-4 pb-3 bg-white/95 dark:bg-[#0F1724]/95 border-b border-slate-200/80 dark:border-slate-800/80">
             <div className="flex items-center gap-2.5 min-w-0">

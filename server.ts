@@ -773,7 +773,7 @@ async function startServer() {
   // Unified Voice/Text Command Router
   app.post("/api/command/execute", async (req, res) => {
     try {
-      const { command, conversationId, language, withVoice = true } = req.body || {};
+      const { command, conversationId, language, withVoice = true, model: requestedModel } = req.body || {};
       const text = String(command || "").trim();
       if (!text) return res.status(400).json({ error: "Command text is required." });
 
@@ -847,9 +847,11 @@ async function startServer() {
         const aiReply = await chatWithAurix({
           history,
           userMessage: text,
-          model: settings.activeModel,
+          // Voice conversations pass a fast model so AURIX answers in about a
+          // second instead of waiting on the deep thinking model.
+          model: requestedModel === "gemini-3.1-flash-lite" ? "gemini-3.1-flash-lite" : settings.activeModel,
           language: targetLang,
-          thinkingLevel: settings.thinkingLevel,
+          thinkingLevel: requestedModel === "gemini-3.1-flash-lite" ? "LOW" : settings.thinkingLevel,
         });
         replyText = aiReply.text;
       }
