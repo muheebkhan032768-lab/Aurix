@@ -13,7 +13,14 @@ interface DeviceVoice {
 
 const NATURAL_PATTERN = /natural|neural|online|premium|enhanced|studio/i;
 const MALE_PATTERN =
-  /george|ryan|daniel|arthur|oliver|alfie|guy|david|mark|james|thomas|alex|male|charon|fred|tom/i;
+  /\b(male|george|ryan|daniel|arthur|oliver|alfie|guy|david|mark|james|thomas|alex|fred|tom|charon|orus|iapetus|andrew|brian|christopher|eric|roger|steffan)\b/i;
+const FEMALE_PATTERN =
+  /\b(female|zira|hazel|susan|samantha|victoria|karen|moira|tessa|fiona|serena|allison|ava|nicky|joanna|salli|kimberly|ivy|kendra|aria|jenny|michelle|sonia|libby|natasha|emma|olivia|sophie|amelie|amira|alice|isabella|sara)\b/i;
+
+/** True for a voice the device labels as male. Checked before female names. */
+function isMaleVoiceName(name: string): boolean {
+  return !FEMALE_PATTERN.test(name) && MALE_PATTERN.test(name);
+}
 
 function supportsSpeech(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
@@ -32,7 +39,10 @@ function rankVoices(language: AurixLanguage): DeviceVoice[] {
       if (wanted === "en" && lang.includes("gb")) score += 25;
       if (wanted === "en" && lang.includes("us")) score += 8;
       if (NATURAL_PATTERN.test(voice.name)) score += 30;
-      if (MALE_PATTERN.test(voice.name)) score += 18;
+      // AURIX speaks with a male voice: male voices always outrank female ones,
+      // and a device's female voice is pushed out of the list entirely.
+      if (isMaleVoiceName(voice.name)) score += 60;
+      if (FEMALE_PATTERN.test(voice.name)) score -= 70;
       if (voice.localService === false) score += 6;
       if (voice.default) score += 2;
       return { voice, score };
@@ -56,6 +66,30 @@ export function getDeviceVoiceOptions(language: AurixLanguage = "English"): {
 
 export function getAvailableBritishVoices(): SpeechSynthesisVoice[] {
   return rankVoices("English").map((entry) => entry.voice);
+}
+
+/** The device voice AURIX will actually speak with, for the settings panel. */
+export function getPreferredDeviceVoice(
+  language: AurixLanguage = "English",
+  preferredVoiceUri?: string
+): SpeechSynthesisVoice | null {
+  const ranked = rankVoices(language);
+  return (
+    (preferredVoiceUri &&
+      ranked.find(
+        (entry) => entry.voice.voiceURI === preferredVoiceUri || entry.voice.name === preferredVoiceUri
+      )?.voice) ||
+    ranked[0]?.voice ||
+    pickAnyVoice(language)
+  );
+}
+
+/** Last resort when the device has no clearly male voice: any voice in the language. */
+function pickAnyVoice(language: AurixLanguage): SpeechSynthesisVoice | null {
+  if (!supportsSpeech()) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const wanted = language === "Urdu" ? "ur" : language === "Hindi" ? "hi" : "en";
+  return voices.find((voice) => voice.lang.toLowerCase().startsWith(wanted)) || voices[0] || null;
 }
 
 /** True when the device exposes a neural/online voice worth preferring. */
@@ -106,14 +140,7 @@ export function speakWithOfflineBritishVoice(
     // Nothing to cancel.
   }
 
-  const ranked = rankVoices(language);
-  const preferred =
-    (preferredVoiceUri &&
-      ranked.find(
-        (entry) => entry.voice.voiceURI === preferredVoiceUri || entry.voice.name === preferredVoiceUri
-      )?.voice) ||
-    ranked[0]?.voice ||
-    null;
+  const preferred = getPreferredDeviceVoice(language, preferredVoiceUri);
 
   const rate = Math.max(0.8, Math.min(1.2, speed));
   let started = false;
@@ -136,9 +163,9 @@ export function speakWithOfflineBritishVoice(
     utter.lang =
       language === "Urdu" ? "ur-PK" : language === "Hindi" ? "hi-IN" : preferred?.lang || "en-GB";
     utter.rate = rate;
-    // A gentle lower pitch reads as a composed male voice without sounding
-    // synthetic; the browser default pitch is the fallback when it sounds off.
-    utter.pitch = 0.96;
+    // A male device voice keeps a gentle lower pitch; when the device only has a
+    // neutral or female voice the pitch drops further so AURIX still sounds male.
+    utter.pitch = preferred && isMaleVoiceName(preferred.name) ? 0.95 : 0.82;
     utter.volume = Math.max(0, Math.min(1, volume ?? 1));
     utter.onstart = () => {
       if (!started) {

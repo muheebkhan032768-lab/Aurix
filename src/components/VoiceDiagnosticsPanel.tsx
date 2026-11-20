@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Activity, Mic, Play, Square, Volume2 } from "lucide-react";
 import type { AppSettings, AurixLanguage } from "../types/aurix";
-import { getDeviceVoiceOptions, hasNaturalDeviceVoice } from "../utils/offlineVoice";
+import { getDeviceVoiceOptions, getPreferredDeviceVoice, hasNaturalDeviceVoice } from "../utils/offlineVoice";
 import {
   getVoiceEngineSnapshot,
   isCapturing,
@@ -52,6 +52,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
   }, []);
 
   const deviceVoices = getDeviceVoiceOptions(settings.language);
+  const activeDeviceVoice = getPreferredDeviceVoice(settings.language, settings.voiceId);
   const shortcuts = settings.voiceShortcuts || DEFAULT_VOICE_SHORTCUTS;
 
   const runMicTest = async () => {
@@ -277,6 +278,12 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
           </div>
           <div className="text-[#64748B] dark:text-slate-400">
             Device voices <span className="text-[#202938] dark:text-white font-semibold">{deviceVoices.length}</span>
+          </div>
+          <div className="text-[#64748B] dark:text-slate-400 truncate">
+            Active device voice{" "}
+            <span className="text-[#202938] dark:text-white font-semibold">
+              {activeDeviceVoice ? activeDeviceVoice.name : "none installed"}
+            </span>
           </div>
           <div className="text-[#64748B] dark:text-slate-400">
             Natural voice{" "}
