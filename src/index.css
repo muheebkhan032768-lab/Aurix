@@ -177,6 +177,40 @@
   backdrop-filter: blur(10px);
 }
 
+/* Cockpit centre stage: layered holographic deck */
+.nexus-stage {
+  background:
+    radial-gradient(120% 88% at 50% 16%, rgba(0, 217, 255, 0.11), transparent 60%),
+    radial-gradient(70% 50% at 50% 108%, rgba(20, 125, 255, 0.12), transparent 70%),
+    linear-gradient(160deg, rgba(11, 21, 32, 0.94) 0%, rgba(5, 12, 22, 0.9) 100%);
+}
+
+.nexus-grid {
+  background-image:
+    linear-gradient(rgba(0, 217, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 255, 0.05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 22%, transparent 78%);
+  mask-image: radial-gradient(ellipse at center, #000 22%, transparent 78%);
+}
+
+.nexus-bracket {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: rgba(0, 217, 255, 0.38);
+}
+
+/* ECO / reduced-motion: stop continuous ring rendering, keep the composition */
+.nexus-calm .nexus-ring,
+.nexus-calm .nexus-core {
+  animation-play-state: paused;
+}
+
+.nexus-calm .nexus-dash {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

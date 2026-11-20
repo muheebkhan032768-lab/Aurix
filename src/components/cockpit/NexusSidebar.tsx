@@ -207,7 +207,7 @@ export function NexusSidebar({
   return (
     <>
       <aside
-        className={`hidden md:block shrink-0 border-r border-[#00D9FF]/10 bg-[#071B2A]/60 backdrop-blur-xl transition-[width] duration-300 ${
+        className={`hidden shrink-0 overflow-hidden border border-[#00D9FF]/12 bg-[#071B2A]/50 shadow-[0_18px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-[width] duration-300 md:sticky md:top-3 md:my-3 md:ml-3 md:block md:h-[calc(100dvh-1.5rem)] md:rounded-2xl ${
           collapsed ? "w-[68px]" : "w-[236px]"
         }`}
       >

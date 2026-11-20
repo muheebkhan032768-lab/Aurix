@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Bot, Code2, Mic, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUpRight, Bot, Code2, Mic, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
 import type {
   AppSettings,
   AurixLanguage,
   AurixSectionId,
   ConversationSummary,
   OwnerProfile,
+  PerformanceMode,
   ProjectRecord,
   SystemTelemetry,
   TaskItem,
@@ -17,7 +18,6 @@ import { useVoiceSnapshot } from "../../utils/voiceBus";
 import { CockpitReactor, type ReactorState } from "./CockpitReactor";
 import { CockpitTelemetry } from "./CockpitTelemetry";
 import { CockpitVoiceBar } from "./CockpitVoiceBar";
-import { HolographicVoiceHud } from "./HolographicVoiceHud";
 
 interface CommandCenterViewProps {
   owner: OwnerProfile;
@@ -42,6 +42,22 @@ const stateDetail: Record<ReactorState, string> = {
   error: "CHECK SYSTEM",
 };
 
+const VOICE_STATE_LABEL: Record<string, string> = {
+  idle: "SYSTEM READY",
+  listening: "LISTENING",
+  processing: "PROCESSING",
+  speaking: "SPEAKING",
+  error: "MIC ATTENTION",
+};
+
+type CockpitMode = "eco" | "balanced" | "performance";
+
+const MODE_OPTIONS: Array<{ key: CockpitMode; label: string; value: PerformanceMode }> = [
+  { key: "eco", label: "ECO", value: "lightweight" },
+  { key: "balanced", label: "BALANCED", value: "balanced" },
+  { key: "performance", label: "PERFORMANCE", value: "advanced" },
+];
+
 function greetingFor(date: Date): string {
   const hour = date.getHours();
   if (hour < 12) return "Good morning";
@@ -61,6 +77,15 @@ function spokenGreeting(language: AurixLanguage, firstName: string): string {
   }
   const period = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   return `${period}, ${firstName}. AURIX is online. All systems are ready. How may I assist you today?`;
+}
+
+function effectiveMode(settings: AppSettings, telemetry: SystemTelemetry): CockpitMode {
+  if (settings.performanceMode === "lightweight") return "eco";
+  if (settings.performanceMode === "advanced") return "performance";
+  if (settings.performanceMode === "balanced") return "balanced";
+  if (telemetry.recommendedMode === "Lightweight") return "eco";
+  if (telemetry.recommendedMode === "Advanced") return "performance";
+  return "balanced";
 }
 
 export function CommandCenterView({
@@ -107,102 +132,179 @@ export function CommandCenterView({
   const activeProjects = projects.filter((p) => p.status === "active");
   const firstName = owner.name.split(" ")[0] || owner.name;
   const engineLabel = settings.offlineModeForced ? "Local engine" : settings.activeModel;
+  const mode = effectiveMode(settings, telemetry);
+  const calm =
+    settings.lightweightAnimations ||
+    settings.performanceMode === "lightweight" ||
+    (settings.performanceMode === "auto" && telemetry.recommendedMode === "Lightweight");
+  const pushToTalkLabel = formatShortcut(settings.voiceShortcuts?.pushToTalk || "Space");
 
   const quickActions: Array<{ label: string; hint: string; icon: React.ReactNode; section: AurixSectionId }> = [
-    { label: "Ask AURIX", hint: "Open conversation", icon: <Sparkles className="w-3.5 h-3.5" />, section: "chat" },
-    { label: "Voice Center", hint: "Speech engine", icon: <Mic className="w-3.5 h-3.5" />, section: "voice" },
+    { label: "Ask AURIX", hint: "Conversation", icon: <Sparkles className="w-3.5 h-3.5" />, section: "chat" },
+    { label: "Voice", hint: "Speech engine", icon: <Mic className="w-3.5 h-3.5" />, section: "voice" },
     { label: "Developer", hint: "Code workspace", icon: <Code2 className="w-3.5 h-3.5" />, section: "developer" },
     { label: "Automation", hint: "Approved actions", icon: <Bot className="w-3.5 h-3.5" />, section: "automation" },
     { label: "Security", hint: "Permissions", icon: <ShieldCheck className="w-3.5 h-3.5" />, section: "security" },
   ];
 
   return (
-    <div className="space-y-4">
-      {/* greeting */}
-      <div className="nexus-panel rounded-2xl px-4 py-3.5 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="font-display text-lg sm:text-xl font-bold tracking-wide text-white">
-              {greetingFor(new Date())}, {firstName}.
-            </h1>
-            <p className="mt-1 text-[11px] sm:text-xs text-[#94A8B8]">
-              AURIX is online. {openTasks.length} open task{openTasks.length === 1 ? "" : "s"} ·{" "}
-              {activeProjects.length} active project{activeProjects.length === 1 ? "" : "s"} · {conversations.length}{" "}
-              conversation{conversations.length === 1 ? "" : "s"} archived.
-            </p>
+    <div className={`nexus-cockpit flex flex-col gap-3 ${calm ? "nexus-calm" : ""}`}>
+      {/* Command strip */}
+      <div className="nexus-panel-soft flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-base font-bold tracking-wide text-white sm:text-lg">
+            {greetingFor(new Date())}, {firstName}.
+          </h1>
+          <p className="mt-0.5 truncate text-[10px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
+            {openTasks.length} open task{openTasks.length === 1 ? "" : "s"} · {activeProjects.length} active project
+            {activeProjects.length === 1 ? "" : "s"} · {conversations.length} archived
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="flex items-center rounded-lg border border-[#00D9FF]/15 bg-[#05080D]/60 p-0.5"
+            role="group"
+            aria-label="Performance mode"
+          >
+            {MODE_OPTIONS.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => void onUpdateSettings({ ...settings, performanceMode: option.value })}
+                aria-pressed={mode === option.key}
+                className={`rounded-md px-2 py-1 text-[9px] font-mono uppercase tracking-[0.12em] transition-colors cursor-pointer ${
+                  mode === option.key
+                    ? "bg-[#00D9FF]/15 text-[#00D9FF]"
+                    : "text-[#5B7185] hover:text-[#A9C8D5]"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em]">
-            <span className="rounded-full border border-[#00D9FF]/25 bg-[#00D9FF]/8 px-2.5 py-1 text-[#00D9FF]">
-              {telemetry.recommendedMode || settings.performanceMode}
-            </span>
-            <span className="rounded-full border border-[#A9C8D5]/20 px-2.5 py-1 text-[#A9C8D5]">{engineLabel}</span>
-          </div>
+
+          <span className="hidden items-center gap-1.5 rounded-full border border-[#00D9FF]/20 px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] text-[#A9C8D5] sm:flex">
+            {engineLabel}
+          </span>
+
+          <span
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] ${
+              isOnline
+                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
+            {isOnline ? "Link active" : "Local only"}
+          </span>
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-        {/* reactor column */}
-        <div className="space-y-4">
-          <div className="nexus-panel rounded-2xl px-4 py-5 sm:px-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Holographic Core</h2>
-              <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
-                {isOnline ? "cloud link ready" : "local execution"}
+      <div className="grid flex-1 gap-3 md:grid-cols-[minmax(0,1fr)_272px] xl:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Center stage */}
+        <section className="nexus-panel nexus-stage relative flex flex-col overflow-hidden rounded-2xl px-4 py-4 sm:px-5">
+          <div className="nexus-grid pointer-events-none absolute inset-0" aria-hidden="true" />
+          <span className="nexus-bracket left-2 top-2 border-l border-t" aria-hidden="true" />
+          <span className="nexus-bracket right-2 top-2 border-r border-t" aria-hidden="true" />
+          <span className="nexus-bracket bottom-2 left-2 border-b border-l" aria-hidden="true" />
+          <span className="nexus-bracket bottom-2 right-2 border-b border-r" aria-hidden="true" />
+
+          <div className="relative z-10 flex items-center justify-between">
+            <h2 className="text-[11px] font-mono uppercase tracking-[0.24em] text-[#A9C8D5]">Holographic Core</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
+                {pushToTalkLabel} push-to-talk
               </span>
+              <button
+                type="button"
+                onClick={() => void onUpdateSettings({ ...settings, voiceEnabled: !settings.voiceEnabled })}
+                aria-pressed={!settings.voiceEnabled}
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.12em] cursor-pointer ${
+                  settings.voiceEnabled
+                    ? "border-[#00D9FF]/35 text-[#00D9FF] hover:bg-[#00D9FF]/10"
+                    : "border-rose-400/50 bg-rose-500/10 text-rose-200"
+                }`}
+              >
+                {settings.voiceEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+                {settings.voiceEnabled ? "Voice on" : "Muted"}
+              </button>
             </div>
-            <div className="mt-2">
-              <CockpitReactor
-                state={reactorState}
-                level={reactorLevel}
-                detailLabel={stateDetail[reactorState]}
-                size={440}
-              />
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          </div>
+
+          <div className="relative z-10 flex flex-1 items-center justify-center py-2">
+            <CockpitReactor
+              state={reactorState}
+              level={reactorLevel}
+              detailLabel={stateDetail[reactorState]}
+              size={540}
+            />
+          </div>
+
+          <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               {(["idle", "listening", "thinking", "speaking"] as ReactorState[]).map((state) => (
-                <div
+                <span
                   key={state}
-                  className={`rounded-lg border px-2.5 py-1.5 text-center text-[9px] font-mono uppercase tracking-[0.14em] ${
+                  className={`rounded-full border px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.14em] ${
                     reactorState === state
                       ? "border-[#00D9FF]/60 bg-[#00D9FF]/10 text-[#00D9FF]"
                       : "border-[#00D9FF]/10 text-[#5B7185]"
                   }`}
                 >
                   {state}
-                </div>
+                </span>
               ))}
             </div>
+            <span
+              className={`flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.16em] ${
+                voice.state === "error" ? "text-rose-300" : "text-[#94A8B8]"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  voice.state === "idle"
+                    ? "bg-emerald-400"
+                    : voice.state === "error"
+                      ? "bg-rose-400"
+                      : "bg-[#00D9FF] animate-pulse"
+                }`}
+              />
+              {VOICE_STATE_LABEL[voice.state] ?? "SYSTEM READY"}
+            </span>
           </div>
+        </section>
 
-          <HolographicVoiceHud
-            pushToTalkLabel={formatShortcut(settings.voiceShortcuts?.pushToTalk || "Space")}
-            onToggleMute={() => void onUpdateSettings({ ...settings, voiceEnabled: !settings.voiceEnabled })}
-          />
-
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-            {quickActions.map((action) => (
-              <button
-                key={action.label}
-                type="button"
-                onClick={() => onNavigate(action.section)}
-                className="nexus-panel-soft group flex flex-col items-start gap-1.5 rounded-xl px-3 py-2.5 text-left hover:border-[#00D9FF]/40 cursor-pointer"
-              >
-                <span className="flex w-full items-center justify-between text-[#00D9FF]">
-                  {action.icon}
-                  <ArrowUpRight className="w-3 h-3 text-[#5B7185] group-hover:text-[#00D9FF]" />
-                </span>
-                <span className="text-[11px] font-semibold text-white">{action.label}</span>
-                <span className="text-[9px] text-[#5B7185]">{action.hint}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* telemetry column */}
+        {/* Instrument rail */}
         <CockpitTelemetry telemetry={telemetry} settings={settings} isOnline={isOnline} />
       </div>
 
+      {/* Quick access modules */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {quickActions.map((action) => (
+          <button
+            key={action.label}
+            type="button"
+            onClick={() => onNavigate(action.section)}
+            className="nexus-panel-soft group flex items-center gap-2 rounded-xl px-3 py-2.5 text-left hover:border-[#00D9FF]/40 cursor-pointer"
+          >
+            <span className="text-[#00D9FF]">{action.icon}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[11px] font-semibold text-white">{action.label}</span>
+              <span className="block truncate text-[9px] text-[#5B7185]">{action.hint}</span>
+            </span>
+            <ArrowUpRight className="w-3 h-3 shrink-0 text-[#5B7185] group-hover:text-[#00D9FF]" />
+          </button>
+        ))}
+      </div>
+
+      {/* Voice console */}
       <CockpitVoiceBar settings={settings} onSignal={handleSignal} />
+
+      <div className="flex items-center justify-between px-1 text-[9px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">
+        <span>AURIX 2.0 · Nexus Cockpit</span>
+        <span>Powered by AM VEYRONIX</span>
+      </div>
     </div>
   );
 }

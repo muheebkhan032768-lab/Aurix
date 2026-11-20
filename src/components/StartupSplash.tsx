@@ -127,19 +127,19 @@ export function StartupSplash({
       ctx.fillRect(0, 0, w, h);
 
       const impactBoost =
-        tNorm >= 0.24 && tNorm <= 0.45 ? 1 + (1 - Math.abs(tNorm - 0.28) / 0.17) * 0.85 : 1;
+        tNorm >= 0.3 && tNorm <= 0.52 ? 1 + (1 - Math.abs(tNorm - 0.34) / 0.18) * 0.85 : 1;
       const auraIntensity = Math.min(1, tNorm / 0.18) * (tNorm > 0.88 ? 1 - (tNorm - 0.88) * 3 : 1);
 
       const grad = ctx.createRadialGradient(cx, cy, 12, cx, cy, Math.max(w, h) * 0.54);
-      grad.addColorStop(0, `rgba(6, 182, 212, ${0.24 * auraIntensity * impactBoost})`);
-      grad.addColorStop(0.32, `rgba(16, 185, 129, ${0.14 * auraIntensity * impactBoost})`);
-      grad.addColorStop(0.65, `rgba(214, 173, 96, ${0.06 * auraIntensity})`);
-      grad.addColorStop(1, "rgba(8, 11, 16, 0)");
+      grad.addColorStop(0, `rgba(0, 217, 255, ${0.26 * auraIntensity * impactBoost})`);
+      grad.addColorStop(0.32, `rgba(20, 125, 255, ${0.16 * auraIntensity * impactBoost})`);
+      grad.addColorStop(0.65, `rgba(169, 200, 213, ${0.07 * auraIntensity})`);
+      grad.addColorStop(1, "rgba(5, 8, 13, 0)");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
       ctx.save();
-      ctx.strokeStyle = `rgba(6, 182, 212, ${0.14 * auraIntensity})`;
+      ctx.strokeStyle = `rgba(0, 217, 255, ${0.14 * auraIntensity})`;
       ctx.lineWidth = 1;
       for (const rMult of [0.22, 0.36]) {
         ctx.beginPath();
@@ -148,15 +148,15 @@ export function StartupSplash({
       }
       ctx.restore();
 
-      if (tNorm >= 0.24 && tNorm <= 0.6) {
-        const waveP = (tNorm - 0.24) / 0.36;
+      if (tNorm >= 0.26 && tNorm <= 0.64) {
+        const waveP = (tNorm - 0.26) / 0.38;
         const maxR = Math.max(w, h) * 0.58;
         const ringR = 28 + waveP * maxR;
         const ringAlpha = Math.max(0, (1 - waveP) * 0.85);
 
         ctx.beginPath();
         ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(6, 182, 212, ${ringAlpha})`;
+        ctx.strokeStyle = `rgba(0, 217, 255, ${ringAlpha})`;
         ctx.lineWidth = 2.8 * (1 - waveP) + 0.6;
         ctx.stroke();
 
@@ -164,30 +164,30 @@ export function StartupSplash({
           const r2 = 18 + (waveP - 0.08) * maxR * 0.85;
           ctx.beginPath();
           ctx.arc(cx, cy, r2, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha * 0.72})`;
+          ctx.strokeStyle = `rgba(20, 125, 255, ${ringAlpha * 0.72})`;
           ctx.lineWidth = 1.6;
           ctx.stroke();
         }
       }
 
-      if (tNorm >= 0.22 && tNorm <= 0.84) {
+      if (tNorm >= 0.28 && tNorm <= 0.9) {
         const flareAlpha =
-          tNorm < 0.3 ? (tNorm - 0.22) / 0.08 : tNorm < 0.55 ? 1 - (tNorm - 0.3) * 1.4 : 0.55;
+          tNorm < 0.36 ? (tNorm - 0.28) / 0.08 : tNorm < 0.6 ? 1 - (tNorm - 0.36) * 1.4 : 0.55;
         const beam = ctx.createLinearGradient(w * 0.08, cy, w * 0.92, cy);
-        beam.addColorStop(0, "rgba(6, 182, 212, 0)");
+        beam.addColorStop(0, "rgba(0, 217, 255, 0)");
         beam.addColorStop(0.5, `rgba(103, 232, 249, ${Math.max(0, flareAlpha * 0.62)})`);
-        beam.addColorStop(1, "rgba(16, 185, 129, 0)");
+        beam.addColorStop(1, "rgba(20, 125, 255, 0)");
         ctx.fillStyle = beam;
         ctx.fillRect(w * 0.08, cy - 1, w * 0.84, 2);
       }
 
       const particleFade = Math.min(1, elapsedSec / 0.8);
       for (const p of particles) {
-        if (tNorm < 0.24) {
+        if (tNorm < 0.3) {
           p.dist -= p.speed * 2.0;
           if (p.dist < 18) p.dist = Math.max(w, h) * 0.55;
         } else {
-          p.dist += p.speed * (tNorm < 0.35 ? 4.4 : 0.8);
+          p.dist += p.speed * (tNorm < 0.42 ? 4.4 : 0.8);
           if (p.dist > Math.max(w, h) * 0.65) p.dist = 30 + Math.random() * 60;
         }
         p.angle += 0.002;
@@ -197,8 +197,8 @@ export function StartupSplash({
         ctx.beginPath();
         ctx.arc(px, py, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = p.cyan
-          ? `rgba(6, 182, 212, ${p.alpha * particleFade})`
-          : `rgba(16, 185, 129, ${p.alpha * 0.82 * particleFade})`;
+          ? `rgba(0, 217, 255, ${p.alpha * particleFade})`
+          : `rgba(20, 125, 255, ${p.alpha * 0.82 * particleFade})`;
         ctx.fill();
       }
 
@@ -212,12 +212,12 @@ export function StartupSplash({
     };
   }, [totalMs, lightweight]);
 
-  const ringOpacity = Math.max(0, Math.min(1, (progress - 0.1) / 0.18));
-  const ringRotate = progress * 160;
-  const sweepPct = Math.max(-25, Math.min(125, ((progress - 0.48) / 0.26) * 150 - 25));
-  const showSweep = progress >= 0.46 && progress <= 0.78;
-  const taglineOpacity = Math.max(0, Math.min(1, (progress - 0.56) / 0.15));
-  const versionProgress = Math.max(0, Math.min(1, (progress - 0.34) / 0.14));
+  const ringOpacity = Math.max(0, Math.min(1, (progress - 0.06) / 0.14));
+  const ringRotate = progress * 200;
+  const sweepPct = Math.max(-25, Math.min(125, ((progress - 0.58) / 0.26) * 150 - 25));
+  const showSweep = progress >= 0.56 && progress <= 0.88;
+  const taglineOpacity = Math.max(0, Math.min(1, (progress - 0.68) / 0.15));
+  const versionProgress = Math.max(0, Math.min(1, (progress - 0.48) / 0.12));
 
   return (
     <div
@@ -241,13 +241,14 @@ export function StartupSplash({
           <svg
             viewBox="0 0 112 112"
             className="w-24 h-24 sm:w-28 sm:h-28"
-            style={{ filter: "drop-shadow(0 0 22px rgba(6, 182, 212, 0.55))" }}
+            style={{ filter: "drop-shadow(0 0 22px rgba(0, 217, 255, 0.6))" }}
             fill="none"
             aria-hidden="true"
           >
             <g style={{ transformOrigin: "56px 56px", transform: `rotate(${ringRotate}deg)` }}>
-              <circle cx="56" cy="56" r="50" stroke="#10B981" strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="18 10" />
-              <circle cx="56" cy="56" r="41" stroke="#06B6D4" strokeWidth="2.2" strokeDasharray="135 90" />
+              <circle cx="56" cy="56" r="53" stroke="#00D9FF" strokeOpacity="0.35" strokeWidth="1" strokeDasharray="2 5" />
+              <circle cx="56" cy="56" r="50" stroke="#147DFF" strokeOpacity="0.7" strokeWidth="1.5" strokeDasharray="18 10" />
+              <circle cx="56" cy="56" r="41" stroke="#00D9FF" strokeWidth="2.2" strokeDasharray="135 90" />
             </g>
             <path
               d="M56 23L80 79H69.5L64 65.5H48L42.5 79H32L56 23ZM51.2 57.5H60.8L56 45.2L51.2 57.5Z"
@@ -257,7 +258,7 @@ export function StartupSplash({
               <linearGradient id="aurixSilverCyan" x1="32" y1="23" x2="80" y2="79" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#FFFFFF" />
                 <stop offset="0.55" stopColor="#CBD5E1" />
-                <stop offset="1" stopColor="#06B6D4" />
+                <stop offset="1" stopColor="#00D9FF" />
               </linearGradient>
             </defs>
           </svg>
@@ -267,7 +268,7 @@ export function StartupSplash({
           <h1 className="font-display font-bold tracking-[0.2em] text-6xl sm:text-8xl md:text-[7.5rem] leading-none flex items-baseline justify-center">
             <span className="inline-flex items-center">
               {AURIX_LETTERS.map((ch, idx) => {
-                const charStart = 0.22 + idx * 0.024;
+                const charStart = 0.34 + idx * 0.024;
                 const p = Math.max(0, Math.min(1, (progress - charStart) / 0.11));
                 const easeOut = 1 - Math.pow(1 - p, 3);
                 const slamScale = 1.5 - easeOut * 0.5;
@@ -281,7 +282,7 @@ export function StartupSplash({
                       color: "#F8FAFC",
                       transform: `translateY(${yShift}px) scale(${slamScale})`,
                       textShadow:
-                        "0 2px 0 #CBD5E1, 0 4px 0 #475569, 0 0 28px rgba(6, 182, 212, 0.72), 0 0 56px rgba(16, 185, 129, 0.35)",
+                        "0 2px 0 #CBD5E1, 0 4px 0 #475569, 0 0 28px rgba(0, 217, 255, 0.75), 0 0 56px rgba(20, 125, 255, 0.4)",
                     }}
                   >
                     {ch}
@@ -304,9 +305,9 @@ export function StartupSplash({
                   key={`v_${idx}`}
                   className="inline-block"
                   style={{
-                    color: "#06B6D4",
+                    color: "#00D9FF",
                     textShadow:
-                      "0 2px 0 #0E7490, 0 0 26px rgba(6, 182, 212, 0.9), 0 0 52px rgba(16, 185, 129, 0.5)",
+                      "0 2px 0 #0E7490, 0 0 26px rgba(0, 217, 255, 0.9), 0 0 52px rgba(20, 125, 255, 0.55)",
                   }}
                 >
                   {ch}
@@ -322,7 +323,7 @@ export function StartupSplash({
               style={{
                 left: `${sweepPct}%`,
                 background:
-                  "linear-gradient(90deg, rgba(6,182,212,0) 0%, rgba(103,232,249,0.75) 50%, rgba(16,185,129,0) 100%)",
+                  "linear-gradient(90deg, rgba(0,217,255,0) 0%, rgba(103,232,249,0.8) 50%, rgba(20,125,255,0) 100%)",
               }}
             />
           )}
@@ -332,9 +333,9 @@ export function StartupSplash({
           className="mt-6 font-display text-sm sm:text-base md:text-lg font-semibold tracking-[0.42em] uppercase"
           style={{
             opacity: taglineOpacity,
-            color: "#A7F3D0",
+            color: "#BAE6FD",
             transform: `translateY(${(1 - taglineOpacity) * 10}px)`,
-            textShadow: "0 0 20px rgba(16, 185, 129, 0.75)",
+            textShadow: "0 0 20px rgba(0, 217, 255, 0.75)",
           }}
         >
           ADVANCED UNIFIED INTELLIGENCE X
@@ -343,10 +344,10 @@ export function StartupSplash({
         <div className="mt-8 w-64 sm:w-80">
           <div className="h-1.5 w-full rounded-full bg-slate-800/90 overflow-hidden border border-cyan-500/35">
             <div
-              className="h-full bg-gradient-to-r from-[#10B981] via-[#06B6D4] to-[#D6AD60] transition-[width] duration-75"
+              className="h-full bg-gradient-to-r from-[#147DFF] via-[#00D9FF] to-[#A9C8D5] transition-[width] duration-75"
               style={{
                 width: `${Math.round(progress * 100)}%`,
-                boxShadow: "0 0 14px rgba(6, 182, 212, 0.85)",
+                boxShadow: "0 0 14px rgba(0, 217, 255, 0.85)",
               }}
             />
           </div>
