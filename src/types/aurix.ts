@@ -15,6 +15,8 @@ export type AurixSectionId =
   | "creative"
   | "security"
   | "models"
+  | "memory"
+  | "automation"
   | "settings";
 
 export type AurixLanguage = "English" | "Urdu" | "Hindi";

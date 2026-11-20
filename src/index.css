@@ -112,6 +112,71 @@
   animation-delay: 1s;
 }
 
+/* AURIX 2.0 — NEXUS COCKPIT reactor & instrument motion */
+@keyframes nexus-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes nexus-spin-rev {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes nexus-core-pulse {
+  0%, 100% { opacity: 0.62; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.045); }
+}
+
+@keyframes nexus-dash {
+  to { stroke-dashoffset: -260; }
+}
+
+@keyframes nexus-wave {
+  0%, 100% { transform: scaleY(0.28); }
+  50% { transform: scaleY(1); }
+}
+
+@keyframes nexus-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nexus-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nexus-spin 30s linear infinite;
+}
+
+.nexus-ring.is-reverse {
+  animation-name: nexus-spin-rev;
+}
+
+.nexus-dash {
+  animation: nexus-dash 9s linear infinite;
+}
+
+.nexus-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nexus-core-pulse 3.4s ease-in-out infinite;
+}
+
+.nexus-enter {
+  animation: nexus-rise 0.4s ease-out both;
+}
+
+.nexus-panel {
+  background: linear-gradient(160deg, rgba(11, 21, 32, 0.92) 0%, rgba(7, 27, 42, 0.78) 100%);
+  border: 1px solid rgba(0, 217, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(169, 200, 213, 0.08), 0 18px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+}
+
+.nexus-panel-soft {
+  background: rgba(11, 21, 32, 0.62);
+  border: 1px solid rgba(0, 217, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

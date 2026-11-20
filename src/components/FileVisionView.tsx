@@ -4,10 +4,11 @@ import type { MemoryItem } from "../types/aurix";
 
 interface FileVisionViewProps {
   onSaveMemory: (m: Omit<MemoryItem, "id" | "createdAt" | "updatedAt">) => Promise<void>;
+  initialMode?: "summarize" | "ocr" | "vision" | "code-review" | "compare";
 }
 
-export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
-  const [mode, setMode] = useState<"summarize" | "ocr" | "vision" | "code-review" | "compare">("summarize");
+export function FileVisionView({ onSaveMemory, initialMode = "summarize" }: FileVisionViewProps) {
+  const [mode, setMode] = useState<"summarize" | "ocr" | "vision" | "code-review" | "compare">(initialMode);
   const [fileName, setFileName] = useState("uploaded_input.txt");
   const [mimeType, setMimeType] = useState("text/plain");
   const [base64Data, setBase64Data] = useState<string | undefined>(undefined);

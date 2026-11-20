@@ -1,17 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Building2,
-  Code2,
-  Home,
-  Lock,
-  Menu,
-  OctagonAlert,
-  Settings,
-  ShieldCheck,
-  Video,
-  Volume2,
-  X,
-} from "lucide-react";
+import { Video, Volume2 } from "lucide-react";
 import type {
   AppSettings,
   AurixLanguage,
@@ -29,7 +17,6 @@ import type {
 } from "./types/aurix";
 import { AurixLogo } from "./components/AurixLogo";
 import { StartupSplash } from "./components/StartupSplash";
-import { CommandHubView } from "./components/CommandHubView";
 import { ChatView } from "./components/ChatView";
 import { VoiceAssistantView } from "./components/VoiceAssistantView";
 import { VoiceCommandSystem } from "./components/VoiceCommandSystem";
@@ -47,6 +34,11 @@ import { ModelsView } from "./components/ModelsView";
 import { SettingsView } from "./components/SettingsView";
 import { SelfHealView } from "./components/SelfHealView";
 import { CreativePcView } from "./components/CreativePcView";
+import { NexusSidebar } from "./components/cockpit/NexusSidebar";
+import { NexusTopBar } from "./components/cockpit/NexusTopBar";
+import { CommandCenterView } from "./components/cockpit/CommandCenterView";
+import { MemoryCenterView } from "./components/MemoryCenterView";
+import { AutomationCenterView } from "./components/AutomationCenterView";
 
 class SelfHealingErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -106,63 +98,6 @@ class SelfHealingErrorBoundary extends React.Component<
   }
 }
 
-type TopGroupId = "home" | "company" | "developer" | "security" | "settings";
-
-const TOP_NAV_ITEMS: Array<{
-  id: TopGroupId;
-  name: string;
-  icon: React.ComponentType<{ className?: string }>;
-  sections: AurixSectionId[];
-}> = [
-  { id: "home", name: "Command Hub", icon: Home, sections: ["home"] },
-  {
-    id: "company",
-    name: "AM VEYRONIX",
-    icon: Building2,
-    sections: ["company", "websites", "projects", "business"],
-  },
-  {
-    id: "developer",
-    name: "Workspace",
-    icon: Code2,
-    sections: ["creative", "developer", "chat", "voice", "files", "research", "productivity"],
-  },
-  {
-    id: "security",
-    name: "System",
-    icon: ShieldCheck,
-    sections: ["selfheal", "security", "system", "models"],
-  },
-  { id: "settings", name: "Settings", icon: Settings, sections: ["settings"] },
-];
-
-const SUB_TABS: Record<
-  Exclude<TopGroupId, "home" | "settings">,
-  Array<{ id: AurixSectionId; label: string }>
-> = {
-  company: [
-    { id: "company", label: "Company" },
-    { id: "websites", label: "Websites" },
-    { id: "projects", label: "Projects" },
-    { id: "business", label: "Business" },
-  ],
-  developer: [
-    { id: "creative", label: "Creative Studio & Files" },
-    { id: "developer", label: "Developer" },
-    { id: "chat", label: "Chat Archive" },
-    { id: "voice", label: "Voice Studio" },
-    { id: "files", label: "File & Vision" },
-    { id: "research", label: "Research" },
-    { id: "productivity", label: "Tasks & Notes" },
-  ],
-  security: [
-    { id: "selfheal", label: "Self-Healer (12-Step)" },
-    { id: "security", label: "Security Center" },
-    { id: "system", label: "System & PC Monitor" },
-    { id: "models", label: "AI Models & Modes" },
-  ],
-};
-
 export default function App() {
   return (
     <SelfHealingErrorBoundary>
@@ -175,12 +110,26 @@ function AurixShell() {
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [activeSection, setActiveSection] = useState<AurixSectionId>("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("aurix_sidebar_collapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [fileMode, setFileMode] = useState<"summarize" | "ocr" | "vision" | "code-review" | "compare">("summarize");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("aurix_sidebar_collapsed", sidebarCollapsed ? "1" : "0");
+    } catch {
+      /* storage unavailable */
+    }
+  }, [sidebarCollapsed]);
   const [pendingQuickPrompt, setPendingQuickPrompt] = useState<string | null>(null);
   const [browserOnline, setBrowserOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true
-  );
-  const [clockText, setClockText] = useState(() =>
-    new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
   );
 
   // Startup & Post-Consent Voice Greeting State
@@ -233,15 +182,9 @@ function AurixShell() {
     const off = () => setBrowserOnline(false);
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
-    const clockTimer = setInterval(() => {
-      setClockText(
-        new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
-      );
-    }, 1000);
     return () => {
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
-      clearInterval(clockTimer);
     };
   }, []);
 
@@ -314,8 +257,6 @@ function AurixShell() {
   }
 
   const effectiveOnline = browserOnline && !data.settings.offlineModeForced;
-  const activeTopGroup =
-    TOP_NAV_ITEMS.find((g) => g.sections.includes(activeSection)) || TOP_NAV_ITEMS[0];
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -520,7 +461,7 @@ function AurixShell() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1117] text-[#202938] dark:text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-[#05080D] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,217,255,0.10),transparent_62%)] text-slate-100 flex flex-col">
       {/* PIN Lock Gate */}
       {locked && (
         <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-md flex items-center justify-center p-4">
@@ -559,275 +500,66 @@ function AurixShell() {
         </div>
       )}
 
-      {/* Bright Glassmorphism Top HUD Command Header */}
-      <header className="h-16 px-4 sm:px-6 bg-white/90 dark:bg-[#0F1724]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 sticky top-0 z-30">
-        <div className="flex items-center gap-3 min-w-0">
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open navigation"
-            className="md:hidden p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-[#202938] dark:text-slate-200"
-          >
-            <Menu className="w-4 h-4" />
-          </button>
-          <AurixLogo className="w-7 h-7 text-[#10B981] shrink-0" />
-          <div className="min-w-0">
-            <div className="font-display text-sm sm:text-base font-bold tracking-wider text-[#202938] dark:text-white whitespace-nowrap">
-              AURIX 2.0
-            </div>
-            <div className="hidden sm:block text-[10px] font-mono tracking-[0.18em] text-[#D6AD60] font-semibold uppercase truncate">
-              POWERED BY AM VEYRONIX
-            </div>
-          </div>
-        </div>
-
-        {/* Clean 5-Item Single-Line Navigation Bar */}
-        <nav className="hidden md:flex items-center gap-1 p-1 rounded-xl bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800">
-          {TOP_NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const active = activeTopGroup.id === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveSection(item.sections[0])}
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                  active
-                    ? "bg-[#10B981] text-white font-semibold shadow-sm"
-                    : "text-[#64748B] dark:text-slate-300 hover:text-[#202938] dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-800/80"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span>{item.name}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Right HUD Status: Online/Offline + Emergency Stop + Clock + Owner */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => toggleEmergencyStop(!data.telemetry.emergencyStopActive)}
-            title="Emergency Stop — Halts all desktop automation & proactive voice output"
-            className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold cursor-pointer whitespace-nowrap shrink-0 transition-colors ${
-              data.telemetry.emergencyStopActive
-                ? "bg-rose-600 border-rose-700 text-white"
-                : "bg-white dark:bg-[#0B111B] border-rose-300 dark:border-rose-700/70 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-            }`}
-          >
-            <OctagonAlert className="w-3.5 h-3.5 shrink-0" />
-            <span>{data.telemetry.emergencyStopActive ? "STOPPED" : "Emergency Stop"}</span>
-          </button>
-
-          <div className="hidden lg:block text-right pr-2 border-r border-slate-200 dark:border-slate-800">
-            <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#64748B]">
-              {effectiveOnline ? "ONLINE MODE" : "OFFLINE MODE"}
-            </div>
-            <div className="text-xs font-mono font-semibold text-[#10B981] tabular-nums">
-              {clockText}
-            </div>
-          </div>
-
-          {data.security.hasPin && (
-            <button
-              type="button"
-              onClick={() => setLocked(true)}
-              title="Lock AURIX Session"
-              className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#10B981] text-[#202938] dark:text-slate-200 cursor-pointer"
-            >
-              <Lock className="w-3.5 h-3.5 text-[#D6AD60]" />
-            </button>
-          )}
-
-          <div className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-[#EEF2F7] dark:bg-[#0B111B]">
-            <img
-              src="/src/assets/images/avatar_abdul_muheeb_1795088206648.jpg"
-              alt={data.owner.name}
-              referrerPolicy="no-referrer"
-              className="w-6 h-6 rounded-full object-cover shrink-0"
-            />
-            <span className="hidden sm:inline text-xs font-medium text-[#202938] dark:text-slate-200 whitespace-nowrap">
-              {data.owner.name}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden flex">
-          <div className="w-64 bg-white dark:bg-[#0F1724] border-r border-slate-200 dark:border-slate-800 p-4 overflow-y-auto space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-display font-bold text-base text-[#202938] dark:text-white">AURIX 2.0</span>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 text-[#64748B]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-1">
-              {TOP_NAV_ITEMS.map((item) => {
-                const Icon = item.icon;
-                const active = activeTopGroup.id === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveSection(item.sections[0]);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium ${
-                      active
-                        ? "bg-[#10B981] text-white font-semibold"
-                        : "text-[#64748B] dark:text-slate-300"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="flex-1 bg-slate-900/50" onClick={() => setMobileMenuOpen(false)} />
-        </div>
-      )}
-
-      {/* Post-Startup Hardware Consent Modal — Strictly Appears ONLY AFTER Splash Finishes */}
-      {startupPhase === "ready" && !locked && !mediaConsentChoice && (
-        <div
-          className="fixed inset-0 z-40 bg-slate-900/55 backdrop-blur-sm flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="aurix-media-consent-title"
-        >
-          <div className="w-full max-w-md bg-white dark:bg-[#0F1724] border border-emerald-500/40 rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/35 flex items-center justify-center shrink-0">
-                <Volume2 className="w-5 h-5 text-[#10B981]" />
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/35 flex items-center justify-center shrink-0">
-                <Video className="w-5 h-5 text-[#06B6D4]" />
-              </div>
-              <div>
-                <h2
-                  id="aurix-media-consent-title"
-                  className="text-base font-semibold text-[#202938] dark:text-white"
-                >
-                  Allow Microphone &amp; Camera Access?
-                </h2>
-                <p className="text-xs text-[#64748B] dark:text-slate-400">
-                  AURIX will welcome you aloud immediately after
-                </p>
-              </div>
-            </div>
-
-            <p className="text-xs sm:text-sm text-[#64748B] dark:text-slate-300 leading-relaxed">
-              Grant Microphone &amp; Camera access for live voice conversation and vision snapshots, or select &quot;Continue &amp; Speak&quot; to proceed with voice greeting and text/upload control.
-            </p>
-
-            {mediaConsentMsg && (
-              <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-[#D6AD60] px-3 py-2 text-xs text-[#202938] dark:text-amber-200">
-                {mediaConsentMsg}
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  try {
-                    localStorage.setItem("aurix_media_consent", "declined");
-                  } catch {
-                    // Ignore storage error
-                  }
-                  setMediaConsentChoice("declined");
-                  setWelcomeTriggerCount((c) => c + 1);
-                }}
-                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-medium text-[#202938] dark:text-slate-200 hover:bg-[#EEF2F7] dark:hover:bg-slate-800 cursor-pointer whitespace-nowrap"
-              >
-                Continue &amp; Speak
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  setMediaConsentMsg(null);
-                  try {
-                    if (!navigator.mediaDevices?.getUserMedia) {
-                      throw new Error("Media devices unavailable");
-                    }
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-                    stream.getTracks().forEach((t) => t.stop());
-                    try {
-                      localStorage.setItem("aurix_media_consent", "granted");
-                    } catch {
-                      // Ignore storage error
-                    }
-                    setMediaConsentChoice("granted");
-                    setReadiness((prev) => (prev ? { ...prev, microphoneStatus: "available" } : prev));
-                    setWelcomeTriggerCount((c) => c + 1);
-                  } catch {
-                    setMediaConsentMsg(
-                      "Live Mic/Camera is blocked by the browser or preview frame. Click 'Continue & Speak' — AURIX will welcome you aloud immediately."
-                    );
-                  }
-                }}
-                className="px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer whitespace-nowrap"
-              >
-                Allow Access
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Sub-Tabs inside AM VEYRONIX, Workspace, or System */}
-      {(activeTopGroup.id === "company" ||
-        activeTopGroup.id === "developer" ||
-        activeTopGroup.id === "security") && (
-        <div className="px-4 sm:px-6 pt-4 max-w-[1440px] w-full mx-auto">
-          <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-3">
-            {SUB_TABS[activeTopGroup.id].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveSection(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                  activeSection === tab.id
-                    ? "bg-[#10B981]/12 border border-[#10B981]/45 text-emerald-700 dark:text-emerald-300 font-semibold"
-                    : "border border-transparent text-[#64748B] dark:text-slate-400 hover:text-[#202938] dark:hover:text-slate-200"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <main className="flex-1 p-4 sm:p-6 max-w-[1440px] w-full mx-auto">
-        {activeSection === "home" && (
-          <CommandHubView
+      <div className="flex flex-1 min-h-0">
+        <NexusSidebar
+          activeSection={activeSection}
+          onNavigate={(item) => {
+            if (item.fileMode) setFileMode(item.fileMode);
+            setActiveSection(item.id);
+          }}
+          collapsed={sidebarCollapsed}
+          onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+          mobileOpen={mobileMenuOpen}
+          onCloseMobile={() => setMobileMenuOpen(false)}
+          moreOpen={moreOpen}
+          onToggleMore={() => setMoreOpen((v) => !v)}
+          onNavigateSecondary={setActiveSection}
+          fileMode={fileMode}
+        />
+        <div className="flex-1 min-w-0 flex flex-col">
+          <NexusTopBar
             owner={data.owner}
-            company={data.company}
-            websites={data.websites}
-            projects={data.projects}
+            settings={data.settings}
+            isOnline={effectiveOnline}
             tasks={data.tasks}
-            conversations={data.conversations}
+            activity={data.auditLogs.map((entry) => ({
+              id: entry.id,
+              label: `${entry.eventType} · ${entry.detail}`,
+              at: entry.createdAt,
+            }))}
+            emergencyStopActive={data.telemetry.emergencyStopActive}
+            onToggleEmergencyStop={toggleEmergencyStop}
+            onNavigate={setActiveSection}
+            onOpenMobileNav={() => setMobileMenuOpen(true)}
+          />
+          <main className="flex-1 w-full px-3 sm:px-5 py-4 pb-28 max-w-[1600px] mx-auto">
+        {activeSection === "home" && (
+          <CommandCenterView
+            owner={data.owner}
             settings={data.settings}
             telemetry={data.telemetry}
+            tasks={data.tasks}
+            projects={data.projects}
+            conversations={data.conversations}
             isOnline={effectiveOnline}
             welcomeTriggerSignal={welcomeTriggerCount}
             onNavigate={setActiveSection}
-            onUpdateSettings={updateSettings}
-            onEmergencyStop={toggleEmergencyStop}
-            onConversationsUpdated={(conversations) =>
-              setData((prev) => (prev ? { ...prev, conversations } : prev))
-            }
+          />
+        )}
+
+        {activeSection === "memory" && (
+          <MemoryCenterView
+            memories={data.memories}
+            onSaveMemory={saveMemory}
+            onDeleteMemory={deleteMemory}
+          />
+        )}
+
+        {activeSection === "automation" && (
+          <AutomationCenterView
+            auditLogs={data.auditLogs}
+            emergencyStopActive={data.telemetry.emergencyStopActive}
+            onToggleEmergencyStop={toggleEmergencyStop}
           />
         )}
 
@@ -866,7 +598,9 @@ function AurixShell() {
 
         {activeSection === "developer" && <DeveloperView websites={data.websites} />}
 
-        {activeSection === "files" && <FileVisionView onSaveMemory={saveMemory} />}
+        {activeSection === "files" && (
+          <FileVisionView key={fileMode} initialMode={fileMode} onSaveMemory={saveMemory} />
+        )}
 
         {activeSection === "research" && <ResearchView language={data.settings.language} />}
 
@@ -932,7 +666,93 @@ function AurixShell() {
             }}
           />
         )}
-      </main>
+          </main>
+        </div>
+      </div>
+
+      {/* Post-Startup Media Consent — appears only after the startup animation */}
+      {startupPhase === "ready" && !locked && !mediaConsentChoice && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="aurix-media-consent-title"
+        >
+          <div className="nexus-panel w-full max-w-md space-y-4 rounded-2xl p-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#00D9FF]/35 bg-[#00D9FF]/10">
+                <Volume2 className="h-5 w-5 text-[#00D9FF]" />
+              </div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#147DFF]/35 bg-[#147DFF]/10">
+                <Video className="h-5 w-5 text-[#147DFF]" />
+              </div>
+              <div>
+                <h2 id="aurix-media-consent-title" className="text-base font-semibold text-white">
+                  Allow Microphone &amp; Camera Access?
+                </h2>
+                <p className="text-xs text-[#94A8B8]">AURIX will welcome you aloud immediately after</p>
+              </div>
+            </div>
+
+            <p className="text-xs leading-relaxed text-[#94A8B8] sm:text-sm">
+              Grant Microphone &amp; Camera access for live voice conversation and vision snapshots, or select
+              &quot;Continue &amp; Speak&quot; to proceed with voice greeting and text/upload control.
+            </p>
+
+            {mediaConsentMsg && (
+              <div className="rounded-lg border border-[#D6AD60] bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                {mediaConsentMsg}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.setItem("aurix_media_consent", "declined");
+                  } catch {
+                    // Ignore storage error
+                  }
+                  setMediaConsentChoice("declined");
+                  setWelcomeTriggerCount((c) => c + 1);
+                }}
+                className="whitespace-nowrap rounded-lg border border-[#A9C8D5]/30 px-4 py-2 text-xs font-medium text-[#D6E6EE] hover:bg-white/5 cursor-pointer"
+              >
+                Continue &amp; Speak
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setMediaConsentMsg(null);
+                  try {
+                    if (!navigator.mediaDevices?.getUserMedia) {
+                      throw new Error("Media devices unavailable");
+                    }
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                    stream.getTracks().forEach((t) => t.stop());
+                    try {
+                      localStorage.setItem("aurix_media_consent", "granted");
+                    } catch {
+                      // Ignore storage error
+                    }
+                    setMediaConsentChoice("granted");
+                    setReadiness((prev) => (prev ? { ...prev, microphoneStatus: "available" } : prev));
+                    setWelcomeTriggerCount((c) => c + 1);
+                  } catch {
+                    setMediaConsentMsg(
+                      "Live Mic/Camera is blocked by the browser or preview frame. Click 'Continue & Speak' — AURIX will welcome you aloud immediately."
+                    );
+                  }
+                }}
+                className="whitespace-nowrap rounded-lg bg-[#00D9FF] px-4 py-2 text-xs font-semibold text-[#05080D] hover:bg-[#33E3FF] cursor-pointer"
+              >
+                Allow Access
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {startupPhase === "ready" && !locked && mediaConsentChoice && (
         <VoiceCommandSystem
