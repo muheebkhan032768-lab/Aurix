@@ -192,6 +192,14 @@ export interface AuditLogEntry {
   createdAt: string;
 }
 
+export interface VoiceShortcuts {
+  pushToTalk: string;
+  cancel: string;
+  continuous: string;
+  activate: string;
+  mute: string;
+}
+
 export interface AppSettings {
   voiceName: "Charon" | "Fenrir" | "Puck";
   voiceSpeed: number;
@@ -228,6 +236,7 @@ export interface AppSettings {
   quietHoursEnabled: boolean;
   quietHoursStart: string;
   quietHoursEnd: string;
+  voiceShortcuts: VoiceShortcuts;
 }
 
 export interface SystemReadiness {

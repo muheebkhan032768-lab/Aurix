@@ -12,9 +12,12 @@ import type {
 } from "../../types/aurix";
 import { speakWithCompanionVoice } from "../../utils/companionVoice";
 import { speakWithOfflineBritishVoice } from "../../utils/offlineVoice";
+import { formatShortcut } from "../../utils/shortcuts";
+import { useVoiceSnapshot } from "../../utils/voiceBus";
 import { CockpitReactor, type ReactorState } from "./CockpitReactor";
 import { CockpitTelemetry } from "./CockpitTelemetry";
 import { CockpitVoiceBar } from "./CockpitVoiceBar";
+import { HolographicVoiceHud } from "./HolographicVoiceHud";
 
 interface CommandCenterViewProps {
   owner: OwnerProfile;
@@ -26,6 +29,7 @@ interface CommandCenterViewProps {
   isOnline: boolean;
   welcomeTriggerSignal?: number;
   onNavigate: (section: AurixSectionId) => void;
+  onUpdateSettings: (next: AppSettings) => Promise<void>;
 }
 
 const stateDetail: Record<ReactorState, string> = {
@@ -69,9 +73,15 @@ export function CommandCenterView({
   isOnline,
   welcomeTriggerSignal = 0,
   onNavigate,
+  onUpdateSettings,
 }: CommandCenterViewProps) {
   const [signal, setSignal] = useState<{ state: ReactorState; level: number }>({ state: "idle", level: 0 });
   const handleSignal = useCallback((next: { state: ReactorState; level: number }) => setSignal(next), []);
+
+  // The global push-to-talk session owns the reactor while it is active.
+  const voice = useVoiceSnapshot();
+  const reactorState: ReactorState = voice.state === "idle" ? signal.state : voice.state;
+  const reactorLevel = voice.state === "idle" ? signal.level : voice.level;
   const handledWelcomeRef = useRef(0);
   const firstNameForGreeting = (owner.name.split(" ")[0] || owner.name).trim();
 
@@ -142,9 +152,9 @@ export function CommandCenterView({
             </div>
             <div className="mt-2">
               <CockpitReactor
-                state={signal.state}
-                level={signal.level}
-                detailLabel={stateDetail[signal.state]}
+                state={reactorState}
+                level={reactorLevel}
+                detailLabel={stateDetail[reactorState]}
                 size={440}
               />
             </div>
@@ -153,7 +163,7 @@ export function CommandCenterView({
                 <div
                   key={state}
                   className={`rounded-lg border px-2.5 py-1.5 text-center text-[9px] font-mono uppercase tracking-[0.14em] ${
-                    signal.state === state
+                    reactorState === state
                       ? "border-[#00D9FF]/60 bg-[#00D9FF]/10 text-[#00D9FF]"
                       : "border-[#00D9FF]/10 text-[#5B7185]"
                   }`}
@@ -163,6 +173,11 @@ export function CommandCenterView({
               ))}
             </div>
           </div>
+
+          <HolographicVoiceHud
+            pushToTalkLabel={formatShortcut(settings.voiceShortcuts?.pushToTalk || "Space")}
+            onToggleMute={() => void onUpdateSettings({ ...settings, voiceEnabled: !settings.voiceEnabled })}
+          />
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             {quickActions.map((action) => (

@@ -544,6 +544,7 @@ function AurixShell() {
             isOnline={effectiveOnline}
             welcomeTriggerSignal={welcomeTriggerCount}
             onNavigate={setActiveSection}
+            onUpdateSettings={updateSettings}
           />
         )}
 

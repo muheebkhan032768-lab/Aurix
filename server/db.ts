@@ -28,6 +28,15 @@ if (!fs.existsSync(DATA_DIR)) {
 const DB_PATH = path.join(DATA_DIR, "aurix.db");
 export const db = new DatabaseSync(DB_PATH);
 
+/** Voice hotkeys are stored as key combinations, e.g. "Control+Shift+Space". */
+export const DEFAULT_VOICE_SHORTCUTS: AppSettings["voiceShortcuts"] = {
+  pushToTalk: "Space",
+  cancel: "Escape",
+  continuous: "Control+Space",
+  activate: "Control+Shift+Space",
+  mute: "Control+M",
+};
+
 db.exec(`
   PRAGMA journal_mode = WAL;
 
@@ -293,6 +302,7 @@ function seedInitialData(): void {
 
   const DEFAULT_SETTINGS: AppSettings = {
     voiceName: "Charon",
+    voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS },
     voiceSpeed: 1.0,
     voicePitch: 1.0,
     language: "English",
@@ -775,6 +785,7 @@ export function saveCompanyProfile(company: CompanyProfile): CompanyProfile {
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   voiceName: "Charon",
+  voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS },
   voiceSpeed: 1.0,
   voicePitch: 1.0,
   language: "English",
@@ -813,7 +824,12 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 
 export function getAppSettings(): AppSettings {
   const row = db.prepare(`SELECT value FROM kv_store WHERE key = 'app_settings'`).get() as { value: string };
-  return { ...DEFAULT_APP_SETTINGS, ...(JSON.parse(row.value) as Partial<AppSettings>) };
+  const stored = JSON.parse(row.value) as Partial<AppSettings>;
+  return {
+    ...DEFAULT_APP_SETTINGS,
+    ...stored,
+    voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS, ...(stored.voiceShortcuts || {}) },
+  };
 }
 
 export function saveAppSettings(settings: AppSettings): AppSettings {

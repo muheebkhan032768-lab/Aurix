@@ -5,6 +5,7 @@ import {
   Ear,
   HelpCircle,
   History,
+  Keyboard,
   Mic,
   Send,
   Sparkles,
@@ -14,9 +15,18 @@ import {
   VolumeX,
   X,
 } from "lucide-react";
-import type { AppSettings, AurixSectionId, NoteItem, TaskItem } from "../types/aurix";
+import type { AppSettings, AurixSectionId, NoteItem, TaskItem, VoiceShortcuts } from "../types/aurix";
 import { cancelCompanionVoice, speakWithCompanionVoice } from "../utils/companionVoice";
 import { createAlwaysOnMic, type AlwaysOnMicController } from "../utils/alwaysOnMic";
+import { createMicLevelMeter, type MicLevelMeter } from "../utils/micLevel";
+import { publishVoice } from "../utils/voiceBus";
+import {
+  DEFAULT_VOICE_SHORTCUTS,
+  formatShortcut,
+  isModifierOnly,
+  matchesShortcut,
+} from "../utils/shortcuts";
+import { VoiceShortcutSettings } from "./VoiceShortcutSettings";
 import { VoiceCompanionFigure } from "./VoiceCompanionFigure";
 import {
   parseVoiceCommand,
@@ -137,6 +147,7 @@ export function VoiceCommandSystem({
   const [error, setError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<{ text: string; ok: boolean } | null>(null);
   const [history, setHistory] = useState<CommandLogEntry[]>([]);
+  const [micPermission, setMicPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const wakeRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -158,9 +169,17 @@ export function VoiceCommandSystem({
   const spaceHeldRef = useRef(false);
   const spaceReleasePendingRef = useRef(false);
   const wakeListeningRef = useRef(false);
+  const alwaysOnListeningRef = useRef(false);
+  const meterRef = useRef<MicLevelMeter | null>(null);
+  const resumeAlwaysOnRef = useRef(false);
+  const settingsRef = useRef<AppSettings>(settings);
+  const updateSettingsRef = useRef<(next: AppSettings) => Promise<void>>(onUpdateSettings);
+  const shortcutsRef = useRef<VoiceShortcuts>(settings.voiceShortcuts || DEFAULT_VOICE_SHORTCUTS);
   const startListeningRef = useRef<() => Promise<void>>(async () => {});
   const stopListeningRef = useRef<() => void>(() => {});
   const stopWakeListeningRef = useRef<() => void>(() => {});
+
+  const shortcuts = settings.voiceShortcuts || DEFAULT_VOICE_SHORTCUTS;
 
   const cancelSpeech = useCallback(() => {
     cancelCompanionVoice();
@@ -212,19 +231,23 @@ export function VoiceCommandSystem({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
+    meterRef.current?.stop();
+    meterRef.current = null;
     setListening(false);
     setStatus("idle");
     setStatusMessage("Microphone stopped.");
   }, []);
 
-  const startMicFallback = useCallback(async () => {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError("This browser cannot access a microphone. Type the command below instead.");
-      setStatus("error");
-      return;
-    }
+  const startMicFallback = useCallback(async (providedStream?: MediaStream | null) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream =
+        providedStream ||
+        (navigator.mediaDevices?.getUserMedia ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null);
+      if (!stream) {
+        setError("This browser cannot access a microphone. Type the command below instead.");
+        setStatus("error");
+        return;
+      }
       mediaStreamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
@@ -264,8 +287,9 @@ export function VoiceCommandSystem({
           );
           setStatus("error");
         } finally {
-          // After the first recording the companion keeps listening on its own.
-          void startAlwaysOnRef.current();
+          // Only re-arm the companion mic if it was listening before this recording.
+          if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
+          resumeAlwaysOnRef.current = false;
         }
       };
       mediaRecorderRef.current = recorder;
@@ -302,14 +326,29 @@ export function VoiceCommandSystem({
       return;
     }
     // Free the microphone for this one recording; it re-arms afterwards.
+    resumeAlwaysOnRef.current = Boolean(micControllerRef.current);
     micControllerRef.current?.stop();
     micControllerRef.current = null;
     setError(null);
     setTranscript("");
     cancelSpeech();
+
+    // Real microphone energy for the waveform. The stream is handed to the
+    // recorder fallback so the microphone is only opened once.
+    const meter = createMicLevelMeter((level) => publishVoice({ level }));
+    meterRef.current = meter;
+    const stream = await meter.start();
+    if (!stream) {
+      meterRef.current = null;
+      setError("Microphone unavailable. Allow microphone access in your browser, then try again.");
+      setStatus("error");
+      setStatusMessage("Microphone permission is required.");
+      return;
+    }
+
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
-      await startMicFallback();
+      await startMicFallback(stream);
       return;
     }
     try {
@@ -338,7 +377,7 @@ export function VoiceCommandSystem({
           setError("I did not catch that. Try again or type the command below.");
         } else if (code === "not-allowed" || code === "service-not-allowed" || code === "network") {
           // Live recognition is blocked here — record with the microphone instead.
-          void startMicFallback();
+          void startMicFallback(meterRef.current?.getStream() ?? null);
         } else if (code !== "aborted") {
           setError("Live speech recognition is unavailable here. Type the command below instead.");
         }
@@ -348,7 +387,8 @@ export function VoiceCommandSystem({
         const said = (finalText || combined).trim();
         if (said) void runCommandRef.current(said, "voice");
         else setStatus("idle");
-        void startAlwaysOnRef.current();
+        if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
+        resumeAlwaysOnRef.current = false;
       };
       recognitionRef.current = recognition;
       recognition.start();
@@ -360,7 +400,7 @@ export function VoiceCommandSystem({
         stopListening();
       }
     } catch {
-      await startMicFallback();
+      await startMicFallback(meterRef.current?.getStream() ?? null);
     }
   }, [listening, stopListening, cancelSpeech, startMicFallback, settings.language]);
 
@@ -501,6 +541,46 @@ export function VoiceCommandSystem({
   useEffect(() => {
     wakeListeningRef.current = wakeListening;
   }, [wakeListening]);
+
+  useEffect(() => {
+    alwaysOnListeningRef.current = alwaysOnListening;
+  }, [alwaysOnListening]);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+    shortcutsRef.current = settings.voiceShortcuts || DEFAULT_VOICE_SHORTCUTS;
+  }, [settings]);
+
+  useEffect(() => {
+    updateSettingsRef.current = onUpdateSettings;
+  }, [onUpdateSettings]);
+
+  // Visible microphone permission indicator.
+  useEffect(() => {
+    const permissions = navigator.permissions;
+    if (!permissions?.query) {
+      setMicPermission("unknown");
+      return;
+    }
+    let cancelled = false;
+    let status: PermissionStatus | null = null;
+    const apply = (state: PermissionState) => {
+      if (cancelled) return;
+      setMicPermission(state === "granted" ? "granted" : state === "denied" ? "denied" : "prompt");
+    };
+    permissions
+      .query({ name: "microphone" as PermissionName })
+      .then((result) => {
+        status = result;
+        apply(result.state);
+        result.onchange = () => apply(result.state);
+      })
+      .catch(() => setMicPermission("unknown"));
+    return () => {
+      cancelled = true;
+      if (status) status.onchange = null;
+    };
+  }, []);
 
   // Keeps the microphone open and transcribes each spoken phrase, which also
   // works where live browser speech recognition is unavailable.
@@ -815,39 +895,92 @@ export function VoiceCommandSystem({
     stopWakeListeningRef.current = stopWakeListening;
   }, [startListening, stopListening, stopWakeListening]);
 
-  // Alt+V opens the panel. Holding Space is push-to-talk: talking starts on
-  // key-down and the command is sent the moment Space is released.
+  const stopContinuousListening = useCallback(() => {
+    micControllerRef.current?.stop();
+    micControllerRef.current = null;
+    autoStartedRef.current = false;
+    if (wakeEnabledRef.current) stopWakeListeningRef.current();
+    setStatusMessage("Continuous listening off.");
+  }, []);
+
+  // Global voice hotkeys. Push-to-talk starts on key-down and sends the command
+  // the moment the key is released; auto-repeat is ignored.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (isModifierOnly(event)) return;
+      const active = shortcutsRef.current;
+
       if (event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === "v") {
         event.preventDefault();
         setOpen((value) => !value);
         return;
       }
-      if (event.key === "Escape") {
-        setOpen(false);
+
+      if (matchesShortcut(event, active.mute)) {
+        event.preventDefault();
+        const current = settingsRef.current;
+        const next = { ...current, voiceEnabled: !current.voiceEnabled };
+        if (!next.voiceEnabled) {
+          cancelSpeech();
+          setStatusMessage("Voice output muted.");
+        } else {
+          setStatusMessage("Voice output restored.");
+        }
+        void updateSettingsRef.current(next);
         return;
       }
-      if (event.code !== "Space" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-      if (isTextEntryTarget(event.target)) return;
-      event.preventDefault();
-      if (spaceHeldRef.current) return;
-      spaceHeldRef.current = true;
-      // A focused button would otherwise be "clicked" by Space; talk instead.
-      const active = document.activeElement as HTMLElement | null;
-      if (active && active !== document.body) active.blur();
-      setOpen(true);
-      if (wakeListeningRef.current) stopWakeListeningRef.current();
-      void startListeningRef.current();
+
+      if (matchesShortcut(event, active.continuous)) {
+        event.preventDefault();
+        if (alwaysOnListeningRef.current || wakeListeningRef.current) stopContinuousListening();
+        else void startAlwaysOnRef.current();
+        return;
+      }
+
+      if (matchesShortcut(event, active.activate)) {
+        event.preventDefault();
+        setOpen(true);
+        void startListeningRef.current();
+        return;
+      }
+
+      if (matchesShortcut(event, active.cancel)) {
+        if (listeningRef.current) {
+          event.preventDefault();
+          stopListeningRef.current();
+          setStatusMessage("Recording cancelled.");
+        } else if (speakingRef.current) {
+          event.preventDefault();
+          cancelSpeech();
+          setStatusMessage("Speech stopped.");
+        } else {
+          setOpen(false);
+        }
+        return;
+      }
+
+      if (matchesShortcut(event, active.pushToTalk)) {
+        if (isTextEntryTarget(event.target)) return;
+        event.preventDefault();
+        if (event.repeat || spaceHeldRef.current) return;
+        spaceHeldRef.current = true;
+        // A focused button would otherwise be "clicked" by the spacebar.
+        const focused = document.activeElement as HTMLElement | null;
+        if (focused && focused !== document.body) focused.blur();
+        setOpen(true);
+        if (wakeListeningRef.current) stopWakeListeningRef.current();
+        void startListeningRef.current();
+      }
     };
 
     const onKeyUp = (event: KeyboardEvent) => {
-      if (event.code !== "Space" || !spaceHeldRef.current) return;
+      if (!spaceHeldRef.current || !matchesShortcut(event, shortcutsRef.current.pushToTalk)) return;
       spaceHeldRef.current = false;
       if (listeningRef.current) stopListeningRef.current();
       else spaceReleasePendingRef.current = true;
     };
 
+    // Losing focus mid-recording must release the microphone.
     const onBlur = () => {
       if (!spaceHeldRef.current) return;
       spaceHeldRef.current = false;
@@ -862,7 +995,7 @@ export function VoiceCommandSystem({
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
     };
-  }, []);
+  }, [cancelSpeech, stopContinuousListening]);
 
   useEffect(() => {
     return () => {
@@ -892,6 +1025,37 @@ export function VoiceCommandSystem({
   };
 
   const micActive = listening || alwaysOnListening || wakeListening;
+
+  // Publishes the live voice session so the cockpit reactor and the
+  // holographic microphone interface follow the real microphone state.
+  useEffect(() => {
+    publishVoice({
+      state: processing
+        ? "processing"
+        : speaking
+          ? "speaking"
+          : micActive
+            ? "listening"
+            : status === "error"
+              ? "error"
+              : "idle",
+      transcript: transcript || "",
+      reply: lastResult?.text || "",
+      detail: statusMessage,
+      muted: !settings.voiceEnabled,
+      micPermission,
+    });
+  }, [
+    processing,
+    speaking,
+    micActive,
+    status,
+    transcript,
+    lastResult,
+    statusMessage,
+    settings.voiceEnabled,
+    micPermission,
+  ]);
 
   const displayStatus: VoiceStatus = processing
     ? "processing"
@@ -996,19 +1160,37 @@ export function VoiceCommandSystem({
                 <div className="text-[10px] text-[#64748B] dark:text-slate-400 truncate">{statusMessage}</div>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={toggleWakeListening}
-              aria-pressed={wakeListening}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-semibold cursor-pointer whitespace-nowrap ${
-                wakeListening
-                  ? "border-[#06B6D4] bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300"
-                  : "border-slate-300 dark:border-slate-700 text-[#64748B] dark:text-slate-300"
-              }`}
-            >
-              <Ear className="w-3.5 h-3.5" />
-              <span>{wakeListening ? "Hands-free on" : "Hands-free"}</span>
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => onNavigate("settings")}
+                title="Open microphone settings"
+                data-testid="mic-permission"
+                className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[10px] font-semibold whitespace-nowrap cursor-pointer ${
+                  micPermission === "granted"
+                    ? "border-emerald-300 dark:border-emerald-700/70 text-emerald-700 dark:text-emerald-300"
+                    : micPermission === "denied"
+                      ? "border-rose-300 dark:border-rose-700/70 text-rose-700 dark:text-rose-300"
+                      : "border-slate-300 dark:border-slate-700 text-[#64748B] dark:text-slate-300"
+                }`}
+              >
+                <Mic className="w-3 h-3" />
+                {micPermission === "granted" ? "Mic ready" : micPermission === "denied" ? "Mic blocked" : "Mic ask"}
+              </button>
+              <button
+                type="button"
+                onClick={toggleWakeListening}
+                aria-pressed={wakeListening}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-semibold cursor-pointer whitespace-nowrap ${
+                  wakeListening
+                    ? "border-[#06B6D4] bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300"
+                    : "border-slate-300 dark:border-slate-700 text-[#64748B] dark:text-slate-300"
+                }`}
+              >
+                <Ear className="w-3.5 h-3.5" />
+                <span>{wakeListening ? "Hands-free on" : "Hands-free"}</span>
+              </button>
+            </div>
           </div>
 
           <div className="p-4 space-y-3">
@@ -1132,6 +1314,22 @@ export function VoiceCommandSystem({
             </div>
           </details>
 
+          <details className="px-4 pb-3 group">
+            <summary className="flex items-center justify-between gap-2 cursor-pointer list-none text-[11px] font-semibold text-[#202938] dark:text-slate-200">
+              <span className="inline-flex items-center gap-1.5">
+                <Keyboard className="w-3.5 h-3.5 text-[#06B6D4]" />
+                Keyboard shortcuts
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#64748B] group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2.5">
+              <VoiceShortcutSettings
+                shortcuts={shortcuts}
+                onChange={(next) => void onUpdateSettings({ ...settings, voiceShortcuts: next })}
+              />
+            </div>
+          </details>
+
           {history.length > 0 && (
             <div className="px-4 pb-4">
               <div className="flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.16em] text-[#64748B] dark:text-slate-500">
@@ -1161,17 +1359,33 @@ export function VoiceCommandSystem({
             </div>
           )}
 
-          <div className="px-4 py-2.5 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-2 text-[9px] text-[#64748B] dark:text-slate-500">
-            <span>Hold Space to talk · Alt+V toggles</span>
-            <span className="inline-flex items-center gap-1 truncate">
-              {settings.voiceEnabled ? (
-                <Volume2 className="w-3 h-3 text-[#10B981]" />
-              ) : (
-                <VolumeX className="w-3 h-3 text-rose-500" />
-              )}
-              <span className="truncate">
-                {settings.wakePhrase ? `Wake phrase: “${settings.wakePhrase}”` : "Wake phrase not set"}
+          <div className="px-4 py-2.5 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 text-[9px] text-[#64748B] dark:text-slate-500">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>
+                Hold {formatShortcut(shortcuts.pushToTalk)} to talk · {formatShortcut(shortcuts.cancel)} cancels
               </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = { ...settings, voiceEnabled: !settings.voiceEnabled };
+                  if (!next.voiceEnabled) cancelSpeech();
+                  void onUpdateSettings(next);
+                }}
+                aria-pressed={!settings.voiceEnabled}
+                data-testid="voice-mute-toggle"
+                className="inline-flex items-center gap-1 cursor-pointer hover:text-[#10B981]"
+              >
+                {settings.voiceEnabled ? (
+                  <Volume2 className="w-3 h-3 text-[#10B981]" />
+                ) : (
+                  <VolumeX className="w-3 h-3 text-rose-500" />
+                )}
+                <span>{settings.voiceEnabled ? "Voice on" : "Muted"}</span>
+                <span className="font-mono">{formatShortcut(shortcuts.mute)}</span>
+              </button>
+            </div>
+            <span className="block truncate">
+              {settings.wakePhrase ? `Wake phrase: “${settings.wakePhrase}”` : "Wake phrase not set"}
             </span>
           </div>
         </section>
