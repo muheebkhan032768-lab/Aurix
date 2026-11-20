@@ -56,6 +56,7 @@ import {
   transcribeAudioInput,
 } from "./server/gemini";
 import { NATIVE_WINDOWS_FILES } from "./server/nativeWindowsBundle";
+import { laptopControlStatus, planLaptopCommand, runLaptopPlan } from "./server/laptopControl";
 import { detectLocalOllamaModels } from "./server/offlineBrain";
 import { buildHardwareAudit } from "./server/hardwareAudit";
 import {
@@ -616,6 +617,36 @@ async function startServer() {
     res.json({ ok: true, entry });
   });
 
+  // Real laptop control (live only when AURIX runs on the owner's own PC).
+  app.get("/api/laptop/status", (_req, res) => {
+    res.json(laptopControlStatus());
+  });
+
+  app.post("/api/laptop/command", async (req, res) => {
+    const text = String(req.body?.text || "").trim();
+    if (!text) return res.status(400).json({ error: "A command is required." });
+    const plan = planLaptopCommand(text, listWebsites());
+    if (!plan) return res.json({ ok: false, matched: false, message: "That is not a laptop action." });
+    if (emergencyStopActive) {
+      return res.status(423).json({ ok: false, matched: true, message: "Emergency Stop is active.", plan });
+    }
+    const outcome = await runLaptopPlan(plan);
+    const entry = addDesktopActionLog({
+      action: plan.label,
+      target: plan.target,
+      status: outcome.ok ? "approved" : "blocked",
+      executedIn: outcome.ok ? "Laptop Control" : "Preview Sandbox Bridge",
+      detail: outcome.detail,
+    });
+    res.json({
+      ok: outcome.ok,
+      matched: true,
+      message: outcome.ok ? plan.spoken : outcome.detail,
+      plan,
+      entry,
+    });
+  });
+
   app.post("/api/desktop/emergency-stop", (req, res) => {
     const active = req.body?.active !== undefined ? Boolean(req.body.active) : true;
     emergencyStopActive = active;
@@ -799,6 +830,9 @@ async function startServer() {
       const settings = getAppSettings();
       const targetLang = language || settings.language || "English";
       const q = text.toLowerCase();
+      // A spoken laptop command (open YouTube, play music, open a folder, find a
+      // file) runs for real when AURIX is running on the owner's own computer.
+      const laptopPlan = planLaptopCommand(text, listWebsites());
 
       const activeConvId = ensureConversation(
         conversationId,
@@ -825,7 +859,41 @@ async function startServer() {
 
       let replyText = "";
 
-      if (q.includes("self heal") || q.includes("self-heal") || q.includes("fix error") || q.includes("check errors") || q.includes("سیلف ہیل")) {
+      if (laptopPlan) {
+        if (emergencyStopActive) {
+          addDesktopActionLog({
+            action: laptopPlan.label,
+            target: laptopPlan.target,
+            status: "blocked",
+            executedIn: "Safety Gate",
+            detail: "Blocked because Emergency Stop is active.",
+          });
+          replyText =
+            "Emergency Stop is active, Muheeb. Clear it in Computer Control and I will open that for you straight away.";
+        } else {
+          const outcome = await runLaptopPlan(laptopPlan);
+          addDesktopActionLog({
+            action: laptopPlan.label,
+            target: laptopPlan.target,
+            status: outcome.ok ? "approved" : "blocked",
+            executedIn: outcome.ok ? "Laptop Control" : "Preview Sandbox Bridge",
+            detail: outcome.detail,
+          });
+          if (outcome.ok) {
+            replyText = laptopPlan.spoken;
+            if (laptopPlan.kind === "navigate") {
+              action = { type: "navigate", section: laptopPlan.target, label: laptopPlan.label };
+            }
+          } else {
+            replyText = `${outcome.detail}${
+              laptopPlan.fallbackUrl ? " I have placed the link below so you can open it with one tap." : ""
+            }`;
+            if (laptopPlan.fallbackUrl) {
+              action = { type: "open_url", label: laptopPlan.label, url: laptopPlan.fallbackUrl };
+            }
+          }
+        }
+      } else if (q.includes("self heal") || q.includes("self-heal") || q.includes("fix error") || q.includes("check errors") || q.includes("سیلف ہیل")) {
         const report = await runSelfHealAudit({ deepCodeScan: true, reason: "Voice/Command 12-Step Self-Heal" });
         action = { type: "self_heal", report };
         replyText = `12-step self-healing diagnostics complete, Muheeb. Overall status is ${report.overallStatus.toUpperCase()} across ${report.checks.length} subsystems, with ${report.repairedCount} repairs in this cycle.`;
@@ -862,6 +930,17 @@ async function startServer() {
         const asset = await generateFreeCreativeAsset({ kind: "picture", prompt: text });
         action = { type: "creative", asset };
         replyText = `I have created a custom visual artwork for "${asset.title}", Muheeb. Download it as PNG or SVG below.`;
+      } else if (
+        /(company|business|veyronix).*(grow|growth|progress|today|doing|status)/.test(q) ||
+        q.includes("company growth")
+      ) {
+        const projects = listProjects();
+        const business = listBusinessItems();
+        const openTasks = listTasks().filter((task) => task.status !== "done");
+        const today = new Date().toISOString().slice(0, 10);
+        const todayLogs = listAuditLogs().filter((entry) => entry.createdAt.startsWith(today));
+        const latest = todayLogs[0]?.detail ? ` Latest entry: ${todayLogs[0].detail}.` : "";
+        replyText = `Here is today's picture for AM VEYRONIX, Muheeb: ${projects.length} projects tracked, ${business.length} business records, ${openTasks.length} open tasks, and ${todayLogs.length} logged actions today.${latest}`;
       } else {
         // Voice conversations pass a fast model so AURIX answers in about a
         // second instead of waiting on the deep thinking model.

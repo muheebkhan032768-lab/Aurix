@@ -58,3 +58,27 @@ If you want optional cloud Gemini features while online, copy `.env.example` to 
 GEMINI_API_KEY="your_api_key_here"
 ```
 Never share `.env` publicly. Without a key, AURIX runs cleanly in Offline + Local Mode.
+
+## Step 6 — Always-On Laptop Control (Voice Commands That Actually Act)
+Laptop control works only while AURIX is running **on your own PC** (`windows_native\AURIX_Portable_Start.bat` or `npm run dev`).
+The hosted browser preview cannot reach your computer, so it offers a clickable link instead of opening anything.
+
+Start AURIX automatically with Windows (recommended):
+```powershell
+cd C:\Users\YourName\AURIX_2.0\windows_native
+powershell -ExecutionPolicy Bypass -File .\installer\aurix_autostart.ps1
+```
+To undo, delete `AURIX 2.0.lnk` from `shell:startup`.
+
+Voice / typed commands AURIX can execute on the laptop:
+- “open YouTube” · “play my favourite music” · “open my company website”
+- “open my Downloads folder” · “open my Projects folder”
+- “search my laptop for report” (finds files/folders and reveals them in Explorer)
+- “edit my file notes” (opens the file in your default editor)
+- “open notepad / calculator / VS Code / Spotify”
+- “what is my company growth today” (answered from AURIX's own project and audit data)
+
+Social inboxes (Instagram, Facebook, TikTok, LinkedIn, YouTube): AURIX opens the platform's messages page in your
+browser. Reading the message contents themselves requires that platform's own API/login, so it stays a page launch.
+
+Every executed action is written to the Automation Center log, and Emergency Stop blocks all of them instantly.

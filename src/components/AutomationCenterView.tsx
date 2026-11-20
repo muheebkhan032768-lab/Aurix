@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Bot, CircleSlash, Play, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Bot, CircleSlash, Laptop, Play, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { AuditLogEntry } from "../types/aurix";
 
 interface DesktopActionLog {
@@ -38,6 +38,7 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+  const [laptop, setLaptop] = useState<{ available: boolean; platform: string; reason: string } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -46,6 +47,12 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
       setLogs(Array.isArray(json?.actions) ? json.actions : []);
     } catch {
       setLogs([]);
+    }
+    try {
+      const res = await fetch("/api/laptop/status");
+      setLaptop(await res.json());
+    } catch {
+      setLaptop(null);
     }
   }, []);
 
@@ -104,8 +111,29 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
           </button>
         </div>
         <p className="mt-1 text-[11px] text-[#94A8B8]">
-          Sensitive operations require explicit approval. Browser preview queues each action for the native Windows
-          controller — it does not execute on your PC from here.
+          Sensitive operations require explicit approval. When AURIX runs on your own computer these actions execute
+          for real; the hosted browser preview only queues them.
+        </p>
+      </div>
+
+      <div className="nexus-panel rounded-2xl px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Laptop className="w-4 h-4 text-[#00D9FF]" />
+          <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#A9C8D5]">Laptop control</span>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.12em] ${
+              laptop?.available ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"
+            }`}
+          >
+            {laptop ? (laptop.available ? `live · ${laptop.platform}` : "not on this machine") : "checking"}
+          </span>
+        </div>
+        <p className="mt-1 text-[11px] text-[#94A8B8]">
+          {laptop?.reason || "Checking whether AURIX can reach this computer…"}
+        </p>
+        <p className="mt-1 text-[11px] text-[#5B7185]">
+          Say: “open YouTube”, “play my favourite music”, “open my company website”, “open my Downloads folder”,
+          “search my laptop for report”, “edit my file notes”, “what is my company growth today”.
         </p>
       </div>
 

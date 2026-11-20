@@ -791,6 +791,33 @@ namespace AurixDesktop
 `,
   },
   {
+    path: "installer/aurix_autostart.ps1",
+    category: "Build & Installer",
+    language: "powershell",
+    description: "Registers AURIX 2.0 to start with Windows so voice control always has access to the laptop.",
+    content: `# AURIX 2.0 — Start with Windows (always-on laptop access)
+# Run once in PowerShell:
+#   powershell -ExecutionPolicy Bypass -File .\\installer\\aurix_autostart.ps1
+$ErrorActionPreference = "Stop"
+
+$launcher = (Resolve-Path (Join-Path $PSScriptRoot "..\\AURIX_Portable_Start.bat")).Path
+$startupFolder = [Environment]::GetFolderPath("Startup")
+$shortcutPath = Join-Path $startupFolder "AURIX 2.0.lnk"
+
+$shell = New-Object -ComObject WScript.Shell
+$shortcut = $shell.CreateShortcut($shortcutPath)
+$shortcut.TargetPath = $launcher
+$shortcut.WorkingDirectory = Split-Path $launcher
+$shortcut.WindowStyle = 7
+$shortcut.Description = "AURIX 2.0 — AM VEYRONIX personal AI assistant"
+$shortcut.Save()
+
+Write-Host "AURIX 2.0 will now start with Windows." -ForegroundColor Green
+Write-Host "Shortcut: $shortcutPath"
+Write-Host "To undo, delete that shortcut."
+`,
+  },
+  {
     path: "installer/build_x64.ps1",
     category: "Build & Installer",
     language: "powershell",
@@ -835,6 +862,7 @@ Source: "dist\\python_core\\aurix_core.exe"; DestDir: "{app}\\python_core"; Flag
 [Icons]
 Name: "{group}\\AURIX 2.0"; Filename: "{app}\\AURIX.exe"
 Name: "{autodesktop}\\AURIX 2.0"; Filename: "{app}\\AURIX.exe"
+Name: "{userstartup}\\AURIX 2.0"; Filename: "{app}\\AURIX.exe"
 `,
   },
   {
