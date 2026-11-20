@@ -15,9 +15,12 @@ import { speakWithCompanionVoice } from "../../utils/companionVoice";
 import { speakWithOfflineBritishVoice } from "../../utils/offlineVoice";
 import { formatShortcut } from "../../utils/shortcuts";
 import { useVoiceSnapshot } from "../../utils/voiceBus";
+import { BlueprintSchematics } from "./BlueprintSchematics";
 import { CockpitReactor, type ReactorState } from "./CockpitReactor";
 import { CockpitTelemetry } from "./CockpitTelemetry";
 import { CockpitVoiceBar } from "./CockpitVoiceBar";
+import { ModuleTable } from "./ModuleTable";
+import { SystemFlow } from "./SystemFlow";
 
 interface CommandCenterViewProps {
   owner: OwnerProfile;
@@ -152,6 +155,9 @@ export function CommandCenterView({
       {/* Command strip */}
       <div className="nexus-panel-soft flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
         <div className="min-w-0">
+          <p className="text-[8px] font-mono uppercase tracking-[0.28em] text-[#00F2FF]/70">
+            AURIX — Personal AI Assistant
+          </p>
           <h1 className="font-display text-base font-bold tracking-wide text-white sm:text-lg">
             {greetingFor(new Date())}, {firstName}.
           </h1>
@@ -216,7 +222,12 @@ export function CommandCenterView({
           <span className="nexus-bracket bottom-2 right-2 border-b border-r" aria-hidden="true" />
 
           <div className="relative z-10 flex items-center justify-between">
-            <h2 className="text-[11px] font-mono uppercase tracking-[0.24em] text-[#A9C8D5]">Holographic Core</h2>
+            <div className="min-w-0">
+              <h2 className="text-[11px] font-mono uppercase tracking-[0.24em] text-[#A9C8D5]">Nexus Core</h2>
+              <p className="mt-0.5 truncate text-[8px] font-mono uppercase tracking-[0.22em] text-[#3F5567]">
+                3D system architecture · live deck
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
                 {pushToTalkLabel} push-to-talk
@@ -242,8 +253,12 @@ export function CommandCenterView({
               state={reactorState}
               level={reactorLevel}
               detailLabel={stateDetail[reactorState]}
-              size={540}
+              size={520}
             />
+          </div>
+
+          <div className="relative z-10 mt-1">
+            <BlueprintSchematics state={reactorState} />
           </div>
 
           <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -282,6 +297,19 @@ export function CommandCenterView({
 
         {/* Instrument rail */}
         <CockpitTelemetry telemetry={telemetry} settings={settings} isOnline={isOnline} />
+      </div>
+
+      {/* Blueprint deck: signal path + module registry */}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <SystemFlow voiceState={voice.state} />
+        <ModuleTable
+          isOnline={isOnline}
+          voiceState={voice.state}
+          engineLabel={engineLabel}
+          memoryCount={conversations.length}
+          automationCount={openTasks.length}
+          voiceEnabled={settings.voiceEnabled}
+        />
       </div>
 
       {/* Quick access modules */}

@@ -238,6 +238,29 @@
   border-color: rgba(0, 217, 255, 0.38);
 }
 
+/* NOVA blueprint deck — subsystem legend under the orthographic views */
+.blueprint-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(169, 200, 213, 0.7);
+  white-space: nowrap;
+}
+
+.blueprint-legend::before {
+  content: "";
+  flex-shrink: 0;
+  width: 4px;
+  height: 4px;
+  border: 1px solid rgba(0, 242, 255, 0.6);
+  transform: rotate(45deg);
+  background: rgba(0, 242, 255, 0.18);
+}
+
 /* ECO / reduced-motion: stop continuous ring rendering, keep the composition */
 .nexus-calm .nexus-ring,
 .nexus-calm .nexus-core,
@@ -249,6 +272,8 @@
 .nexus-calm .nexus-dash {
   animation: none;
 }
+
+
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

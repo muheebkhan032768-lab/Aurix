@@ -81,6 +81,25 @@ function Row({
   );
 }
 
+function Sparkline({ values, accent }: { values: number[]; accent: string }) {
+  const points =
+    values.length > 1
+      ? values
+          .map((v, i) => {
+            const x = (i / (values.length - 1)) * 100;
+            const y = 27 - (Math.max(0, Math.min(100, v)) / 100) * 26;
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          })
+          .join(" ")
+      : "";
+  return (
+    <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="h-6 w-full" aria-hidden="true">
+      <line x1="0" y1="27" x2="100" y2="27" stroke="rgba(169,200,213,0.12)" strokeWidth="0.6" />
+      {points && <polyline points={points} fill="none" stroke={accent} strokeWidth="1.1" strokeLinejoin="round" />}
+    </svg>
+  );
+}
+
 /**
  * Right-hand spacecraft instrument rail.
  * Every number comes from the live host: /api/system/telemetry, the hardware
@@ -92,6 +111,7 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
   const [battery, setBattery] = useState<{ level: number; charging: boolean } | null>(null);
   const [batterySupported, setBatterySupported] = useState(true);
   const [audit, setAudit] = useState<HardwareAuditReport | null>(null);
+  const [history, setHistory] = useState<Array<{ cpu: number; ram: number }>>([]);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -101,11 +121,16 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
         const res = await fetch("/api/system/telemetry");
         if (!res.ok) return;
         const next = (await res.json()) as SystemTelemetry;
-        if (mounted.current) setTelemetry(next);
+        if (!mounted.current) return;
+        setTelemetry(next);
+        const cpu = Math.min(100, (next.loadAvg1m / Math.max(1, next.cpuCores)) * 100);
+        const ram = next.totalMemoryBytes > 0 ? (next.usedMemoryBytes / next.totalMemoryBytes) * 100 : 0;
+        setHistory((prev) => [...prev.slice(-23), { cpu, ram }]);
       } catch {
         // keep the last known values; the panel marks itself offline separately
       }
     };
+    void poll();
     const timer = window.setInterval(poll, 5000);
     return () => {
       mounted.current = false;
@@ -167,6 +192,7 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
   const gpuDetail = audit
     ? `${audit.machine.gpuKind}${audit.machine.gpuVramGb ? ` · ${audit.machine.gpuVramGb} GB VRAM` : ""}`
     : "Probing hardware…";
+  const last = history[history.length - 1];
 
   return (
     <aside className="nexus-panel flex flex-col gap-3 rounded-2xl p-3.5" aria-label="System telemetry">
@@ -176,6 +202,29 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
           <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
           {isOnline ? "LINK ACTIVE" : "LOCAL ONLY"}
         </span>
+      </div>
+
+      <div className="rounded-xl border border-[#00F2FF]/12 bg-[#05080D]/45 px-2.5 py-2">
+        <div className="flex items-center justify-between text-[8px] font-mono uppercase tracking-[0.18em] text-[#3F5567]">
+          <span>Signal trend</span>
+          <span>{history.length > 1 ? `${history.length} samples` : "sampling…"}</span>
+        </div>
+        <div className="mt-1 grid grid-cols-2 gap-2">
+          <div>
+            <div className="flex items-baseline justify-between text-[8px] font-mono uppercase tracking-[0.14em]">
+              <span className="text-[#5B7185]">CPU</span>
+              <span className="tabular-nums text-[#00FF9D]">{Math.round(last?.cpu ?? 0)}%</span>
+            </div>
+            <Sparkline values={history.map((sample) => sample.cpu)} accent="#00FF9D" />
+          </div>
+          <div>
+            <div className="flex items-baseline justify-between text-[8px] font-mono uppercase tracking-[0.14em]">
+              <span className="text-[#5B7185]">MEM</span>
+              <span className="tabular-nums text-[#00F2FF]">{Math.round(last?.ram ?? 0)}%</span>
+            </div>
+            <Sparkline values={history.map((sample) => sample.ram)} accent="#00F2FF" />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
