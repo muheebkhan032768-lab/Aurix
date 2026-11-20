@@ -57,6 +57,7 @@ import {
 } from "./server/gemini";
 import { NATIVE_WINDOWS_FILES } from "./server/nativeWindowsBundle";
 import { detectLocalOllamaModels } from "./server/offlineBrain";
+import { buildHardwareAudit } from "./server/hardwareAudit";
 import {
   createSnapshotBackup,
   getLastSelfHealReport,
@@ -540,6 +541,24 @@ async function startServer() {
         },
       ],
     });
+  });
+
+  // Phase 1 Hardware & Environment Audit → drives the AI architecture decision
+  app.get("/api/system/hardware-audit", async (_req, res) => {
+    try {
+      const totalRamGb = Number((os.totalmem() / 1024 ** 3).toFixed(2));
+      const ollama = await detectLocalOllamaModels(totalRamGb);
+      const settings = getAppSettings();
+      res.json(
+        buildHardwareAudit({
+          ollamaReachable: ollama.reachable,
+          ollamaModelCount: ollama.models.length,
+          cloudKeyConfigured: Boolean(process.env.GEMINI_API_KEY) && !settings.offlineModeForced,
+        })
+      );
+    } catch (err) {
+      res.status(500).json({ error: err instanceof Error ? err.message : "Hardware audit failed" });
+    }
   });
 
   app.post("/api/system/log-action", (req, res) => {

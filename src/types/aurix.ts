@@ -270,6 +270,48 @@ export interface SystemTelemetry {
   emergencyStopActive: boolean;
 }
 
+export type HardwareAuditStatus = "Ready" | "Limited" | "Cloud-dependent" | "Requires setup";
+
+export interface HardwareAuditReport {
+  generatedAt: string;
+  source: "windows-host" | "linux-host" | "other-host";
+  isWindowsHost: boolean;
+  machine: {
+    hostname: string;
+    osLabel: string;
+    arch: string;
+    cpuModel: string;
+    physicalCores: number | null;
+    logicalCores: number;
+    installedRamGb: number;
+    freeRamGb: number;
+    diskTotalGb: number;
+    diskFreeGb: number;
+    gpuName: string | null;
+    gpuVramGb: number | null;
+    gpuKind: "Dedicated" | "Integrated/Unknown" | "Not detectable";
+    windowsEdition: string | null;
+  };
+  score: number;
+  tier: "Entry" | "Mid-Range" | "High-Performance";
+  performanceMode: "ECO MODE" | "BALANCED MODE" | "PERFORMANCE MODE" | "CLOUD INTELLIGENCE MODE";
+  cloudModeAvailable: boolean;
+  recommendedLocalModel: { id: string; label: string; approxSizeGb: number; rationale: string };
+  architecture: {
+    headline: string;
+    localLayer: string;
+    cloudLayer: string;
+    voiceLayer: string;
+    visionLayer: string;
+    automationLayer: string;
+    storageLayer: string;
+    rationale: string[];
+  };
+  subsystems: Array<{ id: string; label: string; status: HardwareAuditStatus; detail: string }>;
+  checks: Array<{ label: string; verdict: "pass" | "warn" | "fail"; detail: string }>;
+  warnings: string[];
+}
+
 export interface DeliverableFile {
   path: string;
   category: "Python Core" | "C# WPF Desktop" | "Build & Installer" | "Documentation";

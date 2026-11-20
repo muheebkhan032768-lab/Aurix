@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Activity, OctagonAlert, RefreshCw, ShieldAlert, Terminal } from "lucide-react";
 import type { AuditLogEntry, DesktopActionLog, SystemTelemetry } from "../types/aurix";
+import { HardwareAuditPanel } from "./HardwareAuditPanel";
 
 interface SystemMonitorViewProps {
   telemetry: SystemTelemetry;
@@ -164,6 +165,8 @@ export function SystemMonitorView({
           {telemetry.hardwareSummaryNote}
         </p>
       </div>
+
+      <HardwareAuditPanel />
 
       {/* Confirmed Computer Control Builder & Desktop/Security Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

@@ -1141,6 +1141,77 @@ if ($ollama) { Write-Host "Ollama Offline AI: Installed" -ForegroundColor Green 
 else { Write-Host "Ollama Offline AI: Optional - Install from https://ollama.com for local models" -ForegroundColor Yellow }
 `,
   },
+  {
+    path: "Audit_Hardware.ps1",
+    category: "Build & Installer",
+    language: "powershell",
+    description: "Phase 1 hardware & environment audit for the real Windows PC. Reads CPU, RAM, GPU, disks, Windows build and AI runtimes, prints the compatibility verdict and saves aurix_hardware_audit.json.",
+    content: `# AURIX 2.0 — Phase 1 Hardware & Environment Audit (AM VEYRONIX)
+# Run on the target Windows 10/11 PC:  powershell -ExecutionPolicy Bypass -File .\\Audit_Hardware.ps1
+$ErrorActionPreference = "Continue"
+$out = @{ generatedAt = (Get-Date).ToString("o") }
+
+$os = Get-CimInstance Win32_OperatingSystem
+$cs = Get-CimInstance Win32_ComputerSystem
+$cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
+$gpu = Get-CimInstance Win32_VideoController | Select-Object -First 1
+$disks = Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3"
+
+$ramGb = [math]::Round($cs.TotalPhysicalMemory / 1GB, 2)
+$freeRamGb = [math]::Round($os.FreePhysicalMemory / 1MB, 2)
+$diskTotalGb = [math]::Round((($disks | Measure-Object Size -Sum).Sum) / 1GB, 1)
+$diskFreeGb = [math]::Round((($disks | Measure-Object FreeSpace -Sum).Sum) / 1GB, 1)
+$vramGb = if ($gpu.AdapterRAM -gt 0) { [math]::Round($gpu.AdapterRAM / 1GB, 1) } else { $null }
+$dedicated = $gpu.Name -match "NVIDIA|GeForce|RTX|GTX|Radeon RX|Arc A"
+
+$score = [math]::Min(100, [math]::Round([math]::Min(40, $ramGb / 32 * 40)) + [math]::Round([math]::Min(24, $cpu.NumberOfCores / 8 * 24)) + $(if ($dedicated) { 20 } elseif ($gpu) { 8 } else { 4 }) + $(if ($diskFreeGb -ge 20) { 16 } elseif ($diskFreeGb -ge 8) { 10 } else { 4 }))
+
+Write-Host "=== AURIX 2.0 HARDWARE COMPATIBILITY REPORT ===" -ForegroundColor Cyan
+Write-Host "OS            : $($os.Caption) build $($os.BuildNumber) ($($os.OSArchitecture))"
+Write-Host "CPU           : $($cpu.Name) - $($cpu.NumberOfCores) physical / $($cpu.NumberOfLogicalProcessors) logical cores"
+Write-Host "RAM           : $ramGb GB installed, $freeRamGb GB free"
+Write-Host "GPU           : $(if ($gpu) { $gpu.Name } else { 'not detected' }) $(if ($vramGb) { "($vramGb GB VRAM)" } else { '' })"
+Write-Host "Storage       : $diskFreeGb GB free of $diskTotalGb GB"
+Write-Host "Compatibility : $score / 100" -ForegroundColor Green
+
+$mode = if ($ramGb -lt 6 -or $cpu.NumberOfLogicalProcessors -le 2) { "ECO MODE" } elseif ($ramGb -lt 12) { "BALANCED MODE" } else { "PERFORMANCE MODE" }
+$model = if ($ramGb -lt 6) { "qwen2.5:0.5b" } elseif ($ramGb -lt 10) { "qwen2.5:1.5b" } elseif ($ramGb -lt 16) { "llama3.2:3b" } else { "qwen2.5:7b (optional) - 3B default" }
+Write-Host "Performance   : $mode"
+Write-Host "Local model   : $model"
+
+$node = Get-Command node -ErrorAction SilentlyContinue
+$py = Get-Command python -ErrorAction SilentlyContinue
+$ollama = Get-Command ollama -ErrorAction SilentlyContinue
+Write-Host "Node.js       : $(if ($node) { $node.Source } else { 'NOT FOUND - required for the portable build' })"
+Write-Host "Python        : $(if ($py) { $py.Source } else { 'optional - needed for native PC control' })"
+Write-Host "Ollama        : $(if ($ollama) { 'installed' } else { 'not installed - local AI needs it' })"
+
+$out += @{
+  os = "$($os.Caption) $($os.Version) build $($os.BuildNumber)"
+  cpu = $cpu.Name
+  physicalCores = $cpu.NumberOfCores
+  logicalCores = $cpu.NumberOfLogicalProcessors
+  ramGb = $ramGb
+  freeRamGb = $freeRamGb
+  gpu = $(if ($gpu) { $gpu.Name } else { $null })
+  gpuVramGb = $vramGb
+  gpuKind = $(if ($dedicated) { "Dedicated" } elseif ($gpu) { "Integrated/Unknown" } else { "Not detectable" })
+  diskTotalGb = $diskTotalGb
+  diskFreeGb = $diskFreeGb
+  score = $score
+  performanceMode = $mode
+  recommendedLocalModel = $model
+  node = $(if ($node) { $node.Source } else { $null })
+  python = $(if ($py) { $py.Source } else { $null })
+  ollama = [bool]$ollama
+}
+
+$jsonPath = Join-Path $PSScriptRoot "aurix_hardware_audit.json"
+$out | ConvertTo-Json -Depth 4 | Set-Content -Path $jsonPath -Encoding UTF8
+Write-Host "Saved JSON report: $jsonPath" -ForegroundColor Cyan
+Write-Host "Paste this JSON into the AURIX System & PC Monitor to confirm the architecture choice." -ForegroundColor DarkGray
+`,
+  },
 ];
 
 
