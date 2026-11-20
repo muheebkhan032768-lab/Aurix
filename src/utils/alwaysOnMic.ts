@@ -5,6 +5,10 @@ export interface AlwaysOnMicHandlers {
   onTranscript: (text: string) => void;
   /** Microphone sensitivity from settings, 0-100. */
   sensitivity?: () => number;
+  /** Language sent with each clip so Urdu and Hindi transcribe correctly. */
+  language?: () => "English" | "Urdu" | "Hindi";
+  /** Reuse the shared microphone stream instead of opening a second one. */
+  getSharedStream?: () => MediaStream | null;
   onError?: (message: string) => void;
   onStateChange?: (listening: boolean) => void;
 }
@@ -30,6 +34,7 @@ function blobToBase64(blob: Blob): Promise<string> {
  */
 export function createAlwaysOnMic(handlers: AlwaysOnMicHandlers): AlwaysOnMicController {
   let stream: MediaStream | null = null;
+  let ownsStream = false;
   let context: AudioContext | null = null;
   let frame = 0;
   let active = false;
@@ -54,8 +59,9 @@ export function createAlwaysOnMic(handlers: AlwaysOnMicHandlers): AlwaysOnMicCon
     }
     recorder = null;
     chunks = [];
-    stream?.getTracks().forEach((track) => track.stop());
+    if (ownsStream) stream?.getTracks().forEach((track) => track.stop());
     stream = null;
+    ownsStream = false;
     if (context) {
       void context.close().catch(() => {});
       context = null;
@@ -72,7 +78,11 @@ export function createAlwaysOnMic(handlers: AlwaysOnMicHandlers): AlwaysOnMicCon
       const res = await fetch("/api/voice/stt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ audioBase64, mimeType: blob.type || "audio/webm" }),
+        body: JSON.stringify({
+          audioBase64,
+          mimeType: blob.type || "audio/webm",
+          languageHint: handlers.language?.(),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Transcription failed.");
@@ -150,7 +160,9 @@ export function createAlwaysOnMic(handlers: AlwaysOnMicHandlers): AlwaysOnMicCon
       if (active) return true;
       if (!navigator.mediaDevices?.getUserMedia) return false;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const shared = handlers.getSharedStream?.() || null;
+        ownsStream = !shared;
+        stream = shared || (await navigator.mediaDevices.getUserMedia({ audio: true }));
         context = new AudioContext();
         await context.resume().catch(() => {});
         const source = context.createMediaStreamSource(stream);

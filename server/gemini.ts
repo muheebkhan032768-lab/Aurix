@@ -312,14 +312,26 @@ export async function synthesizeAurixVoice(params: {
     };
   };
 
+  const describeTtsFailure = (err: unknown) => {
+    const raw = err instanceof Error ? err.message : "";
+    if (/RESOURCE_EXHAUSTED|quota|429/i.test(raw)) {
+      return "Cloud voice quota is used up, so AURIX is speaking with the device voice.";
+    }
+    return "Speech synthesis is unavailable, so AURIX is speaking with the device voice.";
+  };
+
   try {
     const result = await tryTtsModel("gemini-3.8-flash-tts");
     rememberTts(cacheKey, result);
     return result;
-  } catch {
-    const result = await tryTtsModel("gemini-3.8-flash-lite-tts");
-    rememberTts(cacheKey, result);
-    return result;
+  } catch (primaryError) {
+    try {
+      const result = await tryTtsModel("gemini-3.8-flash-lite-tts");
+      rememberTts(cacheKey, result);
+      return result;
+    } catch {
+      throw new Error(describeTtsFailure(primaryError));
+    }
   }
 }
 
@@ -333,6 +345,18 @@ export async function transcribeAudioInput(params: {
     throw new Error("Offline mode active: use browser SpeechRecognition or type your command.");
   }
   const ai = getClient();
+  const languageRule = params.languageHint
+    ? `The speaker is most likely using ${params.languageHint}. Transcribe in the language actually spoken.`
+    : "Detect the spoken language (English, Urdu or Hindi) and transcribe in that language.";
+  const instruction = [
+    "Transcribe the speech in this audio clip verbatim.",
+    'The assistant\'s name is "AURIX", pronounced "AW-ricks". It is never "lyrics", "lyric", "aurora" or "auric"; write "Hello AURIX" when that wake phrase is spoken.',
+    "Write only the words that were actually spoken, in the language they were spoken.",
+    "Never translate, summarise, add words, or invent a word when the audio is unclear.",
+    languageRule,
+    "If the clip contains no clear speech (silence, background noise or music), output exactly: [silence]",
+    "Output only the transcript — no quotes, labels or commentary.",
+  ].join("\n");
   let response: GenerateContentResponse;
   try {
     response = await ai.models.generateContent({
@@ -346,9 +370,7 @@ export async function transcribeAudioInput(params: {
             },
           },
           {
-            text: `Transcribe the spoken audio accurately. Expected language may include ${
-              params.languageHint || "English, Urdu, or Hindi"
-            }. Output only the clean verbatim transcription.`,
+            text: instruction,
           },
         ],
       },
@@ -364,11 +386,17 @@ export async function transcribeAudioInput(params: {
     );
   }
 
-  const transcript = response.text?.trim();
-  if (!transcript) {
-    throw new Error("Could not detect clear speech in the recorded audio.");
+  const raw = (response.text || "").trim();
+  const cleaned = raw
+    .replace(/^["'`]+|["'`]+$/g, "")
+    .replace(/^transcript\s*:\s*/i, "")
+    .trim();
+  // The model reports silence explicitly; an empty transcript is a valid
+  // answer that the app turns into "Sorry, I didn't catch that".
+  if (!cleaned || /^\[?silence\]?$/i.test(cleaned) || /^(no speech|inaudible)$/i.test(cleaned)) {
+    return { transcript: "" };
   }
-  return { transcript };
+  return { transcript: cleaned };
 }
 
 export async function analyzeFileOrImage(params: {

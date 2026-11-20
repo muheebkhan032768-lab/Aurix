@@ -204,9 +204,17 @@ export interface AppSettings {
   voiceName: "Charon" | "Fenrir" | "Puck";
   voiceSpeed: number;
   voicePitch: number;
+  /** Playback volume for the device voice, 0..1. */
+  voiceVolume: number;
+  /** Device voice picked in settings (SpeechSynthesis voiceURI). */
+  voiceId?: string;
   language: AurixLanguage;
+  /** Let the transcriber detect English, Urdu or Hindi by itself. */
+  autoDetectLanguage: boolean;
   wakePhrase: string;
   voiceEnabled: boolean;
+  /** Microphone input switch, independent of voice output. */
+  micEnabled: boolean;
   pushToTalk: boolean;
   handsFreeVadEnabled: boolean;
   vadSensitivity: number;

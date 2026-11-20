@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Activity, Mic, MicOff, Square, Volume2 } from "lucide-react";
 import type { AppSettings, AurixLanguage } from "../types/aurix";
+import { cancelOfflineVoice, getAvailableBritishVoices } from "../utils/offlineVoice";
 import {
-  cancelOfflineVoice,
-  getAvailableBritishVoices,
-  speakWithOfflineBritishVoice,
-} from "../utils/offlineVoice";
+  ensureMicrophone,
+  getSharedStream,
+  speak as engineSpeak,
+  startCapture,
+  stopCapture,
+  stopSpeaking as engineStopSpeaking,
+} from "../utils/voiceEngine";
 
 interface VoiceAssistantViewProps {
   settings: AppSettings;
@@ -62,7 +66,9 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
     }
     return () => {
       if (micTestTimerRef.current) window.clearInterval(micTestTimerRef.current);
-      micTestStreamRef.current?.getTracks().forEach((t) => t.stop());
+      // The stream belongs to the shared voice engine; only the local meter is
+      // released here so the microphone stays ready for push-to-talk.
+      micTestStreamRef.current = null;
     };
   }, [selectedBrowserVoice]);
 
@@ -117,6 +123,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
       activeAudioRef.current.pause();
       activeAudioRef.current = null;
     }
+    engineStopSpeaking();
     cancelOfflineVoice();
     boundaryPulseRef.current = 0;
     setSpeaking(false);
@@ -129,99 +136,68 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
         window.clearInterval(micTestTimerRef.current);
         micTestTimerRef.current = null;
       }
-      micTestStreamRef.current?.getTracks().forEach((t) => t.stop());
-      micTestStreamRef.current = null;
       analyserRef.current = null;
+      audioCtxRef.current?.close().catch(() => {});
+      audioCtxRef.current = null;
+      micTestStreamRef.current = null;
       setTestingMic(false);
       setMicLevelPct(0);
       setStatusMessage("Microphone test finished.");
       return;
     }
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micTestStreamRef.current = stream;
-      const audioCtx = new AudioContext();
-      const source = audioCtx.createMediaStreamSource(stream);
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 128;
-      source.connect(analyser);
-      audioCtxRef.current = audioCtx;
-      analyserRef.current = analyser;
-
-      const samples = new Uint8Array(analyser.fftSize);
-      micTestTimerRef.current = window.setInterval(() => {
-        analyser.getByteTimeDomainData(samples);
-        let sumSq = 0;
-        for (let i = 0; i < samples.length; i++) {
-          const d = samples[i] - 128;
-          sumSq += d * d;
-        }
-        const rms = Math.sqrt(sumSq / samples.length);
-        setMicLevelPct(Math.min(100, Math.round(rms * 2.8)));
-      }, 90);
-
-      setTestingMic(true);
-      setStatusMessage("Live microphone input meter active — speak normally to test clarity.");
-    } catch {
+    // The test listens on the shared stream instead of asking for the
+    // microphone a second time.
+    const stream = await ensureMicrophone();
+    if (!stream) {
       setError("Microphone access denied or unavailable in this browser frame.");
+      return;
     }
+    micTestStreamRef.current = stream;
+    const audioCtx = new AudioContext();
+    const source = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 128;
+    source.connect(analyser);
+    audioCtxRef.current = audioCtx;
+    analyserRef.current = analyser;
+
+    const samples = new Uint8Array(analyser.fftSize);
+    micTestTimerRef.current = window.setInterval(() => {
+      analyser.getByteTimeDomainData(samples);
+      let sumSq = 0;
+      for (let i = 0; i < samples.length; i++) {
+        const d = samples[i] - 128;
+        sumSq += d * d;
+      }
+      const rms = Math.sqrt(sumSq / samples.length);
+      setMicLevelPct(Math.min(100, Math.round(rms * 2.8)));
+    }, 90);
+
+    setTestingMic(true);
+    setStatusMessage("Live microphone input meter active — speak normally to test clarity.");
   };
 
   const playMaleVoice = async (text: string) => {
     stopAudioPlayback();
     setSpeaking(true);
-    setStatusMessage(`Speaking via AURIX British Persona (${settings.voiceName})...`);
-    if (!settings.offlineModeForced) {
-      try {
-        const res = await fetch("/api/voice/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text,
-            voiceName: settings.voiceName,
-            language: settings.language,
-            speed: settings.voiceSpeed,
-          }),
-        });
-        const data = await res.json();
-        if (res.ok && data.audioBase64) {
-          const audio = new Audio(`data:${data.mimeType || "audio/wav"};base64,${data.audioBase64}`);
-          activeAudioRef.current = audio;
-          audio.onended = () => {
-            setSpeaking(false);
-            setStatusMessage("Ready for voice interaction.");
-          };
-          audio.onerror = () => {
-            setSpeaking(false);
-            setError("Browser could not play generated WAV audio.");
-          };
-          await audio.play();
-          return;
-        }
-      } catch {
-        // Fallback smoothly below
-      }
-    }
-
-    const ok = speakWithOfflineBritishVoice(
-      text,
-      settings.language,
-      settings.voiceSpeed,
-      {
-        onStart: () => setSpeaking(true),
-        onBoundary: () => {
-          boundaryPulseRef.current = 1;
-        },
-        onEnd: () => {
-          boundaryPulseRef.current = 0;
-          setSpeaking(false);
-          setStatusMessage("Ready for voice interaction.");
-        },
+    setStatusMessage(`Speaking via AURIX voice (${settings.voiceName})…`);
+    const started = await engineSpeak(text, {
+      voiceName: settings.voiceName,
+      language: settings.language,
+      speed: settings.voiceSpeed,
+      voiceId: settings.voiceId || selectedBrowserVoice || undefined,
+      volume: settings.voiceVolume,
+      onBoundary: () => {
+        boundaryPulseRef.current = 1;
       },
-      selectedBrowserVoice || undefined
-    );
-    if (!ok) {
+      onEnd: () => {
+        boundaryPulseRef.current = 0;
+        setSpeaking(false);
+        setStatusMessage("Ready for voice interaction.");
+      },
+    });
+    if (!started) {
       setSpeaking(false);
       setError("Speech synthesis unavailable in this browser.");
     }
@@ -230,8 +206,13 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
   const startRecording = async () => {
     setError(null);
     stopAudioPlayback();
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const started = await startCapture();
+    if (!started) {
+      setError("Microphone access denied or unavailable in this browser.");
+      return;
+    }
+    const stream = getSharedStream();
+    if (stream) {
       const audioCtx = new AudioContext();
       const source = audioCtx.createMediaStreamSource(stream);
       const analyser = audioCtx.createAnalyser();
@@ -239,63 +220,44 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
       source.connect(analyser);
       audioCtxRef.current = audioCtx;
       analyserRef.current = analyser;
-
-      const recorder = new MediaRecorder(stream);
-      chunksRef.current = [];
-      recorder.ondataavailable = (ev) => {
-        if (ev.data.size > 0) chunksRef.current.push(ev.data);
-      };
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        audioCtx.close().catch(() => {});
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        await processAudioBlob(blob);
-      };
-      mediaRecorderRef.current = recorder;
-      recorder.start();
-      setRecording(true);
-      setStatusMessage("Listening to Abdul Muheeb...");
-    } catch {
-      setError("Microphone access denied or unavailable in this browser.");
     }
+    setRecording(true);
+    setStatusMessage("Listening to Abdul Muheeb...");
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      setRecording(false);
-    }
+    if (!recording) return;
+    setRecording(false);
+    analyserRef.current = null;
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+    void stopCapture({
+      language: settings.language,
+      autoDetectLanguage: settings.autoDetectLanguage,
+    }).then((result) => {
+      if (result.error) {
+        setError(result.error);
+        setStatusMessage("Ready for voice interaction.");
+        return;
+      }
+      if (result.silent) {
+        setError("Sorry, I didn't catch that. Could you repeat?");
+        setStatusMessage("Ready for voice interaction.");
+        return;
+      }
+      void processTranscript(result.transcript);
+    });
   };
 
-  const processAudioBlob = async (blob: Blob) => {
+  const processTranscript = async (transcript: string) => {
     setProcessing(true);
-    setStatusMessage("Transcribing speech...");
+    setStatusMessage("AURIX reasoning...");
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(String(reader.result || "").split(",")[1] || "");
-        reader.onerror = () => reject(new Error("Audio read failed."));
-        reader.readAsDataURL(blob);
-      });
-
-      const sttRes = await fetch("/api/voice/stt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          audioBase64: base64,
-          mimeType: blob.type || "audio/webm",
-          languageHint: settings.language,
-        }),
-      });
-      const sttData = await sttRes.json();
-      if (!sttRes.ok) throw new Error(sttData.error || "Transcription failed.");
-
-      setStatusMessage("AURIX reasoning...");
       const chatRes = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: sttData.transcript,
+          message: transcript,
           language: settings.language,
           model: settings.activeModel,
           thinkingLevel: settings.thinkingLevel,
@@ -309,7 +271,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
       setTurns((prev) => [
         {
           id: `vt_${Date.now()}`,
-          userText: sttData.transcript,
+          userText: transcript,
           aurixText: replyText,
           language: settings.language,
           timestamp: new Date().toLocaleTimeString(),

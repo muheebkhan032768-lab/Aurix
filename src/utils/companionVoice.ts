@@ -5,13 +5,25 @@ export interface CompanionVoiceOptions {
   voiceName?: "Charon" | "Fenrir" | "Puck";
   language?: AurixLanguage;
   speed?: number;
+  /** Device voice picked in settings (SpeechSynthesis voiceURI). */
+  voiceId?: string;
+  /** 0..1 playback volume for the device voice. */
+  volume?: number;
   onStart?: () => void;
   onEnd?: () => void;
+  /** Word-boundary pulse, only fired by the device voice. */
+  onBoundary?: () => void;
 }
 
 let audioEl: HTMLAudioElement | null = null;
 let abortRef: AbortController | null = null;
 let runToken = 0;
+let lastEngine: "gemini" | "device" = "gemini";
+
+/** Which voice produced the most recent reply: cloud Gemini or the device. */
+export function companionVoiceEngine(): "gemini" | "device" {
+  return lastEngine;
+}
 
 /** Recently synthesized lines, kept as blob URLs so repeats start instantly. */
 const spokenCache = new Map<string, string>();
@@ -60,7 +72,9 @@ async function playSource(
   options: CompanionVoiceOptions
 ): Promise<boolean> {
   const audio = new Audio(src);
-  audio.playbackRate = Math.min(1.25, Math.max(0.75, speed));
+  // Gemini audio is already paced by the server, so it plays at natural speed;
+  // only an explicit speed change nudges it slightly.
+  audio.playbackRate = speed === 1 ? 1 : Math.min(1.15, Math.max(0.85, speed));
   audioEl = audio;
   audio.onended = () => {
     if (run !== runToken) return;
@@ -89,6 +103,7 @@ export async function playCompanionAudioBase64(
 ): Promise<boolean> {
   if (!audioBase64) return false;
   cancelCompanionVoice();
+  lastEngine = "gemini";
   const run = ++runToken;
   try {
     return await playSource(
@@ -119,15 +134,26 @@ export async function speakWithCompanionVoice(
   const speed = Math.min(1.25, Math.max(0.75, options.speed ?? 1));
   const key = cacheKeyFor(clean, { ...options, speed });
 
-  const speakWithBrowser = () =>
-    speakWithOfflineBritishVoice(clean, options.language || "English", speed, {
-      onStart: options.onStart,
-      onEnd: options.onEnd,
-    });
+  const speakWithBrowser = () => {
+    lastEngine = "device";
+    return speakWithOfflineBritishVoice(
+      clean,
+      options.language || "English",
+      speed,
+      {
+        onStart: options.onStart,
+        onEnd: options.onEnd,
+        onBoundary: options.onBoundary,
+      },
+      options.voiceId,
+      options.volume
+    );
+  };
 
   const cachedUrl = spokenCache.get(key);
   if (cachedUrl) {
     try {
+      lastEngine = "gemini";
       return await playSource(cachedUrl, speed, run, options);
     } catch {
       spokenCache.delete(key);
@@ -153,6 +179,7 @@ export async function speakWithCompanionVoice(
     if (!res.ok || !data.audioBase64) throw new Error("Speech service unavailable.");
     if (run !== runToken) return false;
 
+    lastEngine = "gemini";
     const mimeType = data.mimeType || "audio/wav";
     let url = `data:${mimeType};base64,${data.audioBase64}`;
     try {

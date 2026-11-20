@@ -1,7 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Send, Square, Volume2, Waves } from "lucide-react";
 import type { AppSettings } from "../../types/aurix";
-import { cancelCompanionVoice, speakWithCompanionVoice } from "../../utils/companionVoice";
+import {
+  getSharedStream,
+  getVoiceEngineSnapshot,
+  speak as engineSpeak,
+  startCapture,
+  stopCapture,
+  stopSpeaking as engineStopSpeaking,
+} from "../../utils/voiceEngine";
 import type { ReactorState } from "./CockpitReactor";
 
 type VoiceStatus = "idle" | "listening" | "thinking" | "speaking" | "error";
@@ -12,66 +19,24 @@ interface CockpitVoiceBarProps {
   onReply?: (text: string) => void;
 }
 
-interface RecognitionResultLike {
-  0: { transcript: string };
-  isFinal: boolean;
-}
-
-interface RecognitionEventLike {
-  resultIndex: number;
-  results: ArrayLike<RecognitionResultLike>;
-}
-
-interface RecognitionLike {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onresult: ((event: RecognitionEventLike) => void) | null;
-  onerror: ((event: { error?: string }) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-
-type RecognitionCtor = new () => RecognitionLike;
-
-function recognitionCtor(): RecognitionCtor | null {
-  if (typeof window === "undefined") return null;
-  const scope = window as Window & {
-    SpeechRecognition?: RecognitionCtor;
-    webkitSpeechRecognition?: RecognitionCtor;
-  };
-  return scope.SpeechRecognition || scope.webkitSpeechRecognition || null;
-}
-
-function localeFor(language: AppSettings["language"]): string {
-  if (language === "Urdu") return "ur-PK";
-  if (language === "Hindi") return "hi-IN";
-  return "en-GB";
-}
-
 const BAR_COUNT = 36;
 
 /**
- * Bottom voice command centre. Speech recognition and the live waveform use the
- * real microphone; the reply comes from the AURIX chat API and is spoken with the
- * configured companion voice. Nothing here fakes a transcript or an answer.
+ * Bottom voice command centre. It records through the shared AURIX voice
+ * engine, so the microphone is opened once for the whole app, and it speaks
+ * with the same companion voice used everywhere else.
  */
 export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBarProps) {
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [interim, setInterim] = useState("");
   const [input, setInput] = useState("");
   const [reply, setReply] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [bars, setBars] = useState<number[]>(() => Array.from({ length: BAR_COUNT }, () => 0.18));
 
-  const recognitionRef = useRef<RecognitionLike | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const rafRef = useRef<number | null>(null);
-  const finalRef = useRef("");
   const mountedRef = useRef(true);
 
   // publish reactor signal
@@ -87,36 +52,24 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
     onSignal({ state: map[status], level: energy });
   }, [status, listening, bars, onSignal]);
 
-  const teardownAudio = useCallback(() => {
+  const teardownMeter = useCallback(() => {
     if (rafRef.current !== null) {
       window.cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
+    // Only the local analyser is released; the shared microphone stream stays
+    // open for the next press.
     ctxRef.current?.close().catch(() => {});
     ctxRef.current = null;
   }, []);
-
-  const stopListening = useCallback(() => {
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    teardownAudio();
-    setListening(false);
-    setInterim("");
-    setBars(Array.from({ length: BAR_COUNT }, () => 0.18));
-    setStatus((prev) => (prev === "listening" ? "idle" : prev));
-  }, [teardownAudio]);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      recognitionRef.current?.stop();
-      teardownAudio();
-      cancelCompanionVoice();
+      teardownMeter();
     };
-  }, [teardownAudio]);
+  }, [teardownMeter]);
 
   const submit = useCallback(
     async (raw: string) => {
@@ -149,108 +102,100 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
 
         if (settings.voiceEnabled) {
           setStatus("speaking");
-          const spoken = await speakWithCompanionVoice(answer, { speed: settings.voiceSpeed });
-          if (!mountedRef.current) return;
-          if (!spoken) setStatus("idle");
-          else setStatus("idle");
-        } else {
-          setStatus("idle");
+          await engineSpeak(answer, {
+            voiceName: settings.voiceName,
+            language: settings.language,
+            speed: settings.voiceSpeed,
+            voiceId: settings.voiceId,
+            volume: settings.voiceVolume,
+          });
         }
+        if (mountedRef.current) setStatus("idle");
       } catch (err) {
         if (!mountedRef.current) return;
         setStatus("error");
         setError(err instanceof Error ? err.message : "Voice request failed.");
       }
     },
-    [onReply, settings.language, settings.voiceEnabled, settings.voiceSpeed]
+    [
+      onReply,
+      settings.language,
+      settings.voiceEnabled,
+      settings.voiceName,
+      settings.voiceSpeed,
+      settings.voiceId,
+      settings.voiceVolume,
+    ]
   );
+
+  const startMeter = useCallback(() => {
+    const stream = getSharedStream();
+    const Ctor =
+      window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!stream || !Ctor) return;
+    const ctx = new Ctor();
+    ctxRef.current = ctx;
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    const tick = () => {
+      analyser.getByteFrequencyData(data);
+      const next = Array.from({ length: BAR_COUNT }, (_, i) => {
+        const idx = Math.floor((i / BAR_COUNT) * data.length);
+        return Math.max(0.12, Math.min(1, data[idx] / 190));
+      });
+      setBars(next);
+      rafRef.current = window.requestAnimationFrame(tick);
+    };
+    tick();
+  }, []);
 
   const startListening = useCallback(async () => {
     setError(null);
     setReply("");
     setTranscript("");
-    setInterim("");
-    finalRef.current = "";
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      const Ctor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (Ctor) {
-        const ctx = new Ctor();
-        ctxRef.current = ctx;
-        const source = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 128;
-        source.connect(analyser);
-        const data = new Uint8Array(analyser.frequencyBinCount);
-
-        const tick = () => {
-          analyser.getByteFrequencyData(data);
-          const next = Array.from({ length: BAR_COUNT }, (_, i) => {
-            const idx = Math.floor((i / BAR_COUNT) * data.length);
-            return Math.max(0.12, Math.min(1, data[idx] / 190));
-          });
-          setBars(next);
-          rafRef.current = window.requestAnimationFrame(tick);
-        };
-        tick();
-      }
-      setListening(true);
-      setStatus("listening");
-    } catch {
-      setError("Microphone access was blocked. Allow it in the browser, or type your command below.");
+    const started = await startCapture();
+    if (!started) {
+      setError(
+        getVoiceEngineSnapshot().error ||
+          "Microphone access was blocked. Allow it in the browser, or type your command below."
+      );
       setStatus("error");
       return;
     }
+    startMeter();
+    setListening(true);
+    setStatus("listening");
+  }, [startMeter]);
 
-    const Ctor = recognitionCtor();
-    if (!Ctor) {
-      setError("Speech recognition isn't available in this browser — type your command below.");
+  const stopListening = useCallback(async () => {
+    setListening(false);
+    setBars(Array.from({ length: BAR_COUNT }, () => 0.18));
+    teardownMeter();
+    const result = await stopCapture({
+      language: settings.language,
+      autoDetectLanguage: settings.autoDetectLanguage,
+    });
+    if (!mountedRef.current) return;
+    if (result.error) {
+      setStatus("error");
+      setError(result.error);
       return;
     }
-    const rec = new Ctor();
-    rec.lang = localeFor(settings.language);
-    rec.continuous = false;
-    rec.interimResults = true;
-    rec.onresult = (event) => {
-      let finalText = "";
-      let interimText = "";
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const result = event.results[i];
-        const chunk = result[0]?.transcript ?? "";
-        if (result.isFinal) finalText += chunk;
-        else interimText += chunk;
-      }
-      if (interimText) setInterim(interimText);
-      if (finalText) {
-        finalRef.current = `${finalRef.current} ${finalText}`.trim();
-        setTranscript(finalRef.current);
-        setInput(finalRef.current);
-        setInterim("");
-      }
-    };
-    rec.onerror = (event) => {
-      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        setError("Speech recognition was blocked by the browser. Typed commands still work.");
-        setStatus("error");
-      }
-    };
-    rec.onend = () => {
-      stopListening();
-      if (finalRef.current.trim()) void submit(finalRef.current);
-    };
-    recognitionRef.current = rec;
-    try {
-      rec.start();
-    } catch {
-      setError("Speech recognition could not start. Try again or type your command.");
+    if (result.silent) {
+      setStatus("idle");
+      setError("Sorry, I didn't catch that. Could you repeat?");
+      return;
     }
-  }, [settings.language, stopListening, submit]);
+    setTranscript(result.transcript);
+    setInput(result.transcript);
+    await submit(result.transcript);
+  }, [settings.language, settings.autoDetectLanguage, submit, teardownMeter]);
 
   const stopSpeaking = useCallback(() => {
-    cancelCompanionVoice();
-    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+    engineStopSpeaking();
     setStatus("idle");
   }, []);
 
@@ -306,7 +251,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => (listening ? stopListening() : void startListening())}
+          onClick={() => (listening ? void stopListening() : void startListening())}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
             listening
               ? "bg-[#00D9FF] text-[#05080D]"
@@ -353,12 +298,10 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
         </button>
       </div>
 
-      {(transcript || interim) && (
+      {transcript && (
         <div className="mt-3 rounded-xl border border-[#00D9FF]/15 bg-[#05080D]/60 px-3.5 py-2.5">
           <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-[#5B7185]">Transcript</div>
-          <p className="mt-1 text-xs text-[#D6E6EE]">
-            {transcript} <span className="text-[#5B7185]">{interim}</span>
-          </p>
+          <p className="mt-1 text-xs text-[#D6E6EE]">{transcript}</p>
         </div>
       )}
 

@@ -16,13 +16,19 @@ import {
   X,
 } from "lucide-react";
 import type { AppSettings, AurixSectionId, NoteItem, TaskItem, VoiceShortcuts } from "../types/aurix";
-import {
-  cancelCompanionVoice,
-  playCompanionAudioBase64,
-  speakWithCompanionVoice,
-} from "../utils/companionVoice";
+import { cancelCompanionVoice, playCompanionAudioBase64 } from "../utils/companionVoice";
 import { createAlwaysOnMic, type AlwaysOnMicController } from "../utils/alwaysOnMic";
-import { createMicLevelMeter, type MicLevelMeter } from "../utils/micLevel";
+import {
+  ensureMicrophone,
+  getSharedStream,
+  getVoiceEngineSnapshot,
+  isCapturing,
+  releaseMicrophone,
+  speak as engineSpeak,
+  startCapture,
+  stopCapture,
+  stopSpeaking as engineStopSpeaking,
+} from "../utils/voiceEngine";
 import { publishVoice } from "../utils/voiceBus";
 import {
   DEFAULT_VOICE_SHORTCUTS,
@@ -149,15 +155,6 @@ function isTextEntryTarget(target: EventTarget | null): boolean {
   return el.isContentEditable === true;
 }
 
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(String(reader.result || "").split(",")[1] || "");
-    reader.onerror = () => reject(new Error("Could not read the recorded audio."));
-    reader.readAsDataURL(blob);
-  });
-}
-
 /**
  * Global voice command layer for AURIX.
  * Works on every screen: push-to-talk, hands-free wake phrase, typed commands,
@@ -191,13 +188,9 @@ export function VoiceCommandSystem({
   const [history, setHistory] = useState<CommandLogEntry[]>([]);
   const [micPermission, setMicPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
 
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const wakeRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const wakeEnabledRef = useRef(false);
   const awaitingWakeCommandRef = useRef(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const chunksRef = useRef<BlobPart[]>([]);
   const speakingRef = useRef(false);
   const processingRef = useRef(false);
   const listeningRef = useRef(false);
@@ -207,13 +200,13 @@ export function VoiceCommandSystem({
   const micControllerRef = useRef<AlwaysOnMicController | null>(null);
   const startAlwaysOnRef = useRef<() => Promise<boolean>>(async () => false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const focusInputOnOpenRef = useRef(false);
   const runCommandRef = useRef<(raw: string, source?: CommandSource) => Promise<void>>(async () => {});
   const handleSpokenInputRef = useRef<(raw: string, source?: CommandSource) => void>(() => {});
   const spaceHeldRef = useRef(false);
   const spaceReleasePendingRef = useRef(false);
   const wakeListeningRef = useRef(false);
   const alwaysOnListeningRef = useRef(false);
-  const meterRef = useRef<MicLevelMeter | null>(null);
   const resumeAlwaysOnRef = useRef(false);
   const settingsRef = useRef<AppSettings>(settings);
   const updateSettingsRef = useRef<(next: AppSettings) => Promise<void>>(onUpdateSettings);
@@ -225,6 +218,7 @@ export function VoiceCommandSystem({
   const shortcuts = settings.voiceShortcuts || DEFAULT_VOICE_SHORTCUTS;
 
   const cancelSpeech = useCallback(() => {
+    engineStopSpeaking();
     cancelCompanionVoice();
     speakingRef.current = false;
     setSpeaking(false);
@@ -234,13 +228,14 @@ export function VoiceCommandSystem({
     (text: string, force = false) => {
       if (!text.trim()) return;
       if (!force && (!settings.voiceEnabled || settings.doNotDisturb || emergencyStopActive)) return;
-      cancelCompanionVoice();
       speakingRef.current = true;
       setSpeaking(true);
-      void speakWithCompanionVoice(text, {
+      void engineSpeak(text, {
         voiceName: settings.voiceName,
         language: settings.language,
         speed: settings.voiceSpeed,
+        voiceId: settings.voiceId,
+        volume: settings.voiceVolume,
         onStart: () => setSpeaking(true),
         onEnd: () => {
           speakingRef.current = false;
@@ -260,6 +255,8 @@ export function VoiceCommandSystem({
       settings.voiceName,
       settings.language,
       settings.voiceSpeed,
+      settings.voiceId,
+      settings.voiceVolume,
       emergencyStopActive,
     ]
   );
@@ -294,111 +291,41 @@ export function VoiceCommandSystem({
     handleSpokenInputRef.current = handleSpokenInput;
   }, [handleSpokenInput]);
 
+  // Push-to-talk capture: one recording session through the shared voice
+  // engine, transcribed by the server so AURIX hears the real words.
   const stopListening = useCallback(() => {
-    try {
-      recognitionRef.current?.stop();
-    } catch {
-      // Recognition may already be stopped.
-    }
-    recognitionRef.current = null;
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
-    }
-    meterRef.current?.stop();
-    meterRef.current = null;
+    const current = settingsRef.current;
     setListening(false);
-    setStatus("idle");
-    setStatusMessage("Microphone stopped.");
+    setStatusMessage("Transcribing what you said…");
+    void stopCapture({
+      language: current.language,
+      autoDetectLanguage: current.autoDetectLanguage,
+    }).then((result) => {
+      if (result.error) {
+        setError(result.error);
+        setStatus("error");
+        setStatusMessage("Speech recognition is unavailable right now.");
+      } else if (result.silent) {
+        setStatus("idle");
+        setStatusMessage("I didn't catch that — press Space and speak again.");
+        setError("Sorry, I didn't catch that. Could you repeat?");
+      } else {
+        setError(null);
+        void handleSpokenInputRef.current(result.transcript, "voice");
+      }
+      if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
+      resumeAlwaysOnRef.current = false;
+    });
   }, []);
 
-  const startMicFallback = useCallback(async (providedStream?: MediaStream | null) => {
-    try {
-      const stream =
-        providedStream ||
-        (navigator.mediaDevices?.getUserMedia ? await navigator.mediaDevices.getUserMedia({ audio: true }) : null);
-      if (!stream) {
-        setError("This browser cannot access a microphone. Type the command below instead.");
-        setStatus("error");
-        return;
-      }
-      mediaStreamRef.current = stream;
-      const recorder = new MediaRecorder(stream);
-      chunksRef.current = [];
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunksRef.current.push(event.data);
-      };
-      recorder.onstop = async () => {
-        setListening(false);
-        stream.getTracks().forEach((track) => track.stop());
-        mediaStreamRef.current = null;
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        if (!blob.size) {
-          setStatus("idle");
-          return;
-        }
-        setStatus("processing");
-        setStatusMessage("Transcribing speech...");
-        try {
-          const base64 = await blobToBase64(blob);
-          const response = await fetch("/api/voice/stt", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              audioBase64: base64,
-              mimeType: blob.type || "audio/webm",
-              languageHint: settings.language,
-            }),
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.error || "Transcription failed.");
-          await runCommandRef.current(String(data.transcript || ""), "voice");
-        } catch (err) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Could not transcribe that recording. Type the command below instead."
-          );
-          setStatus("error");
-        } finally {
-          // Only re-arm the companion mic if it was listening before this recording.
-          if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
-          resumeAlwaysOnRef.current = false;
-        }
-      };
-      mediaRecorderRef.current = recorder;
-      recorder.start();
-      setListening(true);
-      setStatus("listening");
-      setStatusMessage("Recording — release Space or tap the mic to send.");
-      if (spaceReleasePendingRef.current) {
-        spaceReleasePendingRef.current = false;
-        stopListening();
-      }
-    } catch {
-      setError("Microphone access is blocked in this frame. Type the command below instead.");
-      setStatus("error");
-    }
-  }, [settings.language]);
-
   const startListening = useCallback(async () => {
-    if (listening) {
+    if (isCapturing() || listeningRef.current) {
       stopListening();
       return;
     }
-    if (wakeEnabledRef.current) {
-      // Pause the always-on listener so the mic is free for one recording.
-      wakeEnabledRef.current = false;
-      companionModeRef.current = false;
-      try {
-        wakeRecognitionRef.current?.stop();
-      } catch {
-        // Recognition may already be stopped.
-      }
-      wakeRecognitionRef.current = null;
-      setWakeListening(false);
-      return;
-    }
-    // Free the microphone for this one recording; it re-arms afterwards.
+    // The hands-free listener and push-to-talk share one microphone stream, so
+    // the phrase detector is paused instead of holding a second session.
+    if (wakeEnabledRef.current) stopWakeListeningRef.current();
     resumeAlwaysOnRef.current = Boolean(micControllerRef.current);
     micControllerRef.current?.stop();
     micControllerRef.current = null;
@@ -406,76 +333,32 @@ export function VoiceCommandSystem({
     setTranscript("");
     cancelSpeech();
 
-    // Real microphone energy for the waveform. The stream is handed to the
-    // recorder fallback so the microphone is only opened once.
-    const meter = createMicLevelMeter((level) => publishVoice({ level }));
-    meterRef.current = meter;
-    const stream = await meter.start();
-    if (!stream) {
-      meterRef.current = null;
-      setError("Microphone unavailable. Allow microphone access in your browser, then try again.");
+    const started = await startCapture();
+    if (!started) {
+      const engine = getVoiceEngineSnapshot();
+      if (engine.state === "transcribing") {
+        setStatus("processing");
+        setStatusMessage("Still transcribing your last command — one moment.");
+        resumeAlwaysOnRef.current = false;
+        return;
+      }
+      const engineError = engine.error;
+      setError(engineError || "Microphone unavailable. Allow microphone access, then press Space again.");
       setStatus("error");
       setStatusMessage("Microphone permission is required.");
+      if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
+      resumeAlwaysOnRef.current = false;
       return;
     }
+    setListening(true);
+    setStatus("listening");
+    setStatusMessage("Listening — release Space to send.");
+    if (spaceReleasePendingRef.current) {
+      spaceReleasePendingRef.current = false;
+      stopListening();
+    }
+  }, [stopListening, cancelSpeech]);
 
-    const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) {
-      await startMicFallback(stream);
-      return;
-    }
-    try {
-      const recognition = new Ctor();
-      recognition.lang = localeFor(settings.language);
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      let finalText = "";
-      let combined = "";
-      recognition.onresult = (event) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; i += 1) {
-          const result = event.results[i];
-          const chunk = result[0]?.transcript || "";
-          if (result.isFinal) finalText += `${chunk} `;
-          else interim += chunk;
-        }
-        combined = `${finalText}${interim}`.trim();
-        setTranscript(combined);
-      };
-      recognition.onerror = (event) => {
-        const code = event.error || "";
-        setListening(false);
-        setStatus("idle");
-        if (code === "no-speech") {
-          setError("I did not catch that. Try again or type the command below.");
-        } else if (code === "not-allowed" || code === "service-not-allowed" || code === "network") {
-          // Live recognition is blocked here — record with the microphone instead.
-          void startMicFallback(meterRef.current?.getStream() ?? null);
-        } else if (code !== "aborted") {
-          setError("Live speech recognition is unavailable here. Type the command below instead.");
-        }
-      };
-      recognition.onend = () => {
-        setListening(false);
-        const said = (finalText || combined).trim();
-        if (said) handleSpokenInputRef.current(said, "voice");
-        else setStatus("idle");
-        if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
-        resumeAlwaysOnRef.current = false;
-      };
-      recognitionRef.current = recognition;
-      recognition.start();
-      setListening(true);
-      setStatus("listening");
-      setStatusMessage("Listening — speak now, release Space to send.");
-      if (spaceReleasePendingRef.current) {
-        spaceReleasePendingRef.current = false;
-        stopListening();
-      }
-    } catch {
-      await startMicFallback(meterRef.current?.getStream() ?? null);
-    }
-  }, [listening, stopListening, cancelSpeech, startMicFallback, settings.language]);
 
   const stopWakeListening = useCallback(() => {
     wakeEnabledRef.current = false;
@@ -646,15 +529,21 @@ export function VoiceCommandSystem({
   // works where live browser speech recognition is unavailable.
   const startAlwaysOnListening = useCallback(async () => {
     if (micControllerRef.current) return true;
-    if (!navigator.mediaDevices?.getUserMedia) return false;
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") return false;
+    if (isCapturing()) return false;
+    // The phrase detector reuses the shared microphone instead of opening a
+    // second capture session on the same device.
+    const media = await ensureMicrophone();
+    if (!media) return false;
     const controller = createAlwaysOnMic({
       shouldPause: () =>
         speakingRef.current ||
         processingRef.current ||
         listeningRef.current ||
+        isCapturing() ||
         Date.now() - lastSpeechEndRef.current < 700,
-      sensitivity: () => settings.micSensitivity,
+      sensitivity: () => settingsRef.current.micSensitivity,
+      language: () => settingsRef.current.language,
+      getSharedStream: () => getSharedStream(),
       onTranscript: (text) => handleSpokenInputRef.current(text, "voice"),
       onError: (message) => {
         setError(message);
@@ -672,7 +561,7 @@ export function VoiceCommandSystem({
     const started = await controller.start();
     if (!started) micControllerRef.current = null;
     return started;
-  }, [settings.micSensitivity]);
+  }, []);
 
   useEffect(() => {
     startAlwaysOnRef.current = startAlwaysOnListening;
@@ -682,7 +571,7 @@ export function VoiceCommandSystem({
   useEffect(() => {
     if (autoStartedRef.current) return;
     if (mediaConsent !== "granted") return;
-    if (!settings.voiceEnabled || settings.doNotDisturb || emergencyStopActive) return;
+    if (!settings.micEnabled || settings.doNotDisturb || emergencyStopActive) return;
     if (!navigator.mediaDevices?.getUserMedia) return;
     autoStartedRef.current = true;
     const timer = window.setTimeout(() => {
@@ -693,19 +582,22 @@ export function VoiceCommandSystem({
     return () => window.clearTimeout(timer);
   }, [
     mediaConsent,
-    settings.voiceEnabled,
+    settings.micEnabled,
     settings.doNotDisturb,
     emergencyStopActive,
     startAlwaysOnListening,
   ]);
 
-  // Muting, Do Not Disturb or an Emergency Stop closes the microphone.
+  // The microphone is independent of the speaker: muting AURIX's voice, or
+  // turning Do Not Disturb on, must never disable push-to-talk. Only the
+  // microphone switch or an Emergency Stop closes the input.
   useEffect(() => {
-    if (settings.voiceEnabled && !settings.doNotDisturb && !emergencyStopActive) return;
+    if (settings.micEnabled && !emergencyStopActive) return;
     micControllerRef.current?.stop();
     micControllerRef.current = null;
     autoStartedRef.current = false;
-  }, [settings.voiceEnabled, settings.doNotDisturb, emergencyStopActive]);
+    if (!settings.micEnabled) setStatusMessage("Microphone off — switch it on in Settings.");
+  }, [settings.micEnabled, emergencyStopActive]);
 
   const runCommand = useCallback(
     async (raw: string, source: CommandSource = "typed") => {
@@ -968,7 +860,8 @@ export function VoiceCommandSystem({
   }, [runCommand]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !focusInputOnOpenRef.current) return;
+    focusInputOnOpenRef.current = false;
     const timer = window.setTimeout(() => inputRef.current?.focus(), 80);
     return () => window.clearTimeout(timer);
   }, [open]);
@@ -1005,6 +898,9 @@ export function VoiceCommandSystem({
 
       if (event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === "v") {
         event.preventDefault();
+        // Typing focus is only taken when the panel is opened from the keyboard
+        // shortcut, never after push-to-talk.
+        focusInputOnOpenRef.current = true;
         setOpen((value) => !value);
         return;
       }
@@ -1053,15 +949,22 @@ export function VoiceCommandSystem({
       }
 
       if (matchesShortcut(event, active.pushToTalk)) {
-        if (isTextEntryTarget(event.target)) return;
+        if (isTextEntryTarget(event.target)) {
+          // The voice panel's own empty command box should not swallow the
+          // talk key; a box with text in it is a real typing target.
+          const field = event.target as HTMLInputElement;
+          const isVoiceBox = field === inputRef.current;
+          if (!isVoiceBox || field.value.trim().length > 0) return;
+          field.blur();
+        }
         event.preventDefault();
         if (event.repeat || spaceHeldRef.current) return;
         spaceHeldRef.current = true;
         // A focused button would otherwise be "clicked" by the spacebar.
         const focused = document.activeElement as HTMLElement | null;
-        if (focused && focused !== document.body) focused.blur();
+        if (focused && focused !== document.body && !isTextEntryTarget(focused)) focused.blur();
+        focusInputOnOpenRef.current = false;
         setOpen(true);
-        if (wakeListeningRef.current) stopWakeListeningRef.current();
         void startListeningRef.current();
       }
     };
@@ -1095,16 +998,13 @@ export function VoiceCommandSystem({
       wakeEnabledRef.current = false;
       try {
         wakeRecognitionRef.current?.stop();
-        recognitionRef.current?.stop();
       } catch {
         // Ignore teardown races.
       }
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop();
-      }
-      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
       micControllerRef.current?.stop();
       micControllerRef.current = null;
+      if (isCapturing()) void stopCapture();
+      releaseMicrophone();
       cancelCompanionVoice();
     };
   }, []);

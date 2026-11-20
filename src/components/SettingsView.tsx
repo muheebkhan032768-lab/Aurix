@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Database, Download, Moon, Package, Play, Plus, Save, Sun, Trash2, User } from "lucide-react";
+import { VoiceDiagnosticsPanel } from "./VoiceDiagnosticsPanel";
 import type {
   AppSettings,
   AurixLanguage,
@@ -216,7 +217,10 @@ export function SettingsView({
         </div>
       </section>
 
-      {/* 2. Startup Animation, Voice Greeting, DND & Quiet Hours */}
+      {/* 2. Voice engine, microphone and audio diagnostics */}
+      <VoiceDiagnosticsPanel settings={settings} onUpdateSettings={onUpdateSettings} />
+
+      {/* 3. Startup Animation, Voice Greeting, DND & Quiet Hours */}
       <section className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
