@@ -89,6 +89,14 @@ function localeFor(language: AppSettings["language"]): string {
   return "en-GB";
 }
 
+/** Space starts and stops the microphone everywhere except inside a text field. */
+function isTextEntryTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el || !el.tagName) return false;
+  if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT") return true;
+  return el.isContentEditable === true;
+}
+
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -147,6 +155,12 @@ export function VoiceCommandSystem({
   const startAlwaysOnRef = useRef<() => Promise<boolean>>(async () => false);
   const inputRef = useRef<HTMLInputElement>(null);
   const runCommandRef = useRef<(raw: string, source?: CommandSource) => Promise<void>>(async () => {});
+  const spaceHeldRef = useRef(false);
+  const spaceReleasePendingRef = useRef(false);
+  const wakeListeningRef = useRef(false);
+  const startListeningRef = useRef<() => Promise<void>>(async () => {});
+  const stopListeningRef = useRef<() => void>(() => {});
+  const stopWakeListeningRef = useRef<() => void>(() => {});
 
   const cancelSpeech = useCallback(() => {
     cancelCompanionVoice();
@@ -258,7 +272,11 @@ export function VoiceCommandSystem({
       recorder.start();
       setListening(true);
       setStatus("listening");
-      setStatusMessage("Recording — tap the mic again to send.");
+      setStatusMessage("Recording — release Space or tap the mic to send.");
+      if (spaceReleasePendingRef.current) {
+        spaceReleasePendingRef.current = false;
+        stopListening();
+      }
     } catch {
       setError("Microphone access is blocked in this frame. Type the command below instead.");
       setStatus("error");
@@ -336,7 +354,11 @@ export function VoiceCommandSystem({
       recognition.start();
       setListening(true);
       setStatus("listening");
-      setStatusMessage("Listening — speak your command now.");
+      setStatusMessage("Listening — speak now, release Space to send.");
+      if (spaceReleasePendingRef.current) {
+        spaceReleasePendingRef.current = false;
+        stopListening();
+      }
     } catch {
       await startMicFallback();
     }
@@ -475,6 +497,10 @@ export function VoiceCommandSystem({
   useEffect(() => {
     listeningRef.current = listening;
   }, [listening]);
+
+  useEffect(() => {
+    wakeListeningRef.current = wakeListening;
+  }, [wakeListening]);
 
   // Keeps the microphone open and transcribes each spoken phrase, which also
   // works where live browser speech recognition is unavailable.
@@ -784,15 +810,58 @@ export function VoiceCommandSystem({
   }, [status]);
 
   useEffect(() => {
+    startListeningRef.current = startListening;
+    stopListeningRef.current = stopListening;
+    stopWakeListeningRef.current = stopWakeListening;
+  }, [startListening, stopListening, stopWakeListening]);
+
+  // Alt+V opens the panel. Holding Space is push-to-talk: talking starts on
+  // key-down and the command is sent the moment Space is released.
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === "v") {
         event.preventDefault();
         setOpen((value) => !value);
+        return;
       }
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (event.code !== "Space" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (isTextEntryTarget(event.target)) return;
+      event.preventDefault();
+      if (spaceHeldRef.current) return;
+      spaceHeldRef.current = true;
+      // A focused button would otherwise be "clicked" by Space; talk instead.
+      const active = document.activeElement as HTMLElement | null;
+      if (active && active !== document.body) active.blur();
+      setOpen(true);
+      if (wakeListeningRef.current) stopWakeListeningRef.current();
+      void startListeningRef.current();
     };
+
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (event.code !== "Space" || !spaceHeldRef.current) return;
+      spaceHeldRef.current = false;
+      if (listeningRef.current) stopListeningRef.current();
+      else spaceReleasePendingRef.current = true;
+    };
+
+    const onBlur = () => {
+      if (!spaceHeldRef.current) return;
+      spaceHeldRef.current = false;
+      stopListeningRef.current();
+    };
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
+    };
   }, []);
 
   useEffect(() => {
@@ -1093,7 +1162,7 @@ export function VoiceCommandSystem({
           )}
 
           <div className="px-4 py-2.5 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-2 text-[9px] text-[#64748B] dark:text-slate-500">
-            <span>Alt+V toggles · Esc closes</span>
+            <span>Hold Space to talk · Alt+V toggles</span>
             <span className="inline-flex items-center gap-1 truncate">
               {settings.voiceEnabled ? (
                 <Volume2 className="w-3 h-3 text-[#10B981]" />

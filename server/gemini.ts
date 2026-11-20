@@ -137,6 +137,29 @@ ${memoryBlock}
 ${options.modeNote ? `ACTIVE MODULE CONTEXT:\n${options.modeNote}` : ""}`.trim();
 }
 
+/**
+ * Compact instruction for the fast voice path. Spoken answers must arrive in
+ * about a second, so the full knowledge base is left out on purpose.
+ */
+function buildVoiceSystemPrompt(language?: AurixLanguage): string {
+  const owner = getOwnerProfile();
+  const targetLang = language || getAppSettings().language || "English";
+  return `You are AURIX, the personal AI assistant of ${owner.name} at AM VEYRONIX.
+- Answer in ${targetLang}. Understand English, Urdu (script or Roman Urdu) and Hindi, and reply in the language you were spoken to.
+- This is a spoken conversation: at most two short sentences, plain speech, no markdown, no lists, no headings.
+- Be warm, composed and precise. Never invent facts, credentials or capabilities.`;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(label)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 export async function chatWithAurix(params: {
   history: ChatMessage[];
   userMessage: string;
@@ -144,14 +167,20 @@ export async function chatWithAurix(params: {
   language?: AurixLanguage;
   thinkingLevel?: ThinkingDepth;
   scopedWebsite?: string;
+  /** Spoken-command mode: compact prompt, short history and a hard deadline. */
+  fast?: boolean;
 }): Promise<{ text: string; modelUsed: string; thinkingLevel: string }> {
   const settings = getAppSettings();
-  const model = params.model || settings.activeModel || "gemini-4-hydrogen";
+  const model = params.fast
+    ? "gemini-3.1-flash-lite"
+    : params.model || settings.activeModel || "gemini-4-hydrogen";
   const depth = params.thinkingLevel || settings.thinkingLevel || "MEDIUM";
-  const systemInstruction = buildAurixSystemPrompt({
-    language: params.language,
-    scopedWebsite: params.scopedWebsite,
-  });
+  const systemInstruction = params.fast
+    ? buildVoiceSystemPrompt(params.language)
+    : buildAurixSystemPrompt({
+        language: params.language,
+        scopedWebsite: params.scopedWebsite,
+      });
 
   if (settings.offlineModeForced) {
     const localOllama = await tryFreeLocalOllama(params.userMessage, systemInstruction);
@@ -169,21 +198,28 @@ export async function chatWithAurix(params: {
     const ai = getClient();
     const thinkingEnum = mapThinkingLevel(model, depth);
     const contents = [
-      ...params.history.slice(-14).map((m) => ({
+      ...params.history.slice(params.fast ? -4 : -14).map((m) => ({
         role: m.role === "assistant" ? ("model" as const) : ("user" as const),
         parts: [{ text: m.content }],
       })),
       { role: "user" as const, parts: [{ text: params.userMessage }] },
     ];
 
-    const response: GenerateContentResponse = await ai.models.generateContent({
+    const request = ai.models.generateContent({
       model,
       contents,
       config: {
         systemInstruction,
+        ...(params.fast ? { maxOutputTokens: 400 } : {}),
         ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
       },
     });
+
+    // A spoken reply never waits longer than a few seconds; the catch below
+    // then answers from the offline brain instead of leaving the user hanging.
+    const response: GenerateContentResponse = params.fast
+      ? await withTimeout(request, 9000, "AURIX voice reply timed out.")
+      : await request;
 
     const text = response.text?.trim();
     if (!text) {

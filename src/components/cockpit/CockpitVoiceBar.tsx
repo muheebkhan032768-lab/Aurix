@@ -126,15 +126,16 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
       setError(null);
       setReply("");
       try {
-        const res = await fetch("/api/chat", {
+        // Spoken commands use the fast router so AURIX replies in about a
+        // second instead of waiting on the deep thinking model.
+        const res = await fetch("/api/command/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: text,
+            command: text,
             language: settings.language,
-            model: settings.activeModel,
-            thinkingLevel: settings.thinkingLevel,
-            mode: "chat",
+            withVoice: false,
+            model: "gemini-3.1-flash-lite",
           }),
         });
         const json = await res.json();
@@ -161,7 +162,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
         setError(err instanceof Error ? err.message : "Voice request failed.");
       }
     },
-    [onReply, settings.activeModel, settings.language, settings.thinkingLevel, settings.voiceEnabled, settings.voiceSpeed]
+    [onReply, settings.language, settings.voiceEnabled, settings.voiceSpeed]
   );
 
   const startListening = useCallback(async () => {
@@ -254,7 +255,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
   }, []);
 
   const statusText: Record<VoiceStatus, string> = {
-    idle: "Ready — press the mic or type a command",
+    idle: "Ready — hold Space to talk, or press the mic",
     listening: "Listening… speak now",
     thinking: "AURIX is reasoning",
     speaking: "AURIX is responding",

@@ -863,14 +863,16 @@ async function startServer() {
         action = { type: "creative", asset };
         replyText = `I have created a custom visual artwork for "${asset.title}", Muheeb. Download it as PNG or SVG below.`;
       } else {
+        // Voice conversations pass a fast model so AURIX answers in about a
+        // second instead of waiting on the deep thinking model.
+        const voiceFast = requestedModel === "gemini-3.1-flash-lite";
         const aiReply = await chatWithAurix({
           history,
           userMessage: text,
-          // Voice conversations pass a fast model so AURIX answers in about a
-          // second instead of waiting on the deep thinking model.
-          model: requestedModel === "gemini-3.1-flash-lite" ? "gemini-3.1-flash-lite" : settings.activeModel,
+          model: voiceFast ? "gemini-3.1-flash-lite" : settings.activeModel,
           language: targetLang,
-          thinkingLevel: requestedModel === "gemini-3.1-flash-lite" ? "LOW" : settings.thinkingLevel,
+          thinkingLevel: voiceFast ? "LOW" : settings.thinkingLevel,
+          fast: voiceFast,
         });
         replyText = aiReply.text;
       }
