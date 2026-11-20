@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowRight, BrainCircuit, FolderOpen, Mic, Monitor, MonitorPlay, User } from "lucide-react";
+import { AppWindow, ArrowRight, BrainCircuit, FolderOpen, Mic, Monitor, MonitorPlay, User } from "lucide-react";
 import type { VoiceSnapshot } from "../../utils/voiceBus";
 
 interface SystemFlowProps {
@@ -13,6 +13,7 @@ const STAGES = [
   { key: "memory", label: "MEMORY / AGENTS", icon: FolderOpen },
   { key: "computer", label: "COMPUTER", icon: Monitor },
   { key: "output", label: "OUTPUT", icon: MonitorPlay },
+  { key: "interface", label: "INTERFACE", icon: AppWindow },
 ] as const;
 
 /** Which node lights up for the current voice pipeline stage. */

@@ -109,6 +109,69 @@ function Row({
   );
 }
 
+function HistoryBars({ values, accent = "#00F2FF" }: { values: number[]; accent?: string }) {
+  const padded = [...Array<number>(Math.max(0, 24 - values.length)).fill(0), ...values.slice(-24)];
+  return (
+    <div className="flex h-10 items-end gap-[2px]" aria-hidden="true">
+      {padded.map((value, i) => (
+        <span
+          key={i}
+          className="flex-1 rounded-[1px]"
+          style={{
+            height: `${Math.max(6, Math.min(100, value))}%`,
+            background: accent,
+            opacity: value > 0 ? 0.35 + (value / 100) * 0.65 : 0.12,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MemoryDonut({ usedPct, usedGb, freeGb }: { usedPct: number; usedGb: number; freeGb: number }) {
+  const pct = Math.max(0, Math.min(100, usedPct));
+  const radius = 22;
+  const circumference = 2 * Math.PI * radius;
+  return (
+    <div className="flex items-center gap-2">
+      <svg viewBox="0 0 56 56" className="h-14 w-14 shrink-0" aria-hidden="true">
+        <circle cx="28" cy="28" r={radius} fill="none" stroke="rgba(169,200,213,0.12)" strokeWidth="6" />
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke="#00F2FF"
+          strokeWidth="6"
+          strokeDasharray={`${(pct / 100) * circumference} ${circumference}`}
+          transform="rotate(-90 28 28)"
+        />
+        <text
+          x="28"
+          y="31"
+          textAnchor="middle"
+          fill="#FFFFFF"
+          fontFamily="JetBrains Mono, ui-monospace, monospace"
+          fontSize="9"
+          fontWeight="600"
+        >
+          {Math.round(pct)}%
+        </text>
+      </svg>
+      <div className="space-y-0.5 text-[8px] font-mono uppercase tracking-[0.12em] text-[#5B7185]">
+        <div className="flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-[1px] bg-[#00F2FF]" />
+          used {usedGb} GB
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="h-1.5 w-1.5 rounded-[1px] bg-[#A9C8D5]/25" />
+          free {freeGb} GB
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Sparkline({ values, accent }: { values: number[]; accent: string }) {
   const points =
     values.length > 1
@@ -283,6 +346,27 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
           detail={battery ? (battery.charging ? "charging" : "battery") : batterySupported ? "reading" : "none"}
           accent={battery && battery.level < 20 && !battery.charging ? "#FB7185" : "#A9C8D5"}
         />
+      </div>
+
+      <div className="rounded-xl border border-[#00F2FF]/12 bg-[#05080D]/45 px-2.5 py-2">
+        <div className="flex items-center justify-between text-[8px] font-mono uppercase tracking-[0.18em] text-[#3F5567]">
+          <span>Load profile</span>
+          <span>{history.length > 1 ? `${history.length} samples` : "sampling…"}</span>
+        </div>
+        <div className="mt-1.5 flex items-end justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-baseline justify-between text-[8px] font-mono uppercase tracking-[0.14em]">
+              <span className="text-[#5B7185]">CPU</span>
+              <span className="tabular-nums text-[#00F2FF]">{Math.round(cpuPct)}%</span>
+            </div>
+            <HistoryBars values={history.map((sample) => sample.cpu)} />
+          </div>
+          <MemoryDonut
+            usedPct={ramPct}
+            usedGb={Number((telemetry.usedMemoryBytes / 1024 ** 3).toFixed(1))}
+            freeGb={Number((telemetry.freeMemoryBytes / 1024 ** 3).toFixed(1))}
+          />
+        </div>
       </div>
 
       <div className="rounded-xl border border-[#00D9FF]/10 px-2.5">

@@ -152,7 +152,11 @@ export function CommandCenterView({
   ];
 
   return (
-    <div className={`nexus-cockpit flex flex-col gap-3 ${calm ? "nexus-calm" : ""}`}>
+    <div className={`nexus-cockpit relative flex flex-col gap-3 ${calm ? "nexus-calm" : ""}`}>
+      <span className="pointer-events-none absolute left-0 top-0 hidden h-4 w-4 border-l border-t border-[#00F2FF]/35 sm:block" aria-hidden="true" />
+      <span className="pointer-events-none absolute right-0 top-0 hidden h-4 w-4 border-r border-t border-[#00F2FF]/35 sm:block" aria-hidden="true" />
+      <span className="pointer-events-none absolute bottom-0 left-0 hidden h-4 w-4 border-b border-l border-[#00F2FF]/35 sm:block" aria-hidden="true" />
+      <span className="pointer-events-none absolute bottom-0 right-0 hidden h-4 w-4 border-b border-r border-[#00F2FF]/35 sm:block" aria-hidden="true" />
       {/* Command strip */}
       <div className="nexus-panel-soft flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
         <div className="min-w-0">
