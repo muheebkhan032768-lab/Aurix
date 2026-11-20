@@ -1,0 +1,6 @@
+{
+  "name": "AURIX 2.0 — AM VEYRONIX",
+  "description": "Advanced Unified Responsive Intelligence X — Personal AI Command Center for Abdul Muheeb by AM VEYRONIX.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
