@@ -201,7 +201,7 @@ export async function chatWithAurix(params: {
     const ai = getClient();
     const thinkingEnum = mapThinkingLevel(model, depth);
     const contents = [
-      ...params.history.slice(params.fast ? -4 : -14).map((m) => ({
+      ...params.history.slice(params.fast ? -2 : -14).map((m) => ({
         role: m.role === "assistant" ? ("model" as const) : ("user" as const),
         parts: [{ text: m.content }],
       })),
@@ -213,15 +213,16 @@ export async function chatWithAurix(params: {
       contents,
       config: {
         systemInstruction,
-        ...(params.fast ? { maxOutputTokens: 400 } : {}),
+        ...(params.fast ? { maxOutputTokens: 220, temperature: 0.6 } : {}),
         ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
       },
     });
 
-    // A spoken reply never waits longer than a few seconds; the catch below
-    // then answers from the offline brain instead of leaving the user hanging.
+    // A spoken reply never waits longer than a couple of seconds; the catch
+    // below then answers from the offline brain instead of leaving the user
+    // waiting on the model.
     const response: GenerateContentResponse = params.fast
-      ? await withTimeout(request, 9000, "AURIX voice reply timed out.")
+      ? await withTimeout(request, 5000, "AURIX voice reply timed out.")
       : await request;
 
     const text = response.text?.trim();
@@ -243,6 +244,16 @@ export async function chatWithAurix(params: {
   }
 }
 
+const ttsCache = new Map<string, { audioBase64: string; mimeType: string }>();
+const TTS_CACHE_LIMIT = 48;
+
+function rememberTts(key: string, value: { audioBase64: string; mimeType: string }) {
+  ttsCache.set(key, value);
+  if (ttsCache.size <= TTS_CACHE_LIMIT) return;
+  const oldest = ttsCache.keys().next().value;
+  if (oldest) ttsCache.delete(oldest);
+}
+
 export async function synthesizeAurixVoice(params: {
   text: string;
   voiceName?: "Charon" | "Fenrir" | "Puck";
@@ -260,7 +271,14 @@ export async function synthesizeAurixVoice(params: {
   const paceNote = speed < 0.9 ? "slowly and calmly" : speed > 1.1 ? "at a brisk pace" : "naturally";
 
   // Gemini TTS reads a style instruction followed by the line to speak.
-  const prompt = `Say in a warm, refined British male butler voice, in ${lang}, ${paceNote}: ${params.text.slice(0, 2000)}`;
+  // Warm, articulate direction is what gives the reply its butler character.
+  const prompt = `Speak as AURIX, a refined British male AI butler: warm, composed, articulate, natural pacing, gentle emphasis, clear pronunciation, never monotone. Do not read this direction aloud. Language: ${lang}. Pace: ${paceNote}. Say exactly: ${params.text.slice(0, 2000)}`;
+
+  // Repeat lines (greeting, wake acknowledgement, help) play from memory
+  // instead of waiting on another synthesis round trip.
+  const cacheKey = `${voice}|${lang}|${speed}|${params.text}`;
+  const cached = ttsCache.get(cacheKey);
+  if (cached) return cached;
 
   const tryTtsModel = async (ttsModel: string) => {
     const response = await ai.models.generateContent({
@@ -295,9 +313,13 @@ export async function synthesizeAurixVoice(params: {
   };
 
   try {
-    return await tryTtsModel("gemini-3.8-flash-tts");
+    const result = await tryTtsModel("gemini-3.8-flash-tts");
+    rememberTts(cacheKey, result);
+    return result;
   } catch {
-    return await tryTtsModel("gemini-3.8-flash-lite-tts");
+    const result = await tryTtsModel("gemini-3.8-flash-lite-tts");
+    rememberTts(cacheKey, result);
+    return result;
   }
 }
 

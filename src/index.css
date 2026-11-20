@@ -140,6 +140,23 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes nexus-star-pulse {
+  0%, 100% { transform: scale(0.94); opacity: 0.78; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes nexus-star-talk {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.18) rotate(-8deg); }
+  50% { transform: scale(1.06) rotate(6deg); }
+  75% { transform: scale(1.2) rotate(-4deg); }
+}
+
+@keyframes nexus-bar {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
 .nexus-ring {
   transform-box: fill-box;
   transform-origin: center;
@@ -162,6 +179,26 @@
 
 .nexus-enter {
   animation: nexus-rise 0.4s ease-out both;
+}
+
+/* Emblem star and voice waveform — they move while AURIX speaks */
+.nexus-star {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nexus-star-pulse 3.4s ease-in-out infinite;
+}
+
+.nexus-star.is-live {
+  animation: nexus-star-talk 0.9s ease-in-out infinite;
+}
+
+.nexus-wave-bar {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.nexus-wave.is-live .nexus-wave-bar {
+  animation: nexus-bar 0.72s ease-in-out infinite;
 }
 
 .nexus-panel {
@@ -203,7 +240,9 @@
 
 /* ECO / reduced-motion: stop continuous ring rendering, keep the composition */
 .nexus-calm .nexus-ring,
-.nexus-calm .nexus-core {
+.nexus-calm .nexus-core,
+.nexus-calm .nexus-star,
+.nexus-calm .nexus-wave-bar {
   animation-play-state: paused;
 }
 

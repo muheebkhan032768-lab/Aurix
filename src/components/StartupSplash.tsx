@@ -13,6 +13,13 @@ interface StartupSplashProps {
 const AURIX_LETTERS = ["A", "U", "R", "I", "X"];
 const VERSION_CHARS = ["2", ".", "0"];
 
+const BOOT_STEPS = [
+  { label: "Voice engine", value: "online", at: 0.2 },
+  { label: "Neural core", value: "synced", at: 0.38 },
+  { label: "Memory lattice", value: "loaded", at: 0.56 },
+  { label: "Nexus link", value: "ready", at: 0.74 },
+];
+
 export function StartupSplash({
   durationSeconds,
   soundEnabled,
@@ -254,6 +261,9 @@ export function StartupSplash({
               d="M56 23L80 79H69.5L64 65.5H48L42.5 79H32L56 23ZM51.2 57.5H60.8L56 45.2L51.2 57.5Z"
               fill="url(#aurixSilverCyan)"
             />
+            <g className={`nexus-star ${showSweep ? "is-live" : ""}`}>
+              <path d="M92 12 L94 20 L102 22 L94 24 L92 32 L90 24 L82 22 L90 20 Z" fill="#EAFBFF" fillOpacity="0.95" />
+            </g>
             <defs>
               <linearGradient id="aurixSilverCyan" x1="32" y1="23" x2="80" y2="79" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#FFFFFF" />
@@ -354,6 +364,30 @@ export function StartupSplash({
           <div className="mt-2.5 text-[11px] font-mono tracking-[0.22em] text-slate-300 uppercase tabular-nums">
             Initializing AURIX Intelligence · {Math.round(progress * 100)}%
           </div>
+        </div>
+
+        <div className="mt-5 grid w-64 grid-cols-2 gap-x-6 gap-y-1 text-left sm:w-80">
+          {BOOT_STEPS.map((step) => {
+            const done = progress >= step.at;
+            return (
+              <div
+                key={step.label}
+                className="flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.16em] transition-opacity duration-500"
+                style={{ opacity: done ? 1 : 0.22 }}
+              >
+                <span className="text-[#5B7185]">{step.label}</span>
+                <span style={{ color: done ? "#2FE9C6" : "#3F5567" }}>{done ? step.value : "····"}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div
+          className="mt-7 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-[#7FA0B4]"
+          style={{ opacity: Math.max(0, Math.min(1, (progress - 0.72) / 0.16)) }}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-[#2FE9C6] animate-pulse" aria-hidden="true" />
+          Say “Hello AURIX” to activate
         </div>
       </div>
 

@@ -16,7 +16,11 @@ import {
   X,
 } from "lucide-react";
 import type { AppSettings, AurixSectionId, NoteItem, TaskItem, VoiceShortcuts } from "../types/aurix";
-import { cancelCompanionVoice, speakWithCompanionVoice } from "../utils/companionVoice";
+import {
+  cancelCompanionVoice,
+  playCompanionAudioBase64,
+  speakWithCompanionVoice,
+} from "../utils/companionVoice";
 import { createAlwaysOnMic, type AlwaysOnMicController } from "../utils/alwaysOnMic";
 import { createMicLevelMeter, type MicLevelMeter } from "../utils/micLevel";
 import { publishVoice } from "../utils/voiceBus";
@@ -99,6 +103,44 @@ function localeFor(language: AppSettings["language"]): string {
   return "en-GB";
 }
 
+/** Ways the wake phrase is commonly heard, including "Hello X". */
+const WAKE_ALIASES = [
+  "hello aurix",
+  "hey aurix",
+  "hello x",
+  "hey x",
+  "hello orix",
+  "hello aurex",
+  "hello auriks",
+  "hello aarox",
+  "hello auric",
+  "hello aurox",
+];
+
+function splitWakePhrase(raw: string, wakePhrase: string): { heard: boolean; remainder: string } {
+  const normalized = raw
+    .toLowerCase()
+    .replace(/[.,!?;:"'“”]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const candidates = [wakePhrase.trim().toLowerCase(), ...WAKE_ALIASES].filter(Boolean);
+  for (const phrase of candidates) {
+    const index = normalized.indexOf(phrase);
+    if (index === -1) continue;
+    const remainder = `${normalized.slice(0, index)} ${normalized.slice(index + phrase.length)}`
+      .replace(/\s+/g, " ")
+      .trim();
+    return { heard: true, remainder };
+  }
+  return { heard: false, remainder: "" };
+}
+
+function wakeAcknowledgement(language: AppSettings["language"]): string {
+  if (language === "Urdu") return "اورکس آن لائن ہے، میں سن رہا ہوں۔";
+  if (language === "Hindi") return "ऑरिक्स ऑनलाइन है, मैं सुन रहा हूँ।";
+  return "AURIX online. I'm listening.";
+}
+
 /** Space starts and stops the microphone everywhere except inside a text field. */
 function isTextEntryTarget(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -166,6 +208,7 @@ export function VoiceCommandSystem({
   const startAlwaysOnRef = useRef<() => Promise<boolean>>(async () => false);
   const inputRef = useRef<HTMLInputElement>(null);
   const runCommandRef = useRef<(raw: string, source?: CommandSource) => Promise<void>>(async () => {});
+  const handleSpokenInputRef = useRef<(raw: string, source?: CommandSource) => void>(() => {});
   const spaceHeldRef = useRef(false);
   const spaceReleasePendingRef = useRef(false);
   const wakeListeningRef = useRef(false);
@@ -220,6 +263,36 @@ export function VoiceCommandSystem({
       emergencyStopActive,
     ]
   );
+
+  // "Hello AURIX" (or "Hello X") wakes the assistant, opens its interface and
+  // runs whatever follows the phrase as the command.
+  const handleSpokenInput = useCallback(
+    (raw: string, source: CommandSource = "voice") => {
+      const spoken = raw.trim();
+      if (!spoken) return;
+      const current = settingsRef.current;
+      const { heard, remainder } = splitWakePhrase(spoken, current.wakePhrase || "Hello AURIX");
+      if (!heard) {
+        void runCommandRef.current(spoken, source);
+        return;
+      }
+      awaitingWakeCommandRef.current = !remainder;
+      setOpen(true);
+      setStatus("idle");
+      setTranscript(spoken);
+      setStatusMessage("AURIX online — I am listening.");
+      if (remainder) {
+        void runCommandRef.current(remainder, "wake");
+        return;
+      }
+      speak(wakeAcknowledgement(current.language));
+    },
+    [speak]
+  );
+
+  useEffect(() => {
+    handleSpokenInputRef.current = handleSpokenInput;
+  }, [handleSpokenInput]);
 
   const stopListening = useCallback(() => {
     try {
@@ -385,7 +458,7 @@ export function VoiceCommandSystem({
       recognition.onend = () => {
         setListening(false);
         const said = (finalText || combined).trim();
-        if (said) void runCommandRef.current(said, "voice");
+        if (said) handleSpokenInputRef.current(said, "voice");
         else setStatus("idle");
         if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
         resumeAlwaysOnRef.current = false;
@@ -442,11 +515,9 @@ export function VoiceCommandSystem({
           if (!result.isFinal) continue;
           const said = (result[0]?.transcript || "").trim();
           if (!said) continue;
-          const wake = settings.wakePhrase.trim().toLowerCase();
-          const lower = said.toLowerCase();
 
           if (alwaysOn) {
-            void runCommandRef.current(said, "wake");
+            handleSpokenInputRef.current(said, "wake");
             continue;
           }
 
@@ -456,21 +527,10 @@ export function VoiceCommandSystem({
             void runCommandRef.current(said, "wake");
             continue;
           }
-          if (!wake) continue;
-          const wakeIndex = lower.indexOf(wake);
-          if (wakeIndex === -1) continue;
-          const rest = said
-            .slice(wakeIndex + wake.length)
-            .replace(/^[,.\s]+/, "")
-            .trim();
-          if (rest) {
-            setOpen(true);
-            void runCommandRef.current(rest, "wake");
-          } else {
-            awaitingWakeCommandRef.current = true;
-            setOpen(true);
-            setStatusMessage(`Wake phrase detected — listening for your command.`);
-          }
+
+          // Armed hands-free mode only reacts once the wake phrase is heard.
+          if (!splitWakePhrase(said, settings.wakePhrase || "Hello AURIX").heard) continue;
+          handleSpokenInputRef.current(said, "wake");
         }
       };
       recognition.onerror = (event) => {
@@ -595,7 +655,7 @@ export function VoiceCommandSystem({
         listeningRef.current ||
         Date.now() - lastSpeechEndRef.current < 700,
       sensitivity: () => settings.micSensitivity,
-      onTranscript: (text) => void runCommandRef.current(text, "voice"),
+      onTranscript: (text) => handleSpokenInputRef.current(text, "voice"),
       onError: (message) => {
         setError(message);
         setStatus("error");
@@ -663,6 +723,7 @@ export function VoiceCommandSystem({
       let ok = true;
       let speakResponse = true;
       let forceSpeak = false;
+      let prefetchedAudio: { audioBase64: string; mimeType?: string } | null = null;
 
       try {
         const allowedDuringStop =
@@ -802,18 +863,28 @@ export function VoiceCommandSystem({
                 ok = false;
                 break;
               }
+              // The spoken answer is synthesized in the same request, so audio
+              // starts as soon as the reply text arrives.
+              const wantsVoice =
+                settings.voiceEnabled &&
+                !settings.doNotDisturb &&
+                !emergencyStopActive &&
+                !settings.offlineModeForced;
               const res = await fetch("/api/command/execute", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   command: intent.text,
                   language: settings.language,
-                  withVoice: false,
+                  withVoice: wantsVoice,
                   model: "gemini-3.1-flash-lite",
                 }),
               });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || "AURIX could not process that command.");
+              if (wantsVoice && data.audioBase64) {
+                prefetchedAudio = { audioBase64: data.audioBase64, mimeType: data.mimeType };
+              }
               if (data.action?.type === "navigate" && data.action.section) {
                 onNavigate(data.action.section as AurixSectionId);
               }
@@ -852,7 +923,29 @@ export function VoiceCommandSystem({
           ...prev,
         ].slice(0, 8)
       );
-      if (speakResponse) speak(response, forceSpeak);
+      if (speakResponse) {
+        const audio = prefetchedAudio;
+        if (audio) {
+          cancelSpeech();
+          speakingRef.current = true;
+          setSpeaking(true);
+          void playCompanionAudioBase64(audio.audioBase64, audio.mimeType, settings.voiceSpeed, {
+            onStart: () => setSpeaking(true),
+            onEnd: () => {
+              speakingRef.current = false;
+              lastSpeechEndRef.current = Date.now();
+              setSpeaking(false);
+            },
+          }).then((started) => {
+            if (started) return;
+            speakingRef.current = false;
+            setSpeaking(false);
+            speak(response, forceSpeak);
+          });
+        } else {
+          speak(response, forceSpeak);
+        }
+      }
     },
     [
       cancelSpeech,

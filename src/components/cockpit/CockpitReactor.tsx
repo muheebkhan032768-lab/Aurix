@@ -31,6 +31,7 @@ const stateTheme: Record<ReactorState, { accent: string; speed: number; label: s
 const ticks = Array.from({ length: 72 }, (_, i) => i);
 const orbitDots = Array.from({ length: 10 }, (_, i) => i);
 const outerDots = Array.from({ length: 14 }, (_, i) => i);
+const waveBars = Array.from({ length: 9 }, (_, i) => i);
 
 export function CockpitReactor({
   state,
@@ -198,6 +199,42 @@ export function CockpitReactor({
           strokeOpacity="0.85"
           strokeWidth="1.8"
         />
+
+        {/* AURIX emblem star — shivers while the assistant speaks */}
+        <g
+          className={`nexus-star ${state === "speaking" ? "is-live" : ""}`}
+          style={{ transformOrigin: "260px 204px" }}
+        >
+          <path
+            d="M260 182 L266 198 L282 204 L266 210 L260 226 L254 210 L238 204 L254 198 Z"
+            fill="#EAFBFF"
+            fillOpacity="0.92"
+          />
+          <circle cx="260" cy="204" r="2.6" fill="#FFFFFF" />
+        </g>
+
+        {/* Live voice waveform under the wordmark */}
+        <g
+          className={`nexus-wave ${state === "speaking" ? "is-live" : ""}`}
+          style={{ opacity: 0.35 + energy * 0.65 }}
+        >
+          {waveBars.map((i) => {
+            const height = 8 + Math.abs(Math.sin((i + 1) * 1.15)) * 22 * (0.4 + energy);
+            return (
+              <rect
+                key={i}
+                x={260 - 38 + i * 9}
+                y={320 - height / 2}
+                width={4}
+                height={height}
+                rx={1.6}
+                fill={theme.accent}
+                className="nexus-wave-bar"
+                style={{ animationDelay: `${(i % 5) * 0.11}s` }}
+              />
+            );
+          })}
+        </g>
 
         <text
           x="260"

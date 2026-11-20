@@ -188,6 +188,11 @@ export function CommandCenterView({
             {engineLabel}
           </span>
 
+          <span className="hidden items-center gap-1.5 rounded-full border border-[#00D9FF]/25 bg-[#00D9FF]/5 px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] text-[#A9C8D5] lg:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#00D9FF] animate-pulse" aria-hidden="true" />
+            Say “{settings.wakePhrase}”
+          </span>
+
           <span
             className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] ${
               isOnline

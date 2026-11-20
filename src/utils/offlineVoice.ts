@@ -39,25 +39,26 @@ export function speakWithOfflineBritishVoice(
         const match = voices.find((v) => v.voiceURI === preferredVoiceUri || v.name === preferredVoiceUri);
         if (match) return match;
       }
+      // Neural/online voices sound noticeably richer than the basic ones.
+      const natural = (list: SpeechSynthesisVoice[]) =>
+        list.find((v) => /natural|neural|online|premium|enhanced/i.test(v.name));
       if (language === "Urdu") {
-        return (
-          voices.find((v) => v.lang.toLowerCase().startsWith("ur")) ||
-          voices.find((v) => v.lang.toLowerCase().includes("gb"))
-        );
+        const urduVoices = voices.filter((v) => v.lang.toLowerCase().startsWith("ur"));
+        return natural(urduVoices) || urduVoices[0] || voices.find((v) => v.lang.toLowerCase().includes("gb"));
       }
       if (language === "Hindi") {
-        return (
-          voices.find((v) => v.lang.toLowerCase().startsWith("hi")) ||
-          voices.find((v) => v.lang.toLowerCase().includes("gb"))
-        );
+        const hindiVoices = voices.filter((v) => v.lang.toLowerCase().startsWith("hi"));
+        return natural(hindiVoices) || hindiVoices[0] || voices.find((v) => v.lang.toLowerCase().includes("gb"));
       }
       const gbVoices = voices.filter((v) => v.lang.toLowerCase().includes("gb"));
       const preferredMale = gbVoices.find((v) =>
         /male|george|ryan|daniel|arthur|oliver|alfie|guy/i.test(v.name)
       );
       return (
+        natural(gbVoices) ||
         preferredMale ||
         gbVoices[0] ||
+        natural(voices) ||
         voices.find((v) => /male|david|mark|daniel/i.test(v.name)) ||
         voices[0]
       );
