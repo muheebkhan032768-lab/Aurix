@@ -112,6 +112,36 @@
   animation-delay: 1s;
 }
 
+/* Phase 2 — holographic presence face */
+@keyframes aurix-holo-flicker {
+  0%, 100% { opacity: 0.95; }
+  46% { opacity: 0.95; }
+  47% { opacity: 0.72; }
+  48% { opacity: 0.98; }
+  78% { opacity: 0.86; }
+  79% { opacity: 0.96; }
+}
+
+@keyframes aurix-holo-scan {
+  0% { transform: translateY(-20px); opacity: 0; }
+  12% { opacity: 0.85; }
+  88% { opacity: 0.85; }
+  100% { transform: translateY(250px); opacity: 0; }
+}
+
+.aurix-holo {
+  animation: aurix-holo-flicker 7s ease-in-out infinite;
+}
+
+.aurix-holo-scan {
+  animation: aurix-holo-scan 5s linear infinite;
+}
+
+.nexus-calm .aurix-holo,
+.nexus-calm .aurix-holo-scan {
+  animation: none;
+}
+
 /* AURIX 2.0 — NEXUS COCKPIT reactor & instrument motion */
 @keyframes nexus-spin {
   to { transform: rotate(360deg); }

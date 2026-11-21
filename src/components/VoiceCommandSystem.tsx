@@ -180,6 +180,7 @@ export function VoiceCommandSystem({
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [statusMessage, setStatusMessage] = useState("Ready for a command.");
   const [transcript, setTranscript] = useState("");
+  const [liveCaption, setLiveCaption] = useState("");
   const [inputText, setInputText] = useState("");
   const [listening, setListening] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -192,6 +193,7 @@ export function VoiceCommandSystem({
   const [micPermission, setMicPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
 
   const wakeRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const captionRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const wakeEnabledRef = useRef(false);
   const awaitingWakeCommandRef = useRef(false);
   const speakingRef = useRef(false);
@@ -294,10 +296,55 @@ export function VoiceCommandSystem({
     handleSpokenInputRef.current = handleSpokenInput;
   }, [handleSpokenInput]);
 
+  // A browser caption pass runs beside the real recording so the live
+  // transcript can show words while you speak. It is display-only: the server
+  // transcription of the clip stays the authoritative command.
+  const stopLiveCaption = useCallback(() => {
+    const recognition = captionRecognitionRef.current;
+    captionRecognitionRef.current = null;
+    try {
+      recognition?.stop();
+    } catch {
+      // Recognition may already be stopped.
+    }
+  }, []);
+
+  const startLiveCaption = useCallback(() => {
+    stopLiveCaption();
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) return;
+    setLiveCaption("");
+    try {
+      const recognition = new Ctor();
+      recognition.lang = localeFor(settingsRef.current.language);
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.onresult = (event) => {
+        let text = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          text += event.results[i][0]?.transcript || "";
+        }
+        const clean = text.trim();
+        if (clean) setLiveCaption(clean);
+      };
+      recognition.onerror = () => {
+        captionRecognitionRef.current = null;
+      };
+      recognition.onend = () => {
+        captionRecognitionRef.current = null;
+      };
+      recognition.start();
+      captionRecognitionRef.current = recognition;
+    } catch {
+      // Live captions are optional — recording carries on without them.
+    }
+  }, [stopLiveCaption]);
+
   // Push-to-talk capture: one recording session through the shared voice
   // engine, transcribed by the server so AURIX hears the real words.
   const stopListening = useCallback(() => {
     const current = settingsRef.current;
+    stopLiveCaption();
     setListening(false);
     setStatusMessage("Transcribing what you said…");
     void stopCapture({
@@ -319,7 +366,7 @@ export function VoiceCommandSystem({
       if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
       resumeAlwaysOnRef.current = false;
     });
-  }, []);
+  }, [stopLiveCaption]);
 
   const startListening = useCallback(async () => {
     if (isCapturing() || listeningRef.current) {
@@ -356,11 +403,12 @@ export function VoiceCommandSystem({
     setListening(true);
     setStatus("listening");
     setStatusMessage("Listening — release Space to send.");
+    startLiveCaption();
     if (spaceReleasePendingRef.current) {
       spaceReleasePendingRef.current = false;
       stopListening();
     }
-  }, [stopListening, cancelSpeech]);
+  }, [stopListening, cancelSpeech, startLiveCaption]);
 
 
   const stopWakeListening = useCallback(() => {
@@ -872,14 +920,20 @@ export function VoiceCommandSystem({
           cancelSpeech();
           speakingRef.current = true;
           setSpeaking(true);
-          void playCompanionAudioBase64(audio.audioBase64, audio.mimeType, settings.voiceSpeed, {
-            onStart: () => setSpeaking(true),
-            onEnd: () => {
-              speakingRef.current = false;
-              lastSpeechEndRef.current = Date.now();
-              setSpeaking(false);
+          void playCompanionAudioBase64(
+            audio.audioBase64,
+            audio.mimeType,
+            settings.voiceSpeed,
+            {
+              onStart: () => setSpeaking(true),
+              onEnd: () => {
+                speakingRef.current = false;
+                lastSpeechEndRef.current = Date.now();
+                setSpeaking(false);
+              },
             },
-          }).then((started) => {
+            response
+          ).then((started) => {
             if (started) return;
             speakingRef.current = false;
             setSpeaking(false);
@@ -1049,6 +1103,7 @@ export function VoiceCommandSystem({
       wakeEnabledRef.current = false;
       try {
         wakeRecognitionRef.current?.stop();
+        captionRecognitionRef.current?.stop();
       } catch {
         // Ignore teardown races.
       }
@@ -1084,6 +1139,7 @@ export function VoiceCommandSystem({
               ? "error"
               : "idle",
       transcript: transcript || "",
+      interim: liveCaption,
       reply: lastResult?.text || "",
       detail: statusMessage,
       muted: !settings.voiceEnabled,
@@ -1095,6 +1151,7 @@ export function VoiceCommandSystem({
     micActive,
     status,
     transcript,
+    liveCaption,
     lastResult,
     statusMessage,
     settings.voiceEnabled,

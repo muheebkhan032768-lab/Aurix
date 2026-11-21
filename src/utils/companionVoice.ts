@@ -1,5 +1,7 @@
 import type { AurixLanguage } from "../types/aurix";
 import { cancelOfflineVoice, speakWithOfflineBritishVoice } from "./offlineVoice";
+import { publishVoice } from "./voiceBus";
+import { estimatedSpeechMs } from "./visemes";
 
 export interface CompanionVoiceOptions {
   voiceName?: "Charon" | "Fenrir" | "Puck";
@@ -11,14 +13,45 @@ export interface CompanionVoiceOptions {
   volume?: number;
   onStart?: () => void;
   onEnd?: () => void;
-  /** Word-boundary pulse, only fired by the device voice. */
-  onBoundary?: () => void;
+  /** Word-boundary pulse with the offset inside the spoken text. */
+  onBoundary?: (charIndex?: number) => void;
 }
 
 let audioEl: HTMLAudioElement | null = null;
 let abortRef: AbortController | null = null;
 let runToken = 0;
 let lastEngine: "gemini" | "device" = "gemini";
+let progressTimer = 0;
+
+function stopSpeechProgress() {
+  if (progressTimer) window.clearInterval(progressTimer);
+  progressTimer = 0;
+}
+
+function endSpeechProgress() {
+  stopSpeechProgress();
+  publishVoice({ spokenChars: -1 });
+}
+
+/**
+ * Gemini audio arrives as one clip with no word events, so progress is
+ * interpolated from playback time — enough to keep the face in sync.
+ */
+function trackAudioProgress(text: string, run: number) {
+  stopSpeechProgress();
+  const length = text.length;
+  // Some clips report no usable duration, so pace against the text length.
+  const estimated = estimatedSpeechMs(text) / 1000;
+  progressTimer = window.setInterval(() => {
+    if (run !== runToken || !audioEl) {
+      stopSpeechProgress();
+      return;
+    }
+    const { currentTime, duration } = audioEl;
+    const total = Number.isFinite(duration) && duration > 0 ? duration : estimated;
+    publishVoice({ spokenChars: Math.min(length, Math.round((currentTime / total) * length)) });
+  }, 90);
+}
 
 /** Which voice produced the most recent reply: cloud Gemini or the device. */
 export function companionVoiceEngine(): "gemini" | "device" {
@@ -55,6 +88,8 @@ function base64ToObjectUrl(base64: string, mimeType: string): string {
 /** Stops whatever the companion is currently saying. */
 export function cancelCompanionVoice() {
   runToken += 1;
+  stopSpeechProgress();
+  publishVoice({ spokenChars: -1 });
   abortRef?.abort();
   abortRef = null;
   if (audioEl) {
@@ -69,7 +104,8 @@ async function playSource(
   src: string,
   speed: number,
   run: number,
-  options: CompanionVoiceOptions
+  options: CompanionVoiceOptions,
+  text?: string
 ): Promise<boolean> {
   const audio = new Audio(src);
   // Gemini audio is already paced by the server, so it plays at natural speed;
@@ -79,14 +115,17 @@ async function playSource(
   audio.onended = () => {
     if (run !== runToken) return;
     audioEl = null;
+    endSpeechProgress();
     options.onEnd?.();
   };
   audio.onerror = () => {
     if (run !== runToken) return;
     audioEl = null;
+    endSpeechProgress();
     options.onEnd?.();
   };
   await audio.play();
+  if (text) trackAudioProgress(text, run);
   options.onStart?.();
   return true;
 }
@@ -99,18 +138,21 @@ export async function playCompanionAudioBase64(
   audioBase64: string,
   mimeType: string | undefined,
   speed = 1,
-  options: CompanionVoiceOptions = {}
+  options: CompanionVoiceOptions = {},
+  text?: string
 ): Promise<boolean> {
   if (!audioBase64) return false;
   cancelCompanionVoice();
   lastEngine = "gemini";
   const run = ++runToken;
+  if (text) publishVoice({ reply: text, spokenChars: 0 });
   try {
     return await playSource(
       `data:${mimeType || "audio/wav"};base64,${audioBase64}`,
       speed,
       run,
-      options
+      options,
+      text
     );
   } catch {
     if (run === runToken) audioEl = null;
@@ -133,6 +175,8 @@ export async function speakWithCompanionVoice(
   const run = ++runToken;
   const speed = Math.min(1.25, Math.max(0.75, options.speed ?? 1));
   const key = cacheKeyFor(clean, { ...options, speed });
+  // The line about to be spoken is what the face and transcript follow.
+  publishVoice({ reply: clean, spokenChars: 0 });
 
   const speakWithBrowser = () => {
     lastEngine = "device";
@@ -143,7 +187,10 @@ export async function speakWithCompanionVoice(
       {
         onStart: options.onStart,
         onEnd: options.onEnd,
-        onBoundary: options.onBoundary,
+        onBoundary: (charIndex) => {
+          if (typeof charIndex === "number") publishVoice({ spokenChars: charIndex });
+          options.onBoundary?.(charIndex);
+        },
       },
       options.voiceId,
       options.volume
@@ -154,7 +201,7 @@ export async function speakWithCompanionVoice(
   if (cachedUrl) {
     try {
       lastEngine = "gemini";
-      return await playSource(cachedUrl, speed, run, options);
+      return await playSource(cachedUrl, speed, run, options, clean);
     } catch {
       spokenCache.delete(key);
     }
@@ -189,7 +236,7 @@ export async function speakWithCompanionVoice(
       // A data URL still plays even when the blob cannot be cached.
     }
     abortRef = null;
-    return await playSource(url, speed, run, options);
+    return await playSource(url, speed, run, options, clean);
   } catch {
     if (run !== runToken) return false;
     abortRef = null;

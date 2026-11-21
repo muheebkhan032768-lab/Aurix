@@ -9,7 +9,11 @@ export interface VoiceSnapshot {
   /** Live microphone energy 0..1 while recording. */
   level: number;
   transcript: string;
+  /** Words the microphone is hearing right now, before transcription finishes. */
+  interim: string;
   reply: string;
+  /** Character offset in `reply` being spoken right now, -1 when silent. */
+  spokenChars: number;
   detail: string;
   micPermission: MicPermission;
   muted: boolean;
@@ -19,7 +23,9 @@ const INITIAL: VoiceSnapshot = {
   state: "idle",
   level: 0,
   transcript: "",
+  interim: "",
   reply: "",
+  spokenChars: -1,
   detail: "SYSTEM READY",
   micPermission: "unknown",
   muted: false,

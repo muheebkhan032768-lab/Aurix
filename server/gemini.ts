@@ -268,11 +268,10 @@ export async function synthesizeAurixVoice(params: {
   const voice = params.voiceName || settings.voiceName || "Charon";
   const lang = params.language || settings.language || "English";
   const speed = params.speed ?? settings.voiceSpeed ?? 1.0;
-  const paceNote = speed < 0.9 ? "slowly and calmly" : speed > 1.1 ? "at a brisk pace" : "naturally";
-
-  // Gemini TTS reads a style instruction followed by the line to speak.
-  // Warm, articulate direction is what gives the reply its butler character.
-  const prompt = `Speak as AURIX, a refined British male AI butler: warm, composed, articulate, natural pacing, gentle emphasis, clear pronunciation, never monotone. Do not read this direction aloud. Language: ${lang}. Pace: ${paceNote}. Say exactly: ${params.text.slice(0, 2000)}`;
+  // Gemini TTS speaks the text it is given verbatim, so a style direction
+  // cannot travel with the line — it would be read aloud before every reply.
+  // The butler character comes from the chosen voice and the reply's wording.
+  const prompt = params.text.slice(0, 2000);
 
   // Repeat lines (greeting, wake acknowledgement, help) play from memory
   // instead of waiting on another synthesis round trip.

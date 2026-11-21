@@ -3,7 +3,8 @@ import type { AurixLanguage } from "../types/aurix";
 export interface OfflineVoiceCallbacks {
   onStart?: () => void;
   onEnd?: () => void;
-  onBoundary?: () => void;
+  /** Fired per word; `charIndex` is the offset inside the whole spoken text. */
+  onBoundary?: (charIndex?: number) => void;
 }
 
 interface DeviceVoice {
@@ -133,6 +134,17 @@ export function speakWithOfflineBritishVoice(
   const chunks = splitForSpeech(text);
   if (!chunks.length) return false;
 
+  // Chunks are trimmed copies, so remember where each one starts in the full
+  // text — that is what the face uses to follow along word by word.
+  const offsets: number[] = [];
+  let cursor = 0;
+  for (const chunk of chunks) {
+    const at = text.indexOf(chunk, cursor);
+    const offset = at >= 0 ? at : cursor;
+    offsets.push(offset);
+    cursor = offset + chunk.length;
+  }
+
   const run = ++runToken;
   try {
     window.speechSynthesis.cancel();
@@ -172,8 +184,10 @@ export function speakWithOfflineBritishVoice(
         started = true;
         callbacks?.onStart?.();
       }
+      callbacks?.onBoundary?.(offsets[index] ?? 0);
     };
-    utter.onboundary = () => callbacks?.onBoundary?.();
+    utter.onboundary = (event) =>
+      callbacks?.onBoundary?.((offsets[index] ?? 0) + (event.charIndex || 0));
     utter.onend = () => {
       if (run !== runToken) return;
       speakChunk(index + 1);

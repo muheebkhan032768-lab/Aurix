@@ -14,8 +14,10 @@ import type {
 import { speakWithCompanionVoice } from "../../utils/companionVoice";
 import { speakWithOfflineBritishVoice } from "../../utils/offlineVoice";
 import { formatShortcut } from "../../utils/shortcuts";
-import { useVoiceSnapshot } from "../../utils/voiceBus";
+import { publishVoice, useVoiceSnapshot } from "../../utils/voiceBus";
 import { BlueprintSchematics } from "./BlueprintSchematics";
+import { HolographicFace } from "./HolographicFace";
+import { LiveTranscriptPanel } from "./LiveTranscriptPanel";
 import { CockpitReactor, type ReactorState } from "./CockpitReactor";
 import { ExplodedView } from "./ExplodedView";
 import { CockpitTelemetry } from "./CockpitTelemetry";
@@ -124,7 +126,11 @@ export function CommandCenterView({
     void (async () => {
       const spoken = await speakWithCompanionVoice(text, { speed: settings.voiceSpeed });
       if (!spoken && !cancelled) {
-        await speakWithOfflineBritishVoice(text, settings.language, settings.voiceSpeed);
+        // The device-voice fallback still drives the face's lip-sync.
+        await speakWithOfflineBritishVoice(text, settings.language, settings.voiceSpeed, {
+          onBoundary: (charIndex) => publishVoice({ reply: text, spokenChars: charIndex ?? 0 }),
+          onEnd: () => publishVoice({ spokenChars: -1 }),
+        });
       }
     })();
     return () => {
@@ -253,13 +259,24 @@ export function CommandCenterView({
             </div>
           </div>
 
-          <div className="relative z-10 flex flex-1 items-center justify-center py-2">
-            <CockpitReactor
-              state={reactorState}
-              level={reactorLevel}
-              detailLabel={stateDetail[reactorState]}
-              size={520}
-            />
+          <div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center gap-3 py-2 xl:flex-row xl:items-center xl:gap-5">
+            <div className="min-w-0 w-full flex-1">
+              <CockpitReactor
+                state={reactorState}
+                level={reactorLevel}
+                detailLabel={stateDetail[reactorState]}
+                size={520}
+              />
+            </div>
+            <div className="w-full max-w-[240px] shrink-0 xl:w-[220px]">
+              <HolographicFace
+                state={voice.state}
+                level={voice.level}
+                reply={voice.reply}
+                spokenChars={voice.spokenChars}
+                calm={calm}
+              />
+            </div>
           </div>
 
           <div className="relative z-10 mt-1">
@@ -306,7 +323,10 @@ export function CommandCenterView({
 
       {/* Blueprint deck: exploded architecture + signal path + module registry */}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-        <ExplodedView state={reactorState} />
+        <div className="grid min-w-0 gap-3">
+          <ExplodedView state={reactorState} />
+          <LiveTranscriptPanel />
+        </div>
         <div className="grid min-w-0 gap-3">
           <SystemFlow voiceState={voice.state} />
           <ModuleTable
