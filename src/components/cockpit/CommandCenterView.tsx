@@ -16,7 +16,7 @@ import { speakWithOfflineBritishVoice } from "../../utils/offlineVoice";
 import { formatShortcut } from "../../utils/shortcuts";
 import { publishVoice, useVoiceSnapshot } from "../../utils/voiceBus";
 import { BlueprintSchematics } from "./BlueprintSchematics";
-import { HolographicFace } from "./HolographicFace";
+import { HolographicHead3D } from "./HolographicHead3D";
 import { LiveTranscriptPanel } from "./LiveTranscriptPanel";
 import { CockpitReactor, type ReactorState } from "./CockpitReactor";
 import { ExplodedView } from "./ExplodedView";
@@ -223,7 +223,7 @@ export function CommandCenterView({
         </div>
       </div>
 
-      <div className="grid flex-1 gap-3 md:grid-cols-[minmax(0,1fr)_272px] xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
         {/* Center stage */}
         <section className="nexus-panel nexus-stage relative flex flex-col overflow-hidden rounded-2xl px-4 py-4 sm:px-5">
           <div className="nexus-grid pointer-events-none absolute inset-0" aria-hidden="true" />
@@ -259,28 +259,15 @@ export function CommandCenterView({
             </div>
           </div>
 
-          <div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center gap-3 py-2 xl:flex-row xl:items-center xl:gap-5">
-            <div className="min-w-0 w-full flex-1">
-              <CockpitReactor
-                state={reactorState}
-                level={reactorLevel}
-                detailLabel={stateDetail[reactorState]}
-                size={520}
-              />
-            </div>
-            <div className="w-full max-w-[240px] shrink-0 xl:w-[220px]">
-              <HolographicFace
-                state={voice.state}
-                level={voice.level}
-                reply={voice.reply}
-                spokenChars={voice.spokenChars}
-                calm={calm}
-              />
-            </div>
-          </div>
-
-          <div className="relative z-10 mt-1">
-            <BlueprintSchematics state={reactorState} />
+          <div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center py-2">
+            <HolographicHead3D
+              state={voice.state}
+              level={voice.level}
+              reply={voice.reply}
+              spokenChars={voice.spokenChars}
+              calm={calm}
+              quality={mode}
+            />
           </div>
 
           <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -318,14 +305,31 @@ export function CommandCenterView({
         </section>
 
         {/* Instrument rail */}
-        <CockpitTelemetry telemetry={telemetry} settings={settings} isOnline={isOnline} />
+        <div className="grid min-w-0 content-start gap-3">
+          <CockpitTelemetry telemetry={telemetry} settings={settings} isOnline={isOnline} />
+          <LiveTranscriptPanel />
+        </div>
       </div>
 
       {/* Blueprint deck: exploded architecture + signal path + module registry */}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div className="grid min-w-0 gap-3">
+          <section className="nexus-panel rounded-2xl px-4 py-3" aria-label="AURIX core reactor">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Core reactor</h2>
+              <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-[#5B7185]">
+                {stateDetail[reactorState]}
+              </span>
+            </div>
+            <CockpitReactor
+              state={reactorState}
+              level={reactorLevel}
+              detailLabel={stateDetail[reactorState]}
+              size={200}
+            />
+          </section>
           <ExplodedView state={reactorState} />
-          <LiveTranscriptPanel />
+          <BlueprintSchematics state={reactorState} />
         </div>
         <div className="grid min-w-0 gap-3">
           <SystemFlow voiceState={voice.state} />
