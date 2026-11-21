@@ -43,6 +43,7 @@ import {
   VOICE_COMMAND_REFERENCE,
   VOICE_HELP_TEXT,
 } from "../utils/voiceCommands";
+import { openInNewTab, resolveAccountFromText, type WebsiteEntry } from "../utils/websiteRegistry";
 
 interface VoiceCommandSystemProps {
   settings: AppSettings;
@@ -174,6 +175,8 @@ export function VoiceCommandSystem({
   onRefreshSystem,
 }: VoiceCommandSystemProps) {
   const [open, setOpen] = useState(false);
+  // Set while AURIX waits for the user to pick an account (e.g. Facebook).
+  const pendingSiteRef = useRef<{ entry: WebsiteEntry } | null>(null);
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [statusMessage, setStatusMessage] = useState("Ready for a command.");
   const [transcript, setTranscript] = useState("");
@@ -610,7 +613,24 @@ export function VoiceCommandSystem({
       setStatus("processing");
       setStatusMessage("Working on your command...");
 
-      const intent = parseVoiceCommand(text);
+      let intent = parseVoiceCommand(text);
+      // While an account choice is pending, the next command answers it.
+      const pendingSite = pendingSiteRef.current;
+      if (pendingSite) {
+        pendingSiteRef.current = null;
+        const account = resolveAccountFromText(pendingSite.entry, text);
+        if (account) {
+          intent = {
+            kind: "open_website",
+            entry: pendingSite.entry,
+            account,
+            needsAccount: false,
+            label: `Open ${pendingSite.entry.name}`,
+          };
+        } else if (/^(cancel|never ?mind|forget it|stop)\b/i.test(text)) {
+          intent = { kind: "cancel", label: "Cancel" };
+        }
+      }
       let response = "";
       let ok = true;
       let speakResponse = true;
@@ -662,6 +682,37 @@ export function VoiceCommandSystem({
                 content: intent.content,
               });
               response = `Saved a note titled "${intent.title || "Voice note"}".`;
+              break;
+            }
+            case "open_website": {
+              const { entry, account } = intent;
+              if (intent.needsAccount && entry.accounts?.length) {
+                pendingSiteRef.current = { entry };
+                const names = entry.accounts.map((item) => item.label);
+                response = `Which ${entry.name} account would you like to open, ${names.join(" or ")}?`;
+                break;
+              }
+              const target = account?.url || entry.url;
+              if (!target) {
+                response = `${entry.name} does not have a saved link yet. Add it to the website registry when you have the URL.`;
+                ok = false;
+                speakResponse = false;
+                break;
+              }
+              const opened = openInNewTab(target);
+              if (!opened) {
+                response = `Your browser blocked the new tab for ${entry.name}. The saved link is ${target}.`;
+                break;
+              }
+              response = `Opening ${entry.name}${account ? ` for ${account.label}` : ""} in a new tab.`;
+              if (entry.id === "youtube-favourite") {
+                response += " Playback may need a click on the YouTube tab.";
+              }
+              break;
+            }
+            case "cancel": {
+              response = "Cancelled.";
+              speakResponse = false;
               break;
             }
             case "action": {

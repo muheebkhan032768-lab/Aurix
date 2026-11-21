@@ -1,4 +1,5 @@
 import type { AurixSectionId, TaskItem } from "../types/aurix";
+import { matchWebsiteCommand, type WebsiteAccount, type WebsiteEntry } from "./websiteRegistry";
 
 export type VoiceTheme = "dark" | "light";
 
@@ -27,6 +28,14 @@ export type VoiceIntent =
     }
   | { kind: "add_note"; title: string; content: string; label: string }
   | { kind: "action"; action: VoiceActionId; label: string; theme?: VoiceTheme; url?: string }
+  | {
+      kind: "open_website";
+      entry: WebsiteEntry;
+      account?: WebsiteAccount;
+      needsAccount: boolean;
+      label: string;
+    }
+  | { kind: "cancel"; label: string }
   | { kind: "ask_ai"; text: string; label: string };
 
 interface SectionCommand {
@@ -175,6 +184,19 @@ export function parseVoiceCommand(raw: string): VoiceIntent {
   const note = parseNote(text);
   if (note) return note;
 
+  // Saved websites are matched before in-app sections so "open my Instagram
+  // account" opens Instagram rather than a dashboard tab.
+  const website = matchWebsiteCommand(text);
+  if (website) {
+    return {
+      kind: "open_website",
+      entry: website.entry,
+      account: website.account,
+      needsAccount: website.needsAccount,
+      label: `Open ${website.entry.name}`,
+    };
+  }
+
   if (hasPhrase(lower, ["clear emergency stop", "cancel emergency stop", "deactivate emergency stop", "resume operations", "resume automation"])) {
     return { kind: "action", action: "emergency_stop_off", label: "Resume operations" };
   }
@@ -212,15 +234,6 @@ export function parseVoiceCommand(raw: string): VoiceIntent {
     return { kind: "action", action: "tell_time", label: "Time and date" };
   }
 
-  if (hasPhrase(lower, ["youtube"])) {
-    return {
-      kind: "action",
-      action: "open_external",
-      url: "https://www.youtube.com",
-      label: "Open YouTube",
-    };
-  }
-
   const navPrefixed = NAV_PREFIX.test(lower);
   if (!navPrefixed && /self.?heal|fix errors|check errors|run diagnostics|diagnose/i.test(lower)) {
     return { kind: "action", action: "self_heal", label: "Run self-heal" };
@@ -242,6 +255,16 @@ export const VOICE_COMMAND_REFERENCE: Array<{ title: string; commands: string[] 
   {
     title: "Navigate",
     commands: ["Open command hub", "Open tasks", "Open voice studio", "Open system monitor", "Open settings"],
+  },
+  {
+    title: "Websites",
+    commands: [
+      "Open Instagram",
+      "Open my Fiverr gigs",
+      "Open my Facebook",
+      "Play my favourite song",
+      "Open my YouTube channel",
+    ],
   },
   {
     title: "Productivity",
