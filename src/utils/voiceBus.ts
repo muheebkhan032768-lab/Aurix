@@ -4,6 +4,16 @@ export type VoiceSessionState = "idle" | "listening" | "processing" | "speaking"
 
 export type MicPermission = "granted" | "denied" | "prompt" | "unknown";
 
+/** One finished line of conversation, kept for the transcript history. */
+export interface TranscriptEntry {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  /** Epoch milliseconds. */
+  at: number;
+  ok?: boolean;
+}
+
 export interface VoiceSnapshot {
   state: VoiceSessionState;
   /** Live microphone energy 0..1 while recording. */
@@ -17,6 +27,8 @@ export interface VoiceSnapshot {
   detail: string;
   micPermission: MicPermission;
   muted: boolean;
+  /** Finished exchanges, oldest first. Capped so memory stays flat. */
+  history: TranscriptEntry[];
 }
 
 const INITIAL: VoiceSnapshot = {
@@ -29,6 +41,7 @@ const INITIAL: VoiceSnapshot = {
   detail: "SYSTEM READY",
   micPermission: "unknown",
   muted: false,
+  history: [],
 };
 
 let snapshot: VoiceSnapshot = INITIAL;
@@ -42,6 +55,28 @@ export function getVoiceSnapshot(): VoiceSnapshot {
 export function publishVoice(patch: Partial<VoiceSnapshot>): void {
   snapshot = { ...snapshot, ...patch };
   listeners.forEach((listener) => listener(snapshot));
+}
+
+const HISTORY_LIMIT = 40;
+let transcriptSeq = 0;
+
+/** Records one finished line so the transcript panel can show history. */
+export function appendTranscript(entry: { role: TranscriptEntry["role"]; text: string; ok?: boolean }): void {
+  const text = entry.text.replace(/\s+/g, " ").trim();
+  if (!text) return;
+  transcriptSeq += 1;
+  const next: TranscriptEntry = {
+    id: `tr_${Date.now()}_${transcriptSeq}`,
+    role: entry.role,
+    text,
+    at: Date.now(),
+    ok: entry.ok,
+  };
+  publishVoice({ history: [...snapshot.history, next].slice(-HISTORY_LIMIT) });
+}
+
+export function clearTranscriptHistory(): void {
+  publishVoice({ history: [] });
 }
 
 function subscribe(listener: (value: VoiceSnapshot) => void): () => void {

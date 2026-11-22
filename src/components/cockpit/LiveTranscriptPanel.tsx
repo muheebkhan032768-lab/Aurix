@@ -22,9 +22,14 @@ interface WordSpan {
   end: number;
 }
 
+function clock(at: number): string {
+  return new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 /**
- * Live transcript: what the microphone is hearing, then AURIX's answer with the
- * word being spoken highlighted as the voice reaches it.
+ * Live transcript: recognised speech, AURIX's answer with the word being
+ * spoken highlighted as the voice reaches it, and the finished exchange
+ * history with speaker labels and timestamps.
  */
 export function LiveTranscriptPanel() {
   const voice = useVoiceSnapshot();
@@ -40,19 +45,29 @@ export function LiveTranscriptPanel() {
   }, [voice.reply]);
 
   const speaking = voice.state === "speaking";
-  const spokenWords = speaking && voice.spokenChars >= 0
-    ? words.filter((span) => span.end <= voice.spokenChars).length
-    : words.length;
+  const spokenWords =
+    speaking && voice.spokenChars >= 0
+      ? words.filter((span) => span.end <= voice.spokenChars).length
+      : words.length;
 
   const activeRef = useRef<HTMLSpanElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     activeRef.current?.scrollIntoView({ block: "nearest" });
   }, [spokenWords]);
+
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (node) node.scrollTop = node.scrollHeight;
+  }, [voice.history.length]);
 
   const heard =
     voice.state === "listening"
       ? voice.interim || "Listening…"
       : voice.transcript || "Nothing captured yet.";
+
+  const history = voice.history.slice(-12);
 
   return (
     <section
@@ -67,6 +82,38 @@ export function LiveTranscriptPanel() {
           {STATE_LABEL[voice.state]}
         </span>
       </div>
+
+      {/* Finished exchanges */}
+      {history.length > 0 && (
+        <div
+          ref={scrollRef}
+          className="mt-2 max-h-[132px] space-y-1.5 overflow-y-auto pr-1"
+          data-testid="live-transcript-history"
+          aria-label="Conversation history"
+        >
+          {history.map((entry) => (
+            <div key={entry.id} className="rounded-lg border border-white/5 bg-[#05080D]/40 px-2 py-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className={`text-[8px] font-mono uppercase tracking-[0.18em] ${
+                    entry.role === "user" ? "text-[#7DE9FF]" : "text-[#2FE9C6]"
+                  }`}
+                >
+                  {entry.role === "user" ? "You" : "AURIX"}
+                </span>
+                <span className="text-[8px] font-mono tabular-nums text-[#3F5567]">{clock(entry.at)}</span>
+              </div>
+              <p
+                className={`mt-0.5 line-clamp-3 text-[10px] leading-snug ${
+                  entry.ok === false ? "text-amber-200/80" : "text-[#A9C8D5]"
+                }`}
+              >
+                {entry.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="mt-2 space-y-2">
         <div>

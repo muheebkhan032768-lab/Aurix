@@ -2,25 +2,30 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Bot, Code2, Mic, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
 import type {
   AppSettings,
+  AuditLogEntry,
   AurixLanguage,
   AurixSectionId,
   ConversationSummary,
+  MemoryItem,
+  NoteItem,
   OwnerProfile,
   PerformanceMode,
   ProjectRecord,
   SystemTelemetry,
   TaskItem,
+  WebsiteRecord,
 } from "../../types/aurix";
 import { speakWithCompanionVoice } from "../../utils/companionVoice";
 import { speakWithOfflineBritishVoice } from "../../utils/offlineVoice";
 import { formatShortcut } from "../../utils/shortcuts";
 import { publishVoice, useVoiceSnapshot } from "../../utils/voiceBus";
 import { BlueprintSchematics } from "./BlueprintSchematics";
+import { DashboardRail } from "./DashboardRail";
 import { HolographicHead3D } from "./HolographicHead3D";
 import { LiveTranscriptPanel } from "./LiveTranscriptPanel";
+import { StatusRail } from "./StatusRail";
 import { CockpitReactor, type ReactorState } from "./CockpitReactor";
 import { ExplodedView } from "./ExplodedView";
-import { CockpitTelemetry } from "./CockpitTelemetry";
 import { CockpitVoiceBar } from "./CockpitVoiceBar";
 import { ModuleTable } from "./ModuleTable";
 import { SystemFlow } from "./SystemFlow";
@@ -32,6 +37,10 @@ interface CommandCenterViewProps {
   tasks: TaskItem[];
   projects: ProjectRecord[];
   conversations: ConversationSummary[];
+  memories: MemoryItem[];
+  notes: NoteItem[];
+  websites: WebsiteRecord[];
+  auditLogs: AuditLogEntry[];
   isOnline: boolean;
   welcomeTriggerSignal?: number;
   onNavigate: (section: AurixSectionId) => void;
@@ -101,6 +110,10 @@ export function CommandCenterView({
   tasks,
   projects,
   conversations,
+  memories,
+  notes,
+  websites,
+  auditLogs,
   isOnline,
   welcomeTriggerSignal = 0,
   onNavigate,
@@ -128,8 +141,9 @@ export function CommandCenterView({
       if (!spoken && !cancelled) {
         // The device-voice fallback still drives the face's lip-sync.
         await speakWithOfflineBritishVoice(text, settings.language, settings.voiceSpeed, {
-          onBoundary: (charIndex) => publishVoice({ reply: text, spokenChars: charIndex ?? 0 }),
-          onEnd: () => publishVoice({ spokenChars: -1 }),
+          onBoundary: (charIndex) =>
+            publishVoice({ state: "speaking", reply: text, spokenChars: charIndex ?? 0 }),
+          onEnd: () => publishVoice({ spokenChars: -1, state: "idle" }),
         });
       }
     })();
@@ -223,24 +237,31 @@ export function CommandCenterView({
         </div>
       </div>
 
-      <div className="grid flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]">
-        {/* Center stage */}
-        <section className="nexus-panel nexus-stage relative flex flex-col overflow-hidden rounded-2xl px-4 py-4 sm:px-5">
-          <div className="nexus-grid pointer-events-none absolute inset-0" aria-hidden="true" />
-          <span className="nexus-bracket left-2 top-2 border-l border-t" aria-hidden="true" />
-          <span className="nexus-bracket right-2 top-2 border-r border-t" aria-hidden="true" />
-          <span className="nexus-bracket bottom-2 left-2 border-b border-l" aria-hidden="true" />
-          <span className="nexus-bracket bottom-2 right-2 border-b border-r" aria-hidden="true" />
+      {/* Main deck: navigation cards · holographic avatar · status + transcript */}
+      <div className="grid flex-1 gap-3 xl:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)]">
+        <div className="order-2 min-w-0 xl:order-1">
+          <DashboardRail
+            activeSection="home"
+            onNavigate={onNavigate}
+            memories={memories}
+            projects={projects}
+            tasks={tasks}
+            notes={notes}
+            websites={websites}
+          />
+        </div>
 
-          <div className="relative z-10 flex items-center justify-between">
+        {/* Centre stage — the avatar is never covered by a card */}
+        <div className="order-1 flex min-w-0 flex-col gap-2 xl:order-2">
+          <div className="nexus-panel-soft flex flex-wrap items-center justify-between gap-2 rounded-xl px-3 py-2">
             <div className="min-w-0">
               <h2 className="text-[11px] font-mono uppercase tracking-[0.24em] text-[#A9C8D5]">Nexus Core</h2>
               <p className="mt-0.5 truncate text-[8px] font-mono uppercase tracking-[0.22em] text-[#3F5567]">
-                3D system architecture · live deck
+                Holographic neural face · live deck
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
+              <span className="hidden text-[9px] font-mono uppercase tracking-[0.14em] text-[#5B7185] sm:inline">
                 {pushToTalkLabel} push-to-talk
               </span>
               <button
@@ -259,18 +280,16 @@ export function CommandCenterView({
             </div>
           </div>
 
-          <div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center py-2">
-            <HolographicHead3D
-              state={voice.state}
-              level={voice.level}
-              reply={voice.reply}
-              spokenChars={voice.spokenChars}
-              calm={calm}
-              quality={mode}
-            />
-          </div>
+          <HolographicHead3D
+            state={voice.state}
+            level={voice.level}
+            reply={voice.reply}
+            spokenChars={voice.spokenChars}
+            calm={calm}
+            quality={mode}
+          />
 
-          <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#00D9FF]/10 bg-[#05080D]/40 px-3 py-2">
             <div className="flex flex-wrap items-center gap-1.5">
               {(["idle", "listening", "thinking", "speaking"] as ReactorState[]).map((state) => (
                 <span
@@ -302,11 +321,18 @@ export function CommandCenterView({
               {VOICE_STATE_LABEL[voice.state] ?? "SYSTEM READY"}
             </span>
           </div>
-        </section>
+        </div>
 
-        {/* Instrument rail */}
-        <div className="grid min-w-0 content-start gap-3">
-          <CockpitTelemetry telemetry={telemetry} settings={settings} isOnline={isOnline} />
+        {/* Status rail + live transcript */}
+        <div className="order-3 grid min-w-0 content-start gap-2.5">
+          <StatusRail
+            settings={settings}
+            telemetry={telemetry}
+            isOnline={isOnline}
+            auditLogs={auditLogs}
+            memories={memories}
+            onNavigate={onNavigate}
+          />
           <LiveTranscriptPanel />
         </div>
       </div>

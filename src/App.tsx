@@ -541,6 +541,10 @@ function AurixShell() {
             tasks={data.tasks}
             projects={data.projects}
             conversations={data.conversations}
+            memories={data.memories}
+            notes={data.notes}
+            websites={data.websites}
+            auditLogs={data.auditLogs}
             isOnline={effectiveOnline}
             welcomeTriggerSignal={welcomeTriggerCount}
             onNavigate={setActiveSection}

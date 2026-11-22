@@ -29,7 +29,7 @@ import {
   stopCapture,
   stopSpeaking as engineStopSpeaking,
 } from "../utils/voiceEngine";
-import { publishVoice } from "../utils/voiceBus";
+import { appendTranscript, publishVoice } from "../utils/voiceBus";
 import {
   DEFAULT_VOICE_SHORTCUTS,
   formatShortcut,
@@ -657,6 +657,7 @@ export function VoiceCommandSystem({
       cancelSpeech();
       setError(null);
       setTranscript(text);
+      appendTranscript({ role: "user", text });
       setProcessing(true);
       setStatus("processing");
       setStatusMessage("Working on your command...");
@@ -897,6 +898,7 @@ export function VoiceCommandSystem({
       }
 
       setProcessing(false);
+      appendTranscript({ role: "assistant", text: response, ok });
       setLastResult({ text: response, ok });
       setStatus(ok ? "success" : "error");
       setStatusMessage(ok ? "Command complete." : "Command needs attention.");

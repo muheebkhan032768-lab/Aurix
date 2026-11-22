@@ -6,6 +6,7 @@ AURIX 2.0 (Advanced Unified Responsive Intelligence X) is a full-stack, bright g
 ## Key Capabilities
 - **Bright Daylight Command Hub**: Clean `#F8FAFC` / `#EEF2F7` glassmorphism interface with Emerald (`#10B981`), Gold (`#D6AD60`), and Cyan (`#06B6D4`) highlights (with optional Dark Theme in Settings).
 - **Interactive 6-State Voice Orb**: Reactive Web Audio `AnalyserNode` visualization across `READY`, `LISTENING`, `THINKING`, `SPEAKING`, `EXECUTING`, and `ERROR` states, plus natural British Male TTS & offline speech synthesis fallback.
+- **Holographic Neural Avatar**: Real-time Three.js blue neural-mesh head in the Command Center — blinking, subtle head motion, viseme lip-sync, four inspection views, ECO/BALANCED/HIGH quality modes and a WebGL fallback. See `docs/AVATAR.md`.
 - **Hardware-Aware Adaptive Modes**: Automatically detects installed RAM, CPU cores, and storage to recommend `Lightweight`, `Balanced`, or `Advanced` mode (CPU-only compatible for systems like Intel HD 3000 / 4GB–8GB laptops).
 - **12-Step Self-Healing Architecture**: Scans Frontend, Backend, SQLite Database, Voice Engine, AI Router, File System, and Dependencies — creates backup snapshots in `data/backups/`, validates patches, and rolls back automatically on failure.
 - **100% Free Local & Offline AI Support**: Works completely offline via SQLite knowledge base, local workspace editor, and optional local Ollama models (`http://127.0.0.1:11434`).

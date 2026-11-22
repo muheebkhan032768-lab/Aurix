@@ -30,7 +30,10 @@ function stopSpeechProgress() {
 
 function endSpeechProgress() {
   stopSpeechProgress();
-  publishVoice({ spokenChars: -1 });
+  // The avatar follows the voice bus, so speech ending here also closes the
+  // mouth and returns the face to idle even when the greeting bypasses the
+  // voice command panel.
+  publishVoice({ spokenChars: -1, state: "idle" });
 }
 
 /**
@@ -125,6 +128,7 @@ async function playSource(
     options.onEnd?.();
   };
   await audio.play();
+  publishVoice({ state: "speaking" });
   if (text) trackAudioProgress(text, run);
   options.onStart?.();
   return true;
@@ -180,13 +184,19 @@ export async function speakWithCompanionVoice(
 
   const speakWithBrowser = () => {
     lastEngine = "device";
-    return speakWithOfflineBritishVoice(
+    const started = speakWithOfflineBritishVoice(
       clean,
       options.language || "English",
       speed,
       {
-        onStart: options.onStart,
-        onEnd: options.onEnd,
+        onStart: () => {
+          publishVoice({ state: "speaking" });
+          options.onStart?.();
+        },
+        onEnd: () => {
+          endSpeechProgress();
+          options.onEnd?.();
+        },
         onBoundary: (charIndex) => {
           if (typeof charIndex === "number") publishVoice({ spokenChars: charIndex });
           options.onBoundary?.(charIndex);
@@ -195,6 +205,8 @@ export async function speakWithCompanionVoice(
       options.voiceId,
       options.volume
     );
+    if (!started) endSpeechProgress();
+    return started;
   };
 
   const cachedUrl = spokenCache.get(key);
