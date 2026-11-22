@@ -79,6 +79,22 @@ const SECTION_COMMANDS: SectionCommand[] = [
     label: "Self-Healer",
     keywords: ["self healer", "self-healer", "self healing", "self-healing", "diagnostics"],
   },
+  {
+    section: "identity",
+    label: "Personal Authentication",
+    keywords: ["personal authentication", "biometrics", "identity", "face recognition", "voice authentication"],
+  },
+  { section: "teach", label: "Teach AURIX", keywords: ["teach aurix", "visual learning", "training mode", "teach"] },
+  {
+    section: "training",
+    label: "Training Memory",
+    keywords: ["training memory", "training history", "aurix memory center", "approved examples"],
+  },
+  {
+    section: "activation",
+    label: "Chrome & Gmail Activation",
+    keywords: ["chrome activation", "gmail activation", "auto activation", "chrome and gmail"],
+  },
   { section: "security", label: "Security Center", keywords: ["security", "security center", "audit log"] },
   { section: "models", label: "AI Models", keywords: ["models", "ai models", "model settings"] },
   { section: "settings", label: "Settings", keywords: ["settings", "preferences", "configuration"] },
@@ -178,6 +194,11 @@ export function parseVoiceCommand(raw: string): VoiceIntent {
     return { kind: "action", action: "help", label: "Show commands" };
   }
 
+  // "Hello AURIX, enter training mode." opens the visual learning workspace.
+  if (/\b(?:enter|start|begin|open|launch)\s+(?:the\s+)?(?:teach\s+aurix\s+|training\s+|visual\s+learning\s+)?(?:mode|training)\b/i.test(lower)) {
+    return { kind: "navigate", section: "teach", label: "Teach AURIX" };
+  }
+
   const task = parseTask(text);
   if (task) return task;
 
@@ -273,6 +294,15 @@ export const VOICE_COMMAND_REFERENCE: Array<{ title: string; commands: string[] 
   {
     title: "System",
     commands: ["Run self-heal", "Refresh system", "Emergency stop", "Resume operations", "Lock session"],
+  },
+  {
+    title: "Identity & learning",
+    commands: [
+      "Hello AURIX, enter training mode",
+      "Open personal authentication",
+      "Open training memory",
+      "Open Chrome and Gmail activation",
+    ],
   },
   {
     title: "Voice & display",
