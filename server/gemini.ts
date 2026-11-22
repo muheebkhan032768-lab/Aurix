@@ -18,6 +18,7 @@ import {
   generateOfflineProactiveTurn,
   tryFreeLocalOllama,
 } from "./offlineBrain";
+import { isAiBlocked, markAiBlocked, markAiFailure, markAiSuccess, noteAiModel } from "./aiStatus";
 
 function getClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -102,7 +103,7 @@ export function buildAurixSystemPrompt(options: {
 
 PERSONALITY & COMMUNICATION RULES:
 - Refined British gentleman AI companion: warm, friendly, deeply respectful, composed, and quietly confident (inspired by JARVIS and FRIDAY, with your own independent AURIX identity).
-- Address ${owner.name} respectfully and professionally.
+- Always address the owner as "Sir" in every reply (his full name is ${owner.name}); never use a different honorific.
 - Primary response language preference: ${targetLang}. If the user writes in English, Urdu (including Roman Urdu or Urdu script), or Hindi (Devanagari or Hinglish), understand naturally and respond in the same language unless instructed otherwise.
 - LANGUAGE & ACCENT REQUESTS: when the user asks for a language or accent (for example "speak in British English", "اردو میں بات کرو", "Hindi mein bolo"), switch silently. Never repeat, quote, confirm or announce the instruction, and never begin with phrases such as "Certainly, I will speak in British English". Start directly with the answer in the requested language and accent.
 - Never announce the language, the accent, or the fact that you are about to answer — begin with the answer itself.
@@ -163,6 +164,33 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   });
 }
 
+/** The model this key reliably serves; every cloud call can fall back to it. */
+const FALLBACK_MODEL = "gemini-3.1-flash-lite";
+
+/**
+ * Runs a generation request and, when the preferred model is unavailable
+ * (quota, demand spike, retirement), retries once on the fallback model so the
+ * owner still gets a real cloud answer instead of the offline engine.
+ */
+async function generateWithFallback(
+  request: (model: string) => Promise<GenerateContentResponse>,
+  primary: string,
+  deadlineMs = 20_000
+): Promise<{ response: GenerateContentResponse; modelUsed: string }> {
+  try {
+    return {
+      response: await withTimeout(request(primary), deadlineMs, "AURIX cloud reply timed out."),
+      modelUsed: primary,
+    };
+  } catch (err) {
+    if (primary === FALLBACK_MODEL) throw err;
+    return {
+      response: await withTimeout(request(FALLBACK_MODEL), deadlineMs, "AURIX cloud reply timed out."),
+      modelUsed: FALLBACK_MODEL,
+    };
+  }
+}
+
 export async function chatWithAurix(params: {
   history: ChatMessage[];
   userMessage: string;
@@ -170,6 +198,8 @@ export async function chatWithAurix(params: {
   language?: AurixLanguage;
   thinkingLevel?: ThinkingDepth;
   scopedWebsite?: string;
+  /** Images attached in the composer, forwarded to the model inline. */
+  attachments?: Array<{ mimeType: string; dataBase64: string; name?: string }>;
   /** Spoken-command mode: compact prompt, short history and a hard deadline. */
   fast?: boolean;
 }): Promise<{ text: string; modelUsed: string; thinkingLevel: string }> {
@@ -197,40 +227,68 @@ export async function chatWithAurix(params: {
     return { text: offline, modelUsed: "offline-knowledge-engine", thinkingLevel: "LOCAL" };
   }
 
+  // A failed live probe or a recent provider error parks cloud calls briefly so
+  // the owner gets a real fallback answer instead of a spinning composer.
+  if (!params.fast && isAiBlocked()) {
+    const localOllama = await tryFreeLocalOllama(params.userMessage, systemInstruction);
+    if (localOllama) {
+      return { text: localOllama, modelUsed: "local-ollama-free", thinkingLevel: "LOCAL" };
+    }
+    const offline = answerOfflineWithKnowledge(
+      params.userMessage,
+      params.language || settings.language
+    );
+    return { text: offline, modelUsed: "offline-knowledge-engine", thinkingLevel: "LOCAL" };
+  }
+
   try {
     const ai = getClient();
-    const thinkingEnum = mapThinkingLevel(model, depth);
+    const attachmentParts = (params.attachments || []).map((a) => ({
+      inlineData: { mimeType: a.mimeType, data: a.dataBase64 },
+    }));
     const contents = [
       ...params.history.slice(params.fast ? -2 : -14).map((m) => ({
         role: m.role === "assistant" ? ("model" as const) : ("user" as const),
         parts: [{ text: m.content }],
       })),
-      { role: "user" as const, parts: [{ text: params.userMessage }] },
+      {
+        role: "user" as const,
+        parts: [{ text: params.userMessage }, ...attachmentParts],
+      },
     ];
 
-    const request = ai.models.generateContent({
-      model,
-      contents,
-      config: {
-        systemInstruction,
-        ...(params.fast ? { maxOutputTokens: 220, temperature: 0.6 } : {}),
-        ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
-      },
-    });
+    const request = (targetModel: string) => {
+      const thinkingEnum = mapThinkingLevel(targetModel, depth);
+      return ai.models.generateContent({
+        model: targetModel,
+        contents,
+        config: {
+          systemInstruction,
+          ...(params.fast ? { maxOutputTokens: 220, temperature: 0.6 } : {}),
+          ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
+        },
+      });
+    };
 
     // A spoken reply never waits longer than a couple of seconds; the catch
     // below then answers from the offline brain instead of leaving the user
     // waiting on the model.
-    const response: GenerateContentResponse = params.fast
-      ? await withTimeout(request, 5000, "AURIX voice reply timed out.")
-      : await request;
+    const { response, modelUsed } = await generateWithFallback(
+      request,
+      model,
+      params.fast ? 5000 : 20_000
+    );
 
     const text = response.text?.trim();
     if (!text) {
       throw new Error("AURIX received an empty response from the model.");
     }
-    return { text, modelUsed: model, thinkingLevel: depth };
-  } catch {
+    markAiSuccess(modelUsed);
+    return { text, modelUsed, thinkingLevel: depth };
+  } catch (err) {
+    markAiFailure(err);
+    markAiBlocked(err instanceof Error ? err.message : "AI request failed.", 1);
+    noteAiModel("fallback");
     // Free Local Ollama fallback -> Built-in Offline Brain fallback
     const localOllama = await tryFreeLocalOllama(params.userMessage, systemInstruction);
     if (localOllama) {
@@ -443,18 +501,22 @@ export async function analyzeFileOrImage(params: {
 
   parts.push({ text: promptBody });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: { parts },
-    config: {
-      systemInstruction,
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
-    },
-  });
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: { parts },
+        config: {
+          systemInstruction,
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   return {
     analysis: response.text?.trim() || "No analysis generated.",
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 
@@ -481,15 +543,19 @@ export async function researchWebWithGrounding(params: {
       "You are executing Internet Research with live Google Search grounding. Clearly distinguish verified source-backed facts from your synthesis or assumptions. Provide structured, actionable engineering or business insights for Abdul Muheeb.",
   });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: params.query,
-    config: {
-      systemInstruction,
-      tools: [{ googleSearch: {} }],
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
-    },
-  });
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: params.query,
+        config: {
+          systemInstruction,
+          tools: [{ googleSearch: {} }],
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
   const sources: { title: string; uri: string }[] = [];
@@ -506,7 +572,7 @@ export async function researchWebWithGrounding(params: {
   return {
     summary: response.text?.trim() || "No research results returned.",
     sources,
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 
@@ -545,20 +611,24 @@ Always start with a concise "Planned Changes & Architecture Rationale" section e
   }
   const ai = getClient();
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: `Request: ${params.instruction}\n\nCode / Context:\n\`\`\`\n${params.codeSnippet || "(No code snippet supplied — provide architectural design or starter implementation)"}\n\`\`\``,
-    config: {
-      systemInstruction,
-      thinkingConfig: {
-        thinkingLevel: params.deepReasoning ? ThinkingLevel.HIGH : ThinkingLevel.MEDIUM,
-      },
-    },
-  });
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: `Request: ${params.instruction}\n\nCode / Context:\n\`\`\`\n${params.codeSnippet || "(No code snippet supplied — provide architectural design or starter implementation)"}\n\`\`\``,
+        config: {
+          systemInstruction,
+          thinkingConfig: {
+            thinkingLevel: params.deepReasoning ? ThinkingLevel.HIGH : ThinkingLevel.MEDIUM,
+          },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   return {
     result: response.text?.trim() || "No engineering output returned.",
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 
@@ -581,21 +651,25 @@ export async function draftBusinessDocument(params: {
       "You are drafting an internal AM VEYRONIX business document for Abdul Muheeb's review. Never fabricate past clients, fake revenue, or fake testimonials. Mark all placeholder figures clearly as '[Owner to confirm]'. Remind the owner that nothing is sent externally without explicit approval.",
   });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: `Draft a professional ${params.kind.toUpperCase()} for AM VEYRONIX.
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: `Draft a professional ${params.kind.toUpperCase()} for AM VEYRONIX.
 Client / Target: ${params.clientName || "Prospective Client"}
 Currency: ${params.currency}
 Scope & Brief: ${params.brief}`,
-    config: {
-      systemInstruction,
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
-    },
-  });
+        config: {
+          systemInstruction,
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   return {
     draft: response.text?.trim() || "No draft generated.",
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 

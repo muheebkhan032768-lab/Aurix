@@ -17,6 +17,8 @@ export interface VoiceSnapshot {
   detail: string;
   micPermission: MicPermission;
   muted: boolean;
+  /** Hands-free "Hello AURIX" wake listener is armed for this session. */
+  wake: boolean;
 }
 
 const INITIAL: VoiceSnapshot = {
@@ -29,6 +31,7 @@ const INITIAL: VoiceSnapshot = {
   detail: "SYSTEM READY",
   micPermission: "unknown",
   muted: false,
+  wake: false,
 };
 
 let snapshot: VoiceSnapshot = INITIAL;

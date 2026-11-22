@@ -35,8 +35,8 @@ import { ModelsView } from "./components/ModelsView";
 import { SettingsView } from "./components/SettingsView";
 import { SelfHealView } from "./components/SelfHealView";
 import { CreativePcView } from "./components/CreativePcView";
-import { NexusSidebar } from "./components/cockpit/NexusSidebar";
-import { NexusTopBar } from "./components/cockpit/NexusTopBar";
+import { WorkspaceShell } from "./workspace/WorkspaceShell";
+import { legacyToWorkspaceModule, workspaceNavigate } from "./workspace/navigation";
 import { CommandCenterView } from "./components/cockpit/CommandCenterView";
 import { MemoryCenterView } from "./components/MemoryCenterView";
 import { AutomationCenterView } from "./components/AutomationCenterView";
@@ -578,95 +578,16 @@ function AurixShell() {
     setData((prev) => (prev ? { ...prev, security } : prev));
   };
 
-  // Identity gate: no personal dashboard is rendered until the owner verifies.
-  if (locked && biometrics) {
+  // The original AURIX modules remain available unchanged inside the unified shell.
+  const renderLegacySection = (
+    activeSection: AurixSectionId,
+    fileMode: "summarize" | "ocr" | "vision" | "code-review" | "compare"
+  ) => {
+    const setActiveSection = (section: AurixSectionId) => {
+      workspaceNavigate(legacyToWorkspaceModule(section));
+    };
     return (
-      <AuthGate
-        ownerName={data.owner.name}
-        snapshot={biometrics}
-        pendingActivation={pendingActivation}
-        onVerified={(method) => void handleBiometricVerified(method)}
-        onRefresh={async () => {
-          await refreshBiometrics();
-        }}
-        onDismissPending={dismissPendingActivation}
-      />
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#05080D] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,217,255,0.10),transparent_62%)] text-slate-100 flex flex-col">
-      {/* PIN Lock Gate */}
-      {locked && (
-        <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-md flex items-center justify-center p-4">
-          <form
-            onSubmit={handleUnlock}
-            className="w-full max-w-sm bg-white dark:bg-[#0F1724] border border-emerald-500/40 rounded-2xl p-8 text-center space-y-5 shadow-2xl"
-          >
-            <img
-              src="/src/assets/images/aurix_core_emblem_1795088206132.jpg"
-              alt="AURIX Security Core"
-              referrerPolicy="no-referrer"
-              className="w-20 h-20 rounded-full mx-auto object-cover border-2 border-[#10B981]"
-            />
-            <div>
-              <h2 className="text-xl font-semibold text-[#202938] dark:text-white">AURIX Session Locked</h2>
-              <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
-                Enter Abdul Muheeb&apos;s personal PIN to unlock workspace.
-              </p>
-            </div>
-            <input
-              type="password"
-              autoFocus
-              value={pinAttempt}
-              onChange={(e) => setPinAttempt(e.target.value)}
-              placeholder="Enter PIN..."
-              className="w-full text-center tracking-widest bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm text-[#202938] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#10B981]"
-            />
-            {pinError && <p className="text-xs text-rose-600">{pinError}</p>}
-            <button
-              type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-sm font-semibold cursor-pointer"
-            >
-              Unlock AURIX
-            </button>
-          </form>
-        </div>
-      )}
-
-      <div className="flex flex-1 min-h-0">
-        <NexusSidebar
-          activeSection={activeSection}
-          onNavigate={(item) => {
-            if (item.fileMode) setFileMode(item.fileMode);
-            setActiveSection(item.id);
-          }}
-          collapsed={sidebarCollapsed}
-          onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
-          mobileOpen={mobileMenuOpen}
-          onCloseMobile={() => setMobileMenuOpen(false)}
-          moreOpen={moreOpen}
-          onToggleMore={() => setMoreOpen((v) => !v)}
-          onNavigateSecondary={setActiveSection}
-          fileMode={fileMode}
-        />
-        <div className="flex-1 min-w-0 flex flex-col">
-          <NexusTopBar
-            owner={data.owner}
-            settings={data.settings}
-            isOnline={effectiveOnline}
-            tasks={data.tasks}
-            activity={data.auditLogs.map((entry) => ({
-              id: entry.id,
-              label: `${entry.eventType} · ${entry.detail}`,
-              at: entry.createdAt,
-            }))}
-            emergencyStopActive={data.telemetry.emergencyStopActive}
-            onToggleEmergencyStop={toggleEmergencyStop}
-            onNavigate={setActiveSection}
-            onOpenMobileNav={() => setMobileMenuOpen(true)}
-          />
-          <main className="flex-1 w-full px-3 sm:px-5 py-4 pb-28 max-w-[1600px] mx-auto">
+      <>
         {activeSection === "home" && (
           <CommandCenterView
             owner={data.owner}
@@ -836,8 +757,89 @@ function AurixShell() {
             }}
           />
         )}
-          </main>
+      </>
+    );
+  };
+
+  // Identity gate: no personal dashboard is rendered until the owner verifies.
+  if (locked && biometrics) {
+    return (
+      <AuthGate
+        ownerName={data.owner.name}
+        snapshot={biometrics}
+        pendingActivation={pendingActivation}
+        onVerified={(method) => void handleBiometricVerified(method)}
+        onRefresh={async () => {
+          await refreshBiometrics();
+        }}
+        onDismissPending={dismissPendingActivation}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#05080D] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,217,255,0.10),transparent_62%)] text-slate-100 flex flex-col">
+      {/* PIN Lock Gate */}
+      {locked && (
+        <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-md flex items-center justify-center p-4">
+          <form
+            onSubmit={handleUnlock}
+            className="w-full max-w-sm bg-white dark:bg-[#0F1724] border border-emerald-500/40 rounded-2xl p-8 text-center space-y-5 shadow-2xl"
+          >
+            <img
+              src="/src/assets/images/aurix_core_emblem_1795088206132.jpg"
+              alt="AURIX Security Core"
+              referrerPolicy="no-referrer"
+              className="w-20 h-20 rounded-full mx-auto object-cover border-2 border-[#10B981]"
+            />
+            <div>
+              <h2 className="text-xl font-semibold text-[#202938] dark:text-white">AURIX Session Locked</h2>
+              <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
+                Enter Abdul Muheeb&apos;s personal PIN to unlock workspace.
+              </p>
+            </div>
+            <input
+              type="password"
+              autoFocus
+              value={pinAttempt}
+              onChange={(e) => setPinAttempt(e.target.value)}
+              placeholder="Enter PIN..."
+              className="w-full text-center tracking-widest bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm text-[#202938] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+            />
+            {pinError && <p className="text-xs text-rose-600">{pinError}</p>}
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-sm font-semibold cursor-pointer"
+            >
+              Unlock AURIX
+            </button>
+          </form>
         </div>
+      )}
+
+      <div className="flex-1 min-h-0">
+        <WorkspaceShell
+          data={data}
+          isOnline={effectiveOnline}
+          biometrics={biometrics}
+          onUpdateSettings={updateSettings}
+          onSaveOwner={saveOwner}
+          onSaveTask={saveTask}
+          onDeleteTask={deleteTask}
+          onSaveNote={saveNote}
+          onDeleteNote={deleteNote}
+          onSaveProject={saveProject}
+          onSaveMemory={saveMemory}
+          onDeleteMemory={deleteMemory}
+          onSetPin={handleSetPin}
+          onUpdateSecurityPrefs={handleSecurityPrefs}
+          onLockNow={() => void lockAurixNow("Owner locked AURIX from the workspace.")}
+          onToggleEmergencyStop={toggleEmergencyStop}
+          onConversationsUpdated={(conversations) =>
+            setData((prev) => (prev ? { ...prev, conversations } : prev))
+          }
+          renderLegacy={(section, mode) => renderLegacySection(section, mode || "summarize")}
+        />
       </div>
 
       {/* Post-Startup Media Consent — appears only after the startup animation */}
@@ -938,7 +940,7 @@ function AurixShell() {
           tasks={data.tasks}
           mediaConsent={mediaConsentChoice}
           emergencyStopActive={data.telemetry.emergencyStopActive}
-          onNavigate={setActiveSection}
+          onNavigate={(section) => workspaceNavigate(legacyToWorkspaceModule(section))}
           onAddTask={saveTask}
           onAddNote={saveNote}
           onUpdateSettings={updateSettings}
