@@ -1,0 +1,169 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-aurix-bg: #F8FAFC;
+  --color-aurix-surface: #EEF2F7;
+  --color-aurix-emerald: #10B981;
+  --color-aurix-gold: #D6AD60;
+  --color-aurix-cyan: #06B6D4;
+  --color-aurix-ink: #202938;
+  --color-aurix-muted: #64748B;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: #F8FAFC;
+    color: #202938;
+  }
+
+  .dark body {
+    background-color: #0D1117;
+    color: #F1F5F9;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+.aurix-glass {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  box-shadow: 0 10px 30px rgba(32, 41, 56, 0.045);
+}
+
+.dark .aurix-glass {
+  background: rgba(15, 23, 36, 0.88);
+  border: 1px solid rgba(51, 65, 85, 0.75);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.28);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* AURIX architecture blueprint sheet (dark technical drawing surface) */
+.blueprint-sheet {
+  background-color: #050a0f;
+  background-image:
+    linear-gradient(rgba(0, 242, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(0, 242, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 255, 0.028) 1px, transparent 1px);
+  background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px;
+}
+
+.blueprint-scanline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.55), transparent);
+  animation: blueprint-sweep 12s linear infinite;
+}
+
+.blueprint-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blueprint-pulse 4.5s ease-in-out infinite;
+}
+
+.blueprint-orbit {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blueprint-spin 48s linear infinite;
+}
+
+.blueprint-orbit-reverse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blueprint-spin 72s linear infinite reverse;
+}
+
+.blueprint-dot {
+  box-shadow: 0 0 8px rgba(0, 242, 255, 0.9);
+  animation: blueprint-blink 3s ease-in-out infinite;
+}
+
+@keyframes blueprint-sweep {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.8;
+  }
+  92% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes blueprint-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blueprint-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes blueprint-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
