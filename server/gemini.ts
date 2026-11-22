@@ -18,6 +18,7 @@ import {
   generateOfflineProactiveTurn,
   tryFreeLocalOllama,
 } from "./offlineBrain";
+import { isAiBlocked, markAiBlocked, markAiFailure, markAiSuccess, noteAiModel } from "./aiStatus";
 
 function getClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -102,7 +103,7 @@ export function buildAurixSystemPrompt(options: {
 
 PERSONALITY & COMMUNICATION RULES:
 - Refined British gentleman AI companion: warm, friendly, deeply respectful, composed, and quietly confident (inspired by JARVIS and FRIDAY, with your own independent AURIX identity).
-- Address ${owner.name} respectfully and professionally.
+- Always address the owner as "Sir" in every reply (his full name is ${owner.name}); never use a different honorific.
 - Primary response language preference: ${targetLang}. If the user writes in English, Urdu (including Roman Urdu or Urdu script), or Hindi (Devanagari or Hinglish), understand naturally and respond in the same language unless instructed otherwise.
 - LANGUAGE & ACCENT REQUESTS: when the user asks for a language or accent (for example "speak in British English", "اردو میں بات کرو", "Hindi mein bolo"), switch silently. Never repeat, quote, confirm or announce the instruction, and never begin with phrases such as "Certainly, I will speak in British English". Start directly with the answer in the requested language and accent.
 - Never announce the language, the accent, or the fact that you are about to answer — begin with the answer itself.
@@ -170,6 +171,8 @@ export async function chatWithAurix(params: {
   language?: AurixLanguage;
   thinkingLevel?: ThinkingDepth;
   scopedWebsite?: string;
+  /** Images attached in the composer, forwarded to the model inline. */
+  attachments?: Array<{ mimeType: string; dataBase64: string; name?: string }>;
   /** Spoken-command mode: compact prompt, short history and a hard deadline. */
   fast?: boolean;
 }): Promise<{ text: string; modelUsed: string; thinkingLevel: string }> {
@@ -197,15 +200,35 @@ export async function chatWithAurix(params: {
     return { text: offline, modelUsed: "offline-knowledge-engine", thinkingLevel: "LOCAL" };
   }
 
+  // A failed live probe or a recent provider error parks cloud calls briefly so
+  // the owner gets a real fallback answer instead of a spinning composer.
+  if (!params.fast && isAiBlocked()) {
+    const localOllama = await tryFreeLocalOllama(params.userMessage, systemInstruction);
+    if (localOllama) {
+      return { text: localOllama, modelUsed: "local-ollama-free", thinkingLevel: "LOCAL" };
+    }
+    const offline = answerOfflineWithKnowledge(
+      params.userMessage,
+      params.language || settings.language
+    );
+    return { text: offline, modelUsed: "offline-knowledge-engine", thinkingLevel: "LOCAL" };
+  }
+
   try {
     const ai = getClient();
     const thinkingEnum = mapThinkingLevel(model, depth);
+    const attachmentParts = (params.attachments || []).map((a) => ({
+      inlineData: { mimeType: a.mimeType, data: a.dataBase64 },
+    }));
     const contents = [
       ...params.history.slice(params.fast ? -2 : -14).map((m) => ({
         role: m.role === "assistant" ? ("model" as const) : ("user" as const),
         parts: [{ text: m.content }],
       })),
-      { role: "user" as const, parts: [{ text: params.userMessage }] },
+      {
+        role: "user" as const,
+        parts: [{ text: params.userMessage }, ...attachmentParts],
+      },
     ];
 
     const request = ai.models.generateContent({
@@ -223,14 +246,18 @@ export async function chatWithAurix(params: {
     // waiting on the model.
     const response: GenerateContentResponse = params.fast
       ? await withTimeout(request, 5000, "AURIX voice reply timed out.")
-      : await request;
+      : await withTimeout(request, 20_000, "AURIX cloud reply timed out.");
 
     const text = response.text?.trim();
     if (!text) {
       throw new Error("AURIX received an empty response from the model.");
     }
+    markAiSuccess(model);
     return { text, modelUsed: model, thinkingLevel: depth };
-  } catch {
+  } catch (err) {
+    markAiFailure(err);
+    markAiBlocked(err instanceof Error ? err.message : "AI request failed.", 1);
+    noteAiModel("fallback");
     // Free Local Ollama fallback -> Built-in Offline Brain fallback
     const localOllama = await tryFreeLocalOllama(params.userMessage, systemInstruction);
     if (localOllama) {

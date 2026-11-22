@@ -133,13 +133,13 @@ Pending Tasks: ${matchedSite.pendingTasks || "None recorded"}
   }
 
   if (language === "Urdu") {
-    return `محیب، میں اس وقت آف لائن لوکل موڈ میں کام کر رہا ہوں۔ آپ کے کمپیوٹر کی مقامی فائلیں، ${company.name} کا ڈیٹا، سائبر سیکیورٹی گائیڈ اور 12 اسٹیپ سیلف ہیلنگ سسٹم سب دستیاب ہیں۔ بتائیے آپ کس فائل، پروجیکٹ یا لوکل ٹاسک پر کام کرنا چاہتے ہیں؟`;
+    return `سر، میں اس وقت آف لائن لوکل موڈ میں کام کر رہا ہوں۔ آپ کے کمپیوٹر کی مقامی فائلیں، ${company.name} کا ڈیٹا، سائبر سیکیورٹی گائیڈ اور 12 اسٹیپ سیلف ہیلنگ سسٹم سب دستیاب ہیں۔ بتائیے آپ کس فائل، پروجیکٹ یا لوکل ٹاسک پر کام کرنا چاہتے ہیں؟`;
   }
   if (language === "Hindi") {
-    return `मुहीब, मैं अभी ऑफलाइन लोकल मोड में काम कर रहा हूँ। आपकी लोकल फाइलें, ${company.name} डेटा, साइबर सुरक्षा गाइड और 12-स्टेप सेल्फ-हीलिंग सिस्टम सक्रिय हैं। बताइए अभी किस लोकल काम में मदद करूँ?`;
+    return `सर, मैं अभी ऑफलाइन लोकल मोड में काम कर रहा हूँ। आपकी लोकल फाइलें, ${company.name} डेटा, साइबर सुरक्षा गाइड और 12-स्टेप सेल्फ-हीलिंग सिस्टम सक्रिय हैं। बताइए अभी किस लोकल काम में मदद करूँ?`;
   }
 
-  return `I am currently operating in Offline Local Mode, ${owner.name}. While cloud inference is paused or offline, your local SQLite knowledge (${websites.length} websites, ${projects.length} projects), Cybersecurity advisory, 12-Step Self-Healer, Creative Studio offline tools, and Workspace File Editor remain fully operational. What would you like me to handle locally?`;
+  return `I am currently operating in Offline Local Mode, Sir. While cloud inference is paused or offline, your local SQLite knowledge (${websites.length} websites, ${projects.length} projects), Cybersecurity advisory, 12-Step Self-Healer, Creative Studio offline tools, and Workspace File Editor remain fully operational. What would you like me to handle locally?`;
 }
 
 export function generateOfflineProactiveTurn(language: AurixLanguage = "English"): string {

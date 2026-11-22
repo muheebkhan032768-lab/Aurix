@@ -10,14 +10,18 @@ import type {
   CompanyProfile,
   ConversationSummary,
   DesktopActionLog,
+  DocumentItem,
   MemoryItem,
   NoteItem,
   OwnerProfile,
   ProjectRecord,
+  ReminderItem,
   SecurityStatus,
   SelfHealHistoryEntry,
   TaskItem,
   WebsiteRecord,
+  WorkflowItem,
+  WorkflowRun,
 } from "../src/types/aurix";
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
@@ -191,6 +195,50 @@ db.exec(`
     summary TEXT NOT NULL,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS documents (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    folder TEXT NOT NULL DEFAULT 'General',
+    kind TEXT NOT NULL DEFAULT 'document',
+    content TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS reminders (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    notes TEXT NOT NULL DEFAULT '',
+    due_at TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS workflows (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    trigger TEXT NOT NULL DEFAULT 'manual',
+    interval_minutes INTEGER NOT NULL DEFAULT 0,
+    action_type TEXT NOT NULL,
+    action_payload TEXT NOT NULL DEFAULT '',
+    requires_confirmation INTEGER NOT NULL DEFAULT 1,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    last_run_at TEXT,
+    next_run_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS workflow_runs (
+    id TEXT PRIMARY KEY,
+    workflow_id TEXT NOT NULL,
+    workflow_name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT '',
+    started_at TEXT NOT NULL,
+    finished_at TEXT
+  );
 `);
 
 function nowIso(): string {
@@ -315,7 +363,7 @@ function seedInitialData(): void {
     handsFreeVadEnabled: false,
     vadSensitivity: 60,
     micSensitivity: 65,
-    theme: "light",
+    theme: "dark",
     activeModel: "gemini-4-hydrogen",
     thinkingLevel: "MEDIUM",
     performanceMode: "auto",
@@ -361,6 +409,21 @@ function seedInitialData(): void {
         ts
       );
       db.prepare(`INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('bright_ui_v2_migrated', '1', ?)`).run(ts);
+    }
+
+    // Neural Command Workspace: dark is the new default. The previous bright
+    // theme was forced by an earlier migration, so switch it once rather than
+    // overriding a preference the owner sets afterwards.
+    const workspaceMigrated = db.prepare(`SELECT value FROM kv_store WHERE key = 'neural_workspace_v1'`).get();
+    if (!workspaceMigrated) {
+      const current = JSON.parse(
+        (db.prepare(`SELECT value FROM kv_store WHERE key = 'app_settings'`).get() as { value: string }).value
+      ) as Partial<AppSettings>;
+      db.prepare(`INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('app_settings', ?, ?)`).run(
+        JSON.stringify({ ...DEFAULT_SETTINGS, ...current, theme: "dark" }),
+        ts
+      );
+      db.prepare(`INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('neural_workspace_v1', '1', ?)`).run(ts);
     }
   }
 
@@ -1368,6 +1431,292 @@ export function exportFullBackup() {
     settings: getAppSettings(),
     desktopActions: listDesktopActionLogs(),
     selfHealHistory: listSelfHealHistory(),
+    documents: listDocuments(),
+    reminders: listReminders(),
+    workflows: listWorkflows(),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Neural Command Workspace — conversations, documents, reminders      */
+/* ------------------------------------------------------------------ */
+
+export function renameConversation(id: string, title: string): ConversationSummary | null {
+  const clean = title.trim().slice(0, 120);
+  if (!clean) return null;
+  db.prepare(`UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?`).run(clean, nowIso(), id);
+  return listConversations().find((c) => c.id === id) ?? null;
+}
+
+export function deleteConversation(id: string): boolean {
+  const exists = db.prepare(`SELECT id FROM conversations WHERE id = ?`).get(id);
+  if (!exists) return false;
+  db.prepare(`DELETE FROM messages WHERE conversation_id = ?`).run(id);
+  db.prepare(`DELETE FROM conversations WHERE id = ?`).run(id);
+  addAuditLog("CONVERSATION_DELETED", "Abdul Muheeb", `Deleted conversation ${id} and its messages.`, "warning");
+  return true;
+}
+
+export function deleteMessage(id: string): boolean {
+  const result = db.prepare(`DELETE FROM messages WHERE id = ?`).run(id);
+  return Number(result.changes) > 0;
+}
+
+export function listDocuments(): DocumentItem[] {
+  const rows = db.prepare(`SELECT * FROM documents ORDER BY updated_at DESC`).all() as Record<string, unknown>[];
+  return rows.map((r) => ({
+    id: String(r.id),
+    title: String(r.title),
+    folder: String(r.folder),
+    kind: String(r.kind) as DocumentItem["kind"],
+    content: String(r.content),
+    updatedAt: String(r.updated_at),
+  }));
+}
+
+export function upsertDocument(input: Partial<DocumentItem> & { title: string }): DocumentItem {
+  const ts = nowIso();
+  const saved: DocumentItem = {
+    id: input.id || uid("doc"),
+    title: input.title.trim().slice(0, 160) || "Untitled document",
+    folder: (input.folder || "General").trim().slice(0, 60) || "General",
+    kind: (input.kind || "document") as DocumentItem["kind"],
+    content: input.content ?? "",
+    updatedAt: ts,
+  };
+  db.prepare(`
+    INSERT INTO documents (id, title, folder, kind, content, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      title = excluded.title,
+      folder = excluded.folder,
+      kind = excluded.kind,
+      content = excluded.content,
+      updated_at = excluded.updated_at
+  `).run(saved.id, saved.title, saved.folder, saved.kind, saved.content, saved.updatedAt);
+  return saved;
+}
+
+export function deleteDocument(id: string): boolean {
+  const result = db.prepare(`DELETE FROM documents WHERE id = ?`).run(id);
+  return Number(result.changes) > 0;
+}
+
+export function listReminders(): ReminderItem[] {
+  const rows = db.prepare(`SELECT * FROM reminders ORDER BY due_at ASC`).all() as Record<string, unknown>[];
+  return rows.map((r) => ({
+    id: String(r.id),
+    title: String(r.title),
+    notes: String(r.notes),
+    dueAt: String(r.due_at),
+    status: String(r.status) as ReminderItem["status"],
+    createdAt: String(r.created_at),
+  }));
+}
+
+export function upsertReminder(input: Partial<ReminderItem> & { title: string; dueAt: string }): ReminderItem {
+  const saved: ReminderItem = {
+    id: input.id || uid("rem"),
+    title: input.title.trim().slice(0, 200) || "Reminder",
+    notes: input.notes ?? "",
+    dueAt: input.dueAt,
+    status: (input.status || "pending") as ReminderItem["status"],
+    createdAt: input.createdAt || nowIso(),
+  };
+  db.prepare(`
+    INSERT INTO reminders (id, title, notes, due_at, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      title = excluded.title,
+      notes = excluded.notes,
+      due_at = excluded.due_at,
+      status = excluded.status
+  `).run(saved.id, saved.title, saved.notes, saved.dueAt, saved.status, saved.createdAt);
+  return saved;
+}
+
+export function deleteReminder(id: string): boolean {
+  const result = db.prepare(`DELETE FROM reminders WHERE id = ?`).run(id);
+  return Number(result.changes) > 0;
+}
+
+function mapWorkflowRow(r: Record<string, unknown>): WorkflowItem {
+  return {
+    id: String(r.id),
+    name: String(r.name),
+    description: String(r.description),
+    trigger: String(r.trigger) as WorkflowItem["trigger"],
+    intervalMinutes: Number(r.interval_minutes),
+    actionType: String(r.action_type) as WorkflowItem["actionType"],
+    actionPayload: String(r.action_payload),
+    requiresConfirmation: Number(r.requires_confirmation) === 1,
+    enabled: Number(r.enabled) === 1,
+    lastRunAt: r.last_run_at ? String(r.last_run_at) : null,
+    nextRunAt: r.next_run_at ? String(r.next_run_at) : null,
+    createdAt: String(r.created_at),
+    updatedAt: String(r.updated_at),
+  };
+}
+
+export function listWorkflows(): WorkflowItem[] {
+  const rows = db.prepare(`SELECT * FROM workflows ORDER BY created_at DESC`).all() as Record<string, unknown>[];
+  return rows.map(mapWorkflowRow);
+}
+
+export function upsertWorkflow(input: Partial<WorkflowItem> & { name: string; actionType: WorkflowItem["actionType"] }): WorkflowItem {
+  const ts = nowIso();
+  const trigger = input.trigger === "schedule" ? "schedule" : "manual";
+  const interval = trigger === "schedule" ? Math.max(5, Math.min(1440, Number(input.intervalMinutes || 60))) : 0;
+  const saved: WorkflowItem = {
+    id: input.id || uid("wf"),
+    name: input.name.trim().slice(0, 120) || "Untitled workflow",
+    description: (input.description || "").slice(0, 600),
+    trigger,
+    intervalMinutes: interval,
+    actionType: input.actionType,
+    actionPayload: (input.actionPayload || "").slice(0, 8000),
+    requiresConfirmation: input.requiresConfirmation !== false,
+    enabled: input.enabled !== false,
+    lastRunAt: input.lastRunAt ?? null,
+    nextRunAt:
+      trigger === "schedule"
+        ? input.nextRunAt || new Date(Date.now() + interval * 60_000).toISOString()
+        : null,
+    createdAt: input.createdAt || ts,
+    updatedAt: ts,
+  };
+  db.prepare(`
+    INSERT INTO workflows (
+      id, name, description, trigger, interval_minutes, action_type, action_payload,
+      requires_confirmation, enabled, last_run_at, next_run_at, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name = excluded.name,
+      description = excluded.description,
+      trigger = excluded.trigger,
+      interval_minutes = excluded.interval_minutes,
+      action_type = excluded.action_type,
+      action_payload = excluded.action_payload,
+      requires_confirmation = excluded.requires_confirmation,
+      enabled = excluded.enabled,
+      last_run_at = excluded.last_run_at,
+      next_run_at = excluded.next_run_at,
+      updated_at = excluded.updated_at
+  `).run(
+    saved.id,
+    saved.name,
+    saved.description,
+    saved.trigger,
+    saved.intervalMinutes,
+    saved.actionType,
+    saved.actionPayload,
+    saved.requiresConfirmation ? 1 : 0,
+    saved.enabled ? 1 : 0,
+    saved.lastRunAt,
+    saved.nextRunAt,
+    saved.createdAt,
+    saved.updatedAt
+  );
+  return saved;
+}
+
+export function deleteWorkflow(id: string): boolean {
+  db.prepare(`DELETE FROM workflow_runs WHERE workflow_id = ?`).run(id);
+  const result = db.prepare(`DELETE FROM workflows WHERE id = ?`).run(id);
+  return Number(result.changes) > 0;
+}
+
+export function markWorkflowRun(id: string, patch: { lastRunAt: string; nextRunAt: string | null }): void {
+  db.prepare(`UPDATE workflows SET last_run_at = ?, next_run_at = ?, updated_at = ? WHERE id = ?`).run(
+    patch.lastRunAt,
+    patch.nextRunAt,
+    nowIso(),
+    id
+  );
+}
+
+export function addWorkflowRun(entry: Omit<WorkflowRun, "id" | "startedAt" | "finishedAt"> & { finishedAt?: string | null }): WorkflowRun {
+  const saved: WorkflowRun = {
+    ...entry,
+    id: uid("run"),
+    startedAt: nowIso(),
+    finishedAt: entry.finishedAt ?? nowIso(),
+  };
+  db.prepare(`
+    INSERT INTO workflow_runs (id, workflow_id, workflow_name, status, detail, started_at, finished_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(saved.id, saved.workflowId, saved.workflowName, saved.status, saved.detail, saved.startedAt, saved.finishedAt);
+  return saved;
+}
+
+export function listWorkflowRuns(workflowId?: string): WorkflowRun[] {
+  const rows = (workflowId
+    ? db.prepare(`SELECT * FROM workflow_runs WHERE workflow_id = ? ORDER BY started_at DESC LIMIT 60`).all(workflowId)
+    : db.prepare(`SELECT * FROM workflow_runs ORDER BY started_at DESC LIMIT 80`).all()) as Record<string, unknown>[];
+  return rows.map((r) => ({
+    id: String(r.id),
+    workflowId: String(r.workflow_id),
+    workflowName: String(r.workflow_name),
+    status: String(r.status) as WorkflowRun["status"],
+    detail: String(r.detail),
+    startedAt: String(r.started_at),
+    finishedAt: r.finished_at ? String(r.finished_at) : null,
+  }));
+}
+
+export function getWorkspaceAnalytics() {
+  const count = (sql: string, ...args: Array<string | number>) =>
+    Number((db.prepare(sql).get(...args) as { cnt: number }).cnt);
+  const totals = {
+    conversations: count(`SELECT COUNT(*) as cnt FROM conversations`),
+    messages: count(`SELECT COUNT(*) as cnt FROM messages`),
+    userMessages: count(`SELECT COUNT(*) as cnt FROM messages WHERE role = 'user'`),
+    assistantMessages: count(`SELECT COUNT(*) as cnt FROM messages WHERE role = 'assistant'`),
+    tasks: count(`SELECT COUNT(*) as cnt FROM tasks`),
+    tasksDone: count(`SELECT COUNT(*) as cnt FROM tasks WHERE status = 'done'`),
+    notes: count(`SELECT COUNT(*) as cnt FROM notes`),
+    projects: count(`SELECT COUNT(*) as cnt FROM projects`),
+    memories: count(`SELECT COUNT(*) as cnt FROM memories`),
+    documents: count(`SELECT COUNT(*) as cnt FROM documents`),
+    reminders: count(`SELECT COUNT(*) as cnt FROM reminders WHERE status = 'pending'`),
+    workflows: count(`SELECT COUNT(*) as cnt FROM workflows`),
+  };
+
+  const models = (
+    db
+      .prepare(
+        `SELECT COALESCE(model_used, 'unrecorded') as model, COUNT(*) as cnt FROM messages WHERE role = 'assistant' GROUP BY model_used ORDER BY cnt DESC`
+      )
+      .all() as Array<{ model: string; cnt: number }>
+  ).map((r) => ({ model: String(r.model), count: Number(r.cnt) }));
+
+  const activityByDay: Array<{ day: string; messages: number }> = [];
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const d = new Date();
+    d.setDate(d.getDate() - offset);
+    const day = d.toISOString().slice(0, 10);
+    const messages = count(`SELECT COUNT(*) as cnt FROM messages WHERE substr(created_at, 1, 10) = ?`, day);
+    activityByDay.push({ day, messages });
+  }
+
+  const tasksByStatus = (
+    db.prepare(`SELECT status, COUNT(*) as cnt FROM tasks GROUP BY status`).all() as Array<{
+      status: string;
+      cnt: number;
+    }>
+  ).map((r) => ({ status: String(r.status), count: Number(r.cnt) }));
+
+  const avg = db
+    .prepare(`SELECT AVG(LENGTH(content)) as avg_len FROM messages WHERE role = 'assistant'`)
+    .get() as { avg_len: number | null };
+
+  return {
+    totals,
+    models,
+    activityByDay,
+    tasksByStatus,
+    averageReplyChars: avg.avg_len === null ? null : Math.round(Number(avg.avg_len)),
+    responseTimeMs: null,
   };
 }
 

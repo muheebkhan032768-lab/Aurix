@@ -10,9 +10,25 @@ import {
   addAuditLog,
   addDesktopActionLog,
   addMessage,
+  addWorkflowRun,
+  deleteConversation,
+  deleteDocument,
   deleteMemory,
+  deleteMessage,
   deleteNote,
+  deleteReminder,
   deleteTask,
+  deleteWorkflow,
+  getWorkspaceAnalytics,
+  listDocuments,
+  listReminders,
+  listWorkflowRuns,
+  listWorkflows,
+  markWorkflowRun,
+  renameConversation,
+  upsertDocument,
+  upsertReminder,
+  upsertWorkflow,
   ensureConversation,
   exportFullBackup,
   getAppSettings,
@@ -57,6 +73,9 @@ import {
 } from "./server/gemini";
 import { NATIVE_WINDOWS_FILES } from "./server/nativeWindowsBundle";
 import { registerBiometricRoutes } from "./server/biometricRoutes";
+import { getAiStatus, probeAiConnection } from "./server/aiStatus";
+import { rateLimit } from "./server/rateLimit";
+import type { WorkflowItem } from "./src/types/aurix";
 import { laptopControlStatus, planLaptopCommand, runLaptopPlan } from "./server/laptopControl";
 import { detectLocalOllamaModels } from "./server/offlineBrain";
 import { buildHardwareAudit } from "./server/hardwareAudit";
@@ -267,60 +286,331 @@ async function startServer() {
     res.json(getConversationMessages(req.params.id));
   });
 
-  app.post("/api/chat", async (req, res) => {
-    try {
-      const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode } = req.body;
-      if (!message || typeof message !== "string") {
-        return res.status(400).json({ error: "Message text is required." });
+  app.patch("/api/conversations/:id", (req, res) => {
+    const title = String(req.body?.title || "");
+    const updated = renameConversation(req.params.id, title);
+    if (!updated) return res.status(400).json({ error: "A conversation title is required." });
+    res.json(updated);
+  });
+
+  app.delete("/api/conversations/:id", (req, res) => {
+    const removed = deleteConversation(req.params.id);
+    if (!removed) return res.status(404).json({ error: "Conversation not found." });
+    res.json({ ok: true, conversations: listConversations() });
+  });
+
+  app.post(
+    "/api/chat",
+    rateLimit({ windowMs: 60_000, max: 30, label: "chat" }),
+    async (req, res) => {
+      try {
+        const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode, attachments } = req.body;
+        if (!message || typeof message !== "string") {
+          return res.status(400).json({ error: "Message text is required." });
+        }
+        if (message.length > 8000) {
+          return res.status(400).json({ error: "Message is too long. Please keep it under 8,000 characters." });
+        }
+        const rawAttachments = Array.isArray(attachments) ? attachments.slice(0, 4) : [];
+        const validAttachments: Array<{ mimeType: string; dataBase64: string; name?: string }> = [];
+        const attachmentNames: string[] = [];
+        for (const item of rawAttachments) {
+          const mimeType = String(item?.mimeType || "");
+          const dataBase64 = String(item?.dataBase64 || "");
+          const name = String(item?.name || "attachment");
+          if (!mimeType.startsWith("image/") || !dataBase64) continue;
+          if (dataBase64.length > 11_000_000) {
+            return res.status(413).json({ error: `${name} is larger than 8 MB. Please attach a smaller image.` });
+          }
+          validAttachments.push({ mimeType, dataBase64, name });
+          attachmentNames.push(name);
+        }
+
+        const settings = getAppSettings();
+        const activeConvId = ensureConversation(
+          conversationId,
+          message,
+          mode || "chat",
+          model || settings.activeModel,
+          language || settings.language
+        );
+        const history = getConversationMessages(activeConvId);
+        const storedContent = attachmentNames.length
+          ? `${message}\n\n[Attached image${attachmentNames.length > 1 ? "s" : ""}: ${attachmentNames.join(", ")}]`
+          : message;
+        const userMsg = addMessage({
+          conversationId: activeConvId,
+          role: "user",
+          content: storedContent,
+          language: language || settings.language,
+        });
+
+        const aiReply = await chatWithAurix({
+          history,
+          userMessage: message,
+          model,
+          language,
+          thinkingLevel,
+          scopedWebsite,
+          attachments: validAttachments,
+        });
+
+        const assistantMsg = addMessage({
+          conversationId: activeConvId,
+          role: "assistant",
+          content: aiReply.text,
+          modelUsed: aiReply.modelUsed,
+          language: language || settings.language,
+          thinkingLevel: aiReply.thinkingLevel,
+        });
+
+        res.json({
+          conversationId: activeConvId,
+          userMessage: userMsg,
+          assistantMessage: assistantMsg,
+          conversations: listConversations(),
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "AI chat request failed.";
+        res.status(500).json({ error: msg });
       }
-      const settings = getAppSettings();
-      const activeConvId = ensureConversation(
-        conversationId,
-        message,
-        mode || "chat",
-        model || settings.activeModel,
-        language || settings.language
-      );
-      const history = getConversationMessages(activeConvId);
-      const userMsg = addMessage({
-        conversationId: activeConvId,
-        role: "user",
-        content: message,
-        language: language || settings.language,
-      });
-
-      const aiReply = await chatWithAurix({
-        history,
-        userMessage: message,
-        model,
-        language,
-        thinkingLevel,
-        scopedWebsite,
-      });
-
-      const assistantMsg = addMessage({
-        conversationId: activeConvId,
-        role: "assistant",
-        content: aiReply.text,
-        modelUsed: aiReply.modelUsed,
-        language: language || settings.language,
-        thinkingLevel: aiReply.thinkingLevel,
-      });
-
-      res.json({
-        conversationId: activeConvId,
-        userMessage: userMsg,
-        assistantMessage: assistantMsg,
-        conversations: listConversations(),
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "AI chat request failed.";
-      res.status(500).json({ error: msg });
     }
+  );
+
+  app.post(
+    "/api/chat/regenerate",
+    rateLimit({ windowMs: 60_000, max: 15, label: "regenerate" }),
+    async (req, res) => {
+      try {
+        const { conversationId, model, language, thinkingLevel, scopedWebsite } = req.body || {};
+        if (!conversationId) return res.status(400).json({ error: "conversationId is required." });
+        const messages = getConversationMessages(String(conversationId));
+        const lastUser = [...messages].reverse().find((m) => m.role === "user");
+        if (!lastUser) return res.status(400).json({ error: "There is no message to regenerate yet." });
+        const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+        if (lastAssistant) deleteMessage(lastAssistant.id);
+
+        const history = messages.filter((m) => m.id !== lastUser.id && m.id !== lastAssistant?.id);
+        const aiReply = await chatWithAurix({
+          history,
+          userMessage: lastUser.content,
+          model,
+          language,
+          thinkingLevel,
+          scopedWebsite,
+        });
+        const assistantMsg = addMessage({
+          conversationId: String(conversationId),
+          role: "assistant",
+          content: aiReply.text,
+          modelUsed: aiReply.modelUsed,
+          language: language || getAppSettings().language,
+          thinkingLevel: aiReply.thinkingLevel,
+        });
+        res.json({ assistantMessage: assistantMsg, conversations: listConversations() });
+      } catch (err) {
+        res.status(500).json({ error: err instanceof Error ? err.message : "Regeneration failed." });
+      }
+    }
+  );
+
+  /* ---------------- Documents, Reminders & Automation ---------------- */
+
+  app.get("/api/documents", (_req, res) => res.json(listDocuments()));
+  app.post("/api/documents", (req, res) => {
+    const title = String(req.body?.title || "").trim();
+    if (!title) return res.status(400).json({ error: "A document title is required." });
+    if (String(req.body?.content || "").length > 400_000) {
+      return res.status(413).json({ error: "Document is too large (400,000 character limit)." });
+    }
+    res.json(upsertDocument(req.body));
+  });
+  app.delete("/api/documents/:id", (req, res) => {
+    if (!deleteDocument(req.params.id)) return res.status(404).json({ error: "Document not found." });
+    res.json({ ok: true });
+  });
+
+  app.get("/api/reminders", (_req, res) => res.json(listReminders()));
+  app.post("/api/reminders", (req, res) => {
+    const title = String(req.body?.title || "").trim();
+    const dueAt = String(req.body?.dueAt || "");
+    if (!title) return res.status(400).json({ error: "A reminder title is required." });
+    if (!dueAt || Number.isNaN(new Date(dueAt).getTime())) {
+      return res.status(400).json({ error: "A valid reminder date and time is required." });
+    }
+    res.json(upsertReminder({ ...req.body, title, dueAt }));
+  });
+  app.delete("/api/reminders/:id", (req, res) => {
+    if (!deleteReminder(req.params.id)) return res.status(404).json({ error: "Reminder not found." });
+    res.json({ ok: true });
+  });
+
+  async function executeWorkflow(workflow: WorkflowItem, confirmed: boolean): Promise<{ status: string; detail: string; url?: string }> {
+    if (workflow.requiresConfirmation && !confirmed) {
+      const run = addWorkflowRun({
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        status: "pending_approval",
+        detail: "Waiting for the owner to approve this action before it runs.",
+      });
+      return { status: run.status, detail: run.detail };
+    }
+    try {
+      const payload = workflow.actionPayload.trim();
+      let detail = "";
+      let url: string | undefined;
+      if (workflow.actionType === "create_note") {
+        const note = upsertNote({
+          id: "",
+          title: payload.slice(0, 80) || workflow.name,
+          category: "Automation",
+          content: payload || workflow.description || `Created by workflow: ${workflow.name}`,
+        });
+        detail = `Created note "${note.title}".`;
+      } else if (workflow.actionType === "create_task") {
+        const task = upsertTask({
+          id: "",
+          title: payload.slice(0, 120) || workflow.name,
+          category: "dev",
+          priority: "medium",
+          status: "todo",
+          dueDate: new Date().toISOString().slice(0, 10),
+          notes: workflow.description || "Created by AURIX Automation Center.",
+        });
+        detail = `Created task "${task.title}".`;
+      } else if (workflow.actionType === "open_url") {
+        if (!/^https?:\/\//i.test(payload)) throw new Error("The action URL must start with http:// or https://.");
+        url = payload;
+        detail = `Prepared official link ${payload}.`;
+      } else {
+        const reply = await chatWithAurix({
+          history: [],
+          userMessage: payload || workflow.description || workflow.name,
+          model: getAppSettings().activeModel,
+          language: getAppSettings().language,
+        });
+        const note = upsertNote({
+          id: "",
+          title: `${workflow.name} — AI result`.slice(0, 100),
+          category: "Automation",
+          content: reply.text,
+        });
+        detail = `AURIX answered with ${reply.modelUsed} and saved the result to note "${note.title}".`;
+      }
+      const run = addWorkflowRun({
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        status: "success",
+        detail,
+      });
+      const now = new Date();
+      markWorkflowRun(workflow.id, {
+        lastRunAt: now.toISOString(),
+        nextRunAt:
+          workflow.trigger === "schedule"
+            ? new Date(now.getTime() + workflow.intervalMinutes * 60_000).toISOString()
+            : null,
+      });
+      return { status: run.status, detail, url };
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "Workflow failed.";
+      const run = addWorkflowRun({
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        status: "failed",
+        detail,
+      });
+      return { status: run.status, detail };
+    }
+  }
+
+  app.get("/api/workflows", (_req, res) => res.json({ workflows: listWorkflows(), runs: listWorkflowRuns() }));
+  app.post("/api/workflows", (req, res) => {
+    const name = String(req.body?.name || "").trim();
+    const actionType = String(req.body?.actionType || "");
+    if (!name) return res.status(400).json({ error: "A workflow name is required." });
+    if (!["create_note", "create_task", "open_url", "chat_prompt"].includes(actionType)) {
+      return res.status(400).json({ error: "Unsupported workflow action." });
+    }
+    res.json(upsertWorkflow({ ...req.body, name, actionType: actionType as WorkflowItem["actionType"] }));
+  });
+  app.delete("/api/workflows/:id", (req, res) => {
+    if (!deleteWorkflow(req.params.id)) return res.status(404).json({ error: "Workflow not found." });
+    res.json({ ok: true });
+  });
+  app.post(
+    "/api/workflows/:id/run",
+    rateLimit({ windowMs: 60_000, max: 20, label: "workflow" }),
+    async (req, res) => {
+      const workflow = listWorkflows().find((w) => w.id === req.params.id);
+      if (!workflow) return res.status(404).json({ error: "Workflow not found." });
+      if (!workflow.enabled) return res.status(409).json({ error: "This workflow is disabled." });
+      const outcome = await executeWorkflow(workflow, Boolean(req.body?.confirmed));
+      res.status(outcome.status === "pending_approval" ? 202 : 200).json({
+        ...outcome,
+        workflows: listWorkflows(),
+        runs: listWorkflowRuns(),
+      });
+    }
+  );
+
+  app.get("/api/analytics", async (_req, res) => {
+    const settings = getAppSettings();
+    const ollama = await detectLocalOllamaModels(Number((os.totalmem() / 1024 ** 3).toFixed(2)));
+    res.json({
+      ...getWorkspaceAnalytics(),
+      integrations: {
+        geminiConfigured: Boolean(process.env.GEMINI_API_KEY) && !settings.offlineModeForced,
+        ollamaReachable: ollama.reachable,
+        ollamaModels: ollama.models.length,
+        offlineEngine: true,
+      },
+      generatedAt: new Date().toISOString(),
+    });
+  });
+
+  app.get("/api/ai/status", async (req, res) => {
+    if (req.query.probe === "1") await probeAiConnection(true);
+    res.json(getAiStatus());
+  });
+
+  app.post("/api/ai/probe", async (_req, res) => {
+    await probeAiConnection(true);
+    res.json(getAiStatus());
+  });
+
+  app.get("/api/integrations/status", async (_req, res) => {
+    const settings = getAppSettings();
+    const totalRamGb = Number((os.totalmem() / 1024 ** 3).toFixed(2));
+    const ollama = await detectLocalOllamaModels(totalRamGb);
+    const nets = os.networkInterfaces();
+    const networkAddresses = Object.values(nets)
+      .flat()
+      .filter((n): n is NonNullable<typeof n> => n != null && !n.internal)
+      .map((n) => ({ name: n.address, family: n.family }));
+    res.json({
+      ai: getAiStatus(),
+      localModels: { reachable: ollama.reachable, models: ollama.models, host: "http://127.0.0.1:11434" },
+      storage: {
+        engine: "SQLite (node:sqlite)",
+        database: path.join("data", "aurix.db"),
+        workspaceFiles: "workspace_files/",
+        uploadsPersisted: false,
+      },
+      system: {
+        hostname: os.hostname(),
+        platform: `${os.platform()} ${os.release()}`,
+        arch: os.arch(),
+        uptimeSeconds: Math.floor(os.uptime()),
+        networkAddresses,
+        offlineModeForced: settings.offlineModeForced,
+        activeModel: settings.activeModel,
+      },
+    });
   });
 
   // Voice Synthesis (Male AURIX Voice via Gemini 3.8 TTS)
-  app.post("/api/voice/tts", async (req, res) => {
+  app.post("/api/voice/tts", rateLimit({ windowMs: 60_000, max: 40, label: "voice" }), async (req, res) => {
     try {
       const settings = getAppSettings();
       if (settings.offlineModeForced) {
@@ -339,7 +629,7 @@ async function startServer() {
   });
 
   // Voice Transcription (Gemini 3.5 Transcribe)
-  app.post("/api/voice/stt", async (req, res) => {
+  app.post("/api/voice/stt", rateLimit({ windowMs: 60_000, max: 30, label: "transcription" }), async (req, res) => {
     try {
       const { audioBase64, mimeType, languageHint } = req.body;
       if (!audioBase64 || !mimeType) {
@@ -844,7 +1134,7 @@ async function startServer() {
   });
 
   // Unified Voice/Text Command Router
-  app.post("/api/command/execute", async (req, res) => {
+  app.post("/api/command/execute", rateLimit({ windowMs: 60_000, max: 40, label: "command" }), async (req, res) => {
     try {
       const { command, conversationId, language, withVoice = true, model: requestedModel } = req.body || {};
       const text = String(command || "").trim();
@@ -1018,6 +1308,22 @@ async function startServer() {
       res.status(500).json({ error: err instanceof Error ? err.message : "Command execution failed." });
     }
   });
+
+  // Scheduled workflows: only workflows whose owner explicitly disabled the
+  // confirmation gate can run unattended. Everything else is queued for
+  // approval so an automation can never perform a destructive action silently.
+  setInterval(async () => {
+    const due = listWorkflows().filter(
+      (w) =>
+        w.enabled &&
+        w.trigger === "schedule" &&
+        w.nextRunAt &&
+        new Date(w.nextRunAt).getTime() <= Date.now()
+    );
+    for (const workflow of due) {
+      await executeWorkflow(workflow, !workflow.requiresConfirmation);
+    }
+  }, 60_000).unref();
 
   // Vite Dev Middleware or Static Prod Serving
   if (process.env.NODE_ENV === "production") {

@@ -540,6 +540,98 @@ export interface VerificationResponse {
   details: string[];
 }
 
+/* ------------------------------------------------------------------ */
+/* Neural Command Workspace — documents, reminders, automation         */
+/* ------------------------------------------------------------------ */
+
+export interface DocumentItem {
+  id: string;
+  title: string;
+  folder: string;
+  kind: "document" | "code" | "markdown" | "spec";
+  content: string;
+  updatedAt: string;
+}
+
+export interface ReminderItem {
+  id: string;
+  title: string;
+  notes: string;
+  dueAt: string;
+  status: "pending" | "done";
+  createdAt: string;
+}
+
+export type WorkflowTrigger = "manual" | "schedule";
+export type WorkflowActionType = "create_note" | "create_task" | "open_url" | "chat_prompt";
+export type WorkflowRunStatus = "success" | "failed" | "pending_approval" | "cancelled";
+
+export interface WorkflowItem {
+  id: string;
+  name: string;
+  description: string;
+  trigger: WorkflowTrigger;
+  intervalMinutes: number;
+  actionType: WorkflowActionType;
+  actionPayload: string;
+  requiresConfirmation: boolean;
+  enabled: boolean;
+  lastRunAt: string | null;
+  nextRunAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkflowRun {
+  id: string;
+  workflowId: string;
+  workflowName: string;
+  status: WorkflowRunStatus;
+  detail: string;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+export interface AiStatusPayload {
+  configured: boolean;
+  provider: string;
+  state: "connected" | "degraded" | "not_configured" | "untested";
+  lastSuccessAt: string | null;
+  lastFailureAt: string | null;
+  lastError: string | null;
+  lastModel: string | null;
+  probe: { ok: boolean; checkedAt: string; latencyMs: number | null; detail: string } | null;
+}
+
+export interface AnalyticsPayload {
+  totals: {
+    conversations: number;
+    messages: number;
+    userMessages: number;
+    assistantMessages: number;
+    tasks: number;
+    tasksDone: number;
+    notes: number;
+    projects: number;
+    memories: number;
+    documents: number;
+    reminders: number;
+    workflows: number;
+  };
+  models: Array<{ model: string; count: number }>;
+  activityByDay: Array<{ day: string; messages: number }>;
+  tasksByStatus: Array<{ status: string; count: number }>;
+  averageReplyChars: number | null;
+  responseTimeMs: null;
+  integrations: {
+    geminiConfigured: boolean;
+    ollamaReachable: boolean;
+    ollamaModels: number;
+    offlineEngine: boolean;
+  };
+  generatedAt: string;
+}
+
 export interface CreativeAsset {
   kind: "picture" | "video" | "prompt" | "writing" | "website";
   title: string;

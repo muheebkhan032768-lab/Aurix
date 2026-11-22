@@ -30,6 +30,7 @@ import {
   stopSpeaking as engineStopSpeaking,
 } from "../utils/voiceEngine";
 import { publishVoice } from "../utils/voiceBus";
+import { registerVoiceControls } from "../workspace/voiceControls";
 import {
   DEFAULT_VOICE_SHORTCUTS,
   formatShortcut,
@@ -143,9 +144,9 @@ function splitWakePhrase(raw: string, wakePhrase: string): { heard: boolean; rem
 }
 
 function wakeAcknowledgement(language: AppSettings["language"]): string {
-  if (language === "Urdu") return "اورکس آن لائن ہے، میں سن رہا ہوں۔";
-  if (language === "Hindi") return "ऑरिक्स ऑनलाइन है, मैं सुन रहा हूँ।";
-  return "AURIX online. I'm listening.";
+  if (language === "Urdu") return "جی سر، میں سن رہا ہوں۔";
+  if (language === "Hindi") return "जी सर, मैं सुन रहा हूँ।";
+  return "Yes, Sir. I'm listening.";
 }
 
 /** Space starts and stops the microphone everywhere except inside a text field. */
@@ -523,6 +524,22 @@ export function VoiceCommandSystem({
       startWakeListening();
     }
   }, [wakeListening, stopWakeListening, startWakeListening]);
+
+  // The Voice Intelligence module drives the same microphone engine through
+  // this registry, so there is exactly one recognizer and one audio session.
+  useEffect(() => {
+    registerVoiceControls({
+      start: () => void startListeningRef.current(),
+      stop: () => stopListeningRef.current(),
+      interrupt: () => {
+        stopListeningRef.current();
+        cancelSpeech();
+      },
+      open: () => setOpen(true),
+      toggleWake: toggleWakeListening,
+    });
+    return () => registerVoiceControls(null);
+  }, [cancelSpeech, toggleWakeListening]);
 
   useEffect(() => {
     processingRef.current = processing;
@@ -1144,6 +1161,7 @@ export function VoiceCommandSystem({
       detail: statusMessage,
       muted: !settings.voiceEnabled,
       micPermission,
+      wake: wakeListening,
     });
   }, [
     processing,
@@ -1156,6 +1174,7 @@ export function VoiceCommandSystem({
     statusMessage,
     settings.voiceEnabled,
     micPermission,
+    wakeListening,
   ]);
 
   const displayStatus: VoiceStatus = processing
