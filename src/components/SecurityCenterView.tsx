@@ -50,7 +50,7 @@ export function SecurityCenterView({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <ShieldCheck className="w-4 h-4 text-cyan-500" />
@@ -76,7 +76,7 @@ export function SecurityCenterView({
       </div>
 
       {msg && (
-        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-500">
+        <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/30 text-xs text-violet-500">
           {msg}
         </div>
       )}
@@ -89,7 +89,7 @@ export function SecurityCenterView({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <form
           onSubmit={savePin}
-          className="lg:col-span-6 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
+          className="lg:col-span-6 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
         >
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-cyan-500" />
@@ -107,7 +107,7 @@ export function SecurityCenterView({
               type="password"
               value={newPin}
               onChange={(e) => setNewPin(e.target.value)}
-              className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
             />
           </label>
 
@@ -117,7 +117,7 @@ export function SecurityCenterView({
               type="password"
               value={confirmPin}
               onChange={(e) => setConfirmPin(e.target.value)}
-              className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
             />
           </label>
 
@@ -131,7 +131,7 @@ export function SecurityCenterView({
 
         <form
           onSubmit={savePrefs}
-          className="lg:col-span-6 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
+          className="lg:col-span-6 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
         >
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Session Locking & Biometric Policy
@@ -145,7 +145,7 @@ export function SecurityCenterView({
               max="120"
               value={inactivity}
               onChange={(e) => setInactivity(Number(e.target.value))}
-              className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
             />
           </label>
 
@@ -173,7 +173,7 @@ export function SecurityCenterView({
       </div>
 
       {/* Audit Log */}
-      <section className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6">
+      <section className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6">
         <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Security & Access Audit Log
         </h3>

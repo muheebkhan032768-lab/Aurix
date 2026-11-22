@@ -79,13 +79,13 @@ export function SettingsView({
   return (
     <div className="space-y-6">
       {/* 1. General Appearance, Performance & Complete Download */}
-      <section className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
+      <section className="bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <h2 className="text-base font-bold text-[#202938] dark:text-white">
+            <h2 className="text-base font-bold text-[#1A1826] dark:text-white">
               Appearance, Performance Mode &amp; Complete Project Package
             </h2>
-            <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-[#6B6880] dark:text-slate-400 mt-0.5">
               Detected {telemetry.installedRamGb} GB RAM ({telemetry.recommendedMode} hardware tier). Configure theme, animations, offline enforcement, and export full Windows package.
             </p>
           </div>
@@ -99,10 +99,10 @@ export function SettingsView({
                   theme: settings.theme === "dark" ? "light" : "dark",
                 })
               }
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-[#202938] dark:text-slate-200 cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-[#1A1826] dark:text-slate-200 cursor-pointer"
             >
               {settings.theme === "dark" ? (
-                <Sun className="w-4 h-4 text-[#D6AD60]" />
+                <Sun className="w-4 h-4 text-[#22D3EE]" />
               ) : (
                 <Moon className="w-4 h-4 text-[#06B6D4]" />
               )}
@@ -111,7 +111,7 @@ export function SettingsView({
 
             <a
               href="/api/backup/export"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-[#202938] dark:text-slate-200"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-[#1A1826] dark:text-slate-200"
             >
               <Download className="w-4 h-4 text-[#06B6D4]" />
               <span>Export DB JSON</span>
@@ -119,7 +119,7 @@ export function SettingsView({
 
             <a
               href="/api/project/complete-download.zip"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white text-xs font-semibold"
             >
               <Package className="w-4 h-4" />
               <span>Download Complete AURIX 2.0 ZIP</span>
@@ -128,14 +128,14 @@ export function SettingsView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Performance Mode</span>
             <select
               value={settings.performanceMode}
               onChange={(e) =>
                 onUpdateSettings({ ...settings, performanceMode: e.target.value as PerformanceMode })
               }
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             >
               <option value="auto">Auto Detect ({telemetry.recommendedMode})</option>
               <option value="lightweight">Lightweight (Low RAM / CPU)</option>
@@ -144,22 +144,22 @@ export function SettingsView({
             </select>
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Wake Phrase</span>
             <input
               type="text"
               value={settings.wakePhrase}
               onChange={(e) => onUpdateSettings({ ...settings, wakePhrase: e.target.value })}
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Startup Behavior</span>
             <select
               value={settings.startupBehavior}
               onChange={(e) => onUpdateSettings({ ...settings, startupBehavior: e.target.value })}
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             >
               <option>Open Command Dashboard</option>
               <option>Start Minimized in System Tray (Windows)</option>
@@ -168,47 +168,47 @@ export function SettingsView({
           </label>
 
           <div className="grid grid-cols-2 gap-2 items-center pt-3">
-            <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.lightweightAnimations}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, lightweightAnimations: e.target.checked })
                 }
-                className="accent-[#10B981]"
+                className="accent-[#7C5CFF]"
               />
               <span>Lite Graphics</span>
             </label>
-            <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.offlineModeForced}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, offlineModeForced: e.target.checked })
                 }
-                className="accent-[#10B981]"
+                className="accent-[#7C5CFF]"
               />
               <span>Force Offline</span>
             </label>
-            <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.autoHealEnabled}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, autoHealEnabled: e.target.checked })
                 }
-                className="accent-[#10B981]"
+                className="accent-[#7C5CFF]"
               />
               <span>Auto-Heal</span>
             </label>
-            <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.cameraEnabled}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, cameraEnabled: e.target.checked })
                 }
-                className="accent-[#10B981]"
+                className="accent-[#7C5CFF]"
               />
               <span>Camera Access</span>
             </label>
@@ -217,13 +217,13 @@ export function SettingsView({
       </section>
 
       {/* 2. Startup Animation, Voice Greeting, DND & Quiet Hours */}
-      <section className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-5 shadow-sm">
+      <section className="bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <h2 className="text-base font-bold text-[#202938] dark:text-white">
+            <h2 className="text-base font-bold text-[#1A1826] dark:text-white">
               Startup Experience, Proactive Companion, DND &amp; Quiet Hours
             </h2>
-            <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-[#6B6880] dark:text-slate-400 mt-0.5">
               Control launch splash animation, spoken British greeting, Do Not Disturb, and scheduled Quiet Hours.
             </p>
           </div>
@@ -231,7 +231,7 @@ export function SettingsView({
           <button
             type="button"
             onClick={onReplayStartup}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white text-xs font-semibold cursor-pointer whitespace-nowrap"
           >
             <Play className="w-3.5 h-3.5" />
             <span>Replay Startup Experience</span>
@@ -239,57 +239,57 @@ export function SettingsView({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
               checked={settings.startupAnimationEnabled}
               onChange={(e) =>
                 onUpdateSettings({ ...settings, startupAnimationEnabled: e.target.checked })
               }
-              className="accent-[#10B981]"
+              className="accent-[#7C5CFF]"
             />
             <span>Startup Animation</span>
           </label>
 
-          <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
               checked={settings.startupSoundEnabled}
               onChange={(e) =>
                 onUpdateSettings({ ...settings, startupSoundEnabled: e.target.checked })
               }
-              className="accent-[#10B981]"
+              className="accent-[#7C5CFF]"
             />
             <span>Startup Sound</span>
           </label>
 
-          <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
               checked={settings.autoVoiceGreetingEnabled}
               onChange={(e) =>
                 onUpdateSettings({ ...settings, autoVoiceGreetingEnabled: e.target.checked })
               }
-              className="accent-[#10B981]"
+              className="accent-[#7C5CFF]"
             />
             <span>Voice Greeting</span>
           </label>
 
-          <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
               checked={settings.autoStartEnabled}
               onChange={(e) =>
                 onUpdateSettings({ ...settings, autoStartEnabled: e.target.checked })
               }
-              className="accent-[#10B981]"
+              className="accent-[#7C5CFF]"
             />
             <span>Windows Auto-Start</span>
           </label>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Animation Duration ({settings.startupDurationSeconds}s)</span>
             <input
               type="range"
@@ -300,11 +300,11 @@ export function SettingsView({
               onChange={(e) =>
                 onUpdateSettings({ ...settings, startupDurationSeconds: Number(e.target.value) })
               }
-              className="mt-2 w-full accent-[#10B981]"
+              className="mt-2 w-full accent-[#7C5CFF]"
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Startup Sound Volume ({settings.startupSoundVolume}%)</span>
             <input
               type="range"
@@ -315,11 +315,11 @@ export function SettingsView({
               onChange={(e) =>
                 onUpdateSettings({ ...settings, startupSoundVolume: Number(e.target.value) })
               }
-              className="mt-2 w-full accent-[#10B981]"
+              className="mt-2 w-full accent-[#7C5CFF]"
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Greeting Volume ({settings.greetingVolume}%)</span>
             <input
               type="range"
@@ -330,11 +330,11 @@ export function SettingsView({
               onChange={(e) =>
                 onUpdateSettings({ ...settings, greetingVolume: Number(e.target.value) })
               }
-              className="mt-2 w-full accent-[#10B981]"
+              className="mt-2 w-full accent-[#7C5CFF]"
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Greeting Language</span>
             <select
               value={settings.greetingLanguage}
@@ -344,7 +344,7 @@ export function SettingsView({
                   greetingLanguage: e.target.value as AurixLanguage,
                 })
               }
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             >
               <option value="English">English (UK)</option>
               <option value="Urdu">Urdu</option>
@@ -355,19 +355,19 @@ export function SettingsView({
 
         {/* Proactive Companion + Do Not Disturb + Quiet Hours */}
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-          <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
               checked={settings.proactiveTalkEnabled}
               onChange={(e) =>
                 onUpdateSettings({ ...settings, proactiveTalkEnabled: e.target.checked })
               }
-              className="accent-[#10B981]"
+              className="accent-[#7C5CFF]"
             />
             <span>Always-On Proactive Talk</span>
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Check-In Pace ({settings.proactiveIntervalSeconds || 20}s)</span>
             <input
               type="range"
@@ -378,31 +378,31 @@ export function SettingsView({
               onChange={(e) =>
                 onUpdateSettings({ ...settings, proactiveIntervalSeconds: Number(e.target.value) })
               }
-              className="mt-2 w-full accent-[#10B981]"
+              className="mt-2 w-full accent-[#7C5CFF]"
             />
           </label>
 
-          <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
               checked={settings.doNotDisturb}
               onChange={(e) =>
                 onUpdateSettings({ ...settings, doNotDisturb: e.target.checked })
               }
-              className="accent-[#10B981]"
+              className="accent-[#7C5CFF]"
             />
             <span>Do Not Disturb (Silence Spoken Prompts)</span>
           </label>
 
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.quietHoursEnabled}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, quietHoursEnabled: e.target.checked })
                 }
-                className="accent-[#10B981]"
+                className="accent-[#7C5CFF]"
               />
               <span>Quiet Hours Schedule</span>
             </label>
@@ -414,9 +414,9 @@ export function SettingsView({
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, quietHoursStart: e.target.value })
                 }
-                className="bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs text-[#202938] dark:text-white"
+                className="bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs text-[#1A1826] dark:text-white"
               />
-              <span className="text-xs text-[#64748B]">to</span>
+              <span className="text-xs text-[#6B6880]">to</span>
               <input
                 type="time"
                 aria-label="Quiet hours end"
@@ -424,7 +424,7 @@ export function SettingsView({
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, quietHoursEnd: e.target.value })
                 }
-                className="bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs text-[#202938] dark:text-white"
+                className="bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs text-[#1A1826] dark:text-white"
               />
             </div>
           </div>
@@ -435,7 +435,7 @@ export function SettingsView({
         {/* Owner Profile Editor */}
         <form
           onSubmit={handleSaveOwner}
-          className="lg:col-span-6 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm"
+          className="lg:col-span-6 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm"
         >
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -446,17 +446,17 @@ export function SettingsView({
                 className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-slate-700"
               />
               <div>
-                <h3 className="text-base font-bold text-[#202938] dark:text-white flex items-center gap-1.5">
-                  <User className="w-4 h-4 text-[#10B981]" />
+                <h3 className="text-base font-bold text-[#1A1826] dark:text-white flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-[#7C5CFF]" />
                   <span>Owner Knowledge Profile</span>
                 </h3>
-                <p className="text-xs text-[#64748B]">Primary Owner: {ownerDraft.name}</p>
+                <p className="text-xs text-[#6B6880]">Primary Owner: {ownerDraft.name}</p>
               </div>
             </div>
 
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white text-xs font-semibold cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{savedFlag ? "Saved" : "Save Profile"}</span>
@@ -464,27 +464,27 @@ export function SettingsView({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-xs text-[#64748B]">
+            <label className="block text-xs text-[#6B6880]">
               <span>Owner Name</span>
               <input
                 type="text"
                 value={ownerDraft.name}
                 onChange={(e) => setOwnerDraft({ ...ownerDraft, name: e.target.value })}
-                className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+                className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
               />
             </label>
-            <label className="block text-xs text-[#64748B]">
+            <label className="block text-xs text-[#6B6880]">
               <span>Role</span>
               <input
                 type="text"
                 value={ownerDraft.role}
                 onChange={(e) => setOwnerDraft({ ...ownerDraft, role: e.target.value })}
-                className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+                className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
               />
             </label>
           </div>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Programming Skills (comma separated)</span>
             <input
               type="text"
@@ -495,11 +495,11 @@ export function SettingsView({
                   programmingSkills: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
                 })
               }
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Learning Goals (one per line)</span>
             <textarea
               rows={3}
@@ -510,26 +510,26 @@ export function SettingsView({
                   learningGoals: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean),
                 })
               }
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Assistant Preferences</span>
             <textarea
               rows={2}
               value={ownerDraft.preferences}
               onChange={(e) => setOwnerDraft({ ...ownerDraft, preferences: e.target.value })}
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             />
           </label>
         </form>
 
         {/* Persistent Scoped Memory Manager */}
-        <section className="lg:col-span-6 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
+        <section className="lg:col-span-6 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center gap-2">
             <Database className="w-4 h-4 text-[#06B6D4]" />
-            <h3 className="text-base font-bold text-[#202938] dark:text-white">
+            <h3 className="text-base font-bold text-[#1A1826] dark:text-white">
               Persistent Scoped Memory Manager
             </h3>
           </div>
@@ -540,12 +540,12 @@ export function SettingsView({
               value={memSearch}
               onChange={(e) => setMemSearch(e.target.value)}
               placeholder="Search memories..."
-              className="bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             />
             <select
               value={memScopeFilter}
               onChange={(e) => setMemScopeFilter(e.target.value)}
-              className="bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             >
               <option value="All">All Scopes</option>
               <option value="Global">Global</option>
@@ -565,12 +565,12 @@ export function SettingsView({
                 value={newMemTitle}
                 onChange={(e) => setNewMemTitle(e.target.value)}
                 placeholder="Approved memory title..."
-                className="col-span-2 bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+                className="col-span-2 bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
               />
               <select
                 value={newMemScope}
                 onChange={(e) => setNewMemScope(e.target.value)}
-                className="bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-[#202938] dark:text-white"
+                className="bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-[#1A1826] dark:text-white"
               >
                 <option value="Global">Global</option>
                 {websites.map((w) => (
@@ -586,11 +586,11 @@ export function SettingsView({
               value={newMemContent}
               onChange={(e) => setNewMemContent(e.target.value)}
               placeholder="Verified fact or project decision..."
-              className="w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             />
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white text-xs font-semibold cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Approve &amp; Store Memory</span>
@@ -604,14 +604,14 @@ export function SettingsView({
                   <div className="text-[11px] font-mono text-[#06B6D4] font-semibold">
                     {m.projectScope} · {m.category}
                   </div>
-                  <div className="text-xs font-semibold text-[#202938] dark:text-white mt-0.5">{m.title}</div>
-                  <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">{m.content}</p>
+                  <div className="text-xs font-semibold text-[#1A1826] dark:text-white mt-0.5">{m.title}</div>
+                  <p className="text-xs text-[#6B6880] dark:text-slate-400 mt-0.5">{m.content}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onDeleteMemory(m.id)}
                   aria-label="Delete memory"
-                  className="text-[#64748B] hover:text-rose-600 cursor-pointer shrink-0"
+                  className="text-[#6B6880] hover:text-rose-600 cursor-pointer shrink-0"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>

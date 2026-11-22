@@ -94,14 +94,14 @@ export function SystemMonitorView({
   return (
     <div className="space-y-6">
       {/* Live Host Telemetry & Emergency Stop Banner */}
-      <div className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <div className="flex items-center gap-2 text-xs text-[#64748B] dark:text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-[#6B6880] dark:text-slate-400">
               <Activity className="w-4 h-4 text-[#06B6D4]" />
               <span>Live Host Runtime Telemetry · {telemetry.platform} ({telemetry.arch})</span>
             </div>
-            <h2 className="mt-1 text-lg font-bold text-[#202938] dark:text-white">
+            <h2 className="mt-1 text-lg font-bold text-[#1A1826] dark:text-white">
               {telemetry.cpuModel}
             </h2>
           </div>
@@ -123,7 +123,7 @@ export function SystemMonitorView({
             <button
               type="button"
               onClick={refresh}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-[#10B981] text-xs font-medium text-[#202938] dark:text-slate-200 cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-[#7C5CFF] text-xs font-medium text-[#1A1826] dark:text-slate-200 cursor-pointer whitespace-nowrap"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
               <span>Refresh</span>
@@ -133,34 +133,34 @@ export function SystemMonitorView({
 
         <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-5">
           <div>
-            <div className="text-xs text-[#64748B]">CPU Cores &amp; Load (1m)</div>
-            <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#202938] dark:text-white">
+            <div className="text-xs text-[#6B6880]">CPU Cores &amp; Load (1m)</div>
+            <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#1A1826] dark:text-white">
               {telemetry.cpuCores} cores · {telemetry.loadAvg1m}
             </div>
           </div>
           <div>
-            <div className="text-xs text-[#64748B]">RAM Usage</div>
-            <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#202938] dark:text-white">
+            <div className="text-xs text-[#6B6880]">RAM Usage</div>
+            <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#1A1826] dark:text-white">
               {formatGb(telemetry.usedMemoryBytes)} / {telemetry.installedRamGb} GB ({ramPct}%)
             </div>
           </div>
           <div>
-            <div className="text-xs text-[#64748B]">Disk Free</div>
-            <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#202938] dark:text-white">
+            <div className="text-xs text-[#6B6880]">Disk Free</div>
+            <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#1A1826] dark:text-white">
               {telemetry.diskTotalBytes > 0
                 ? `${formatGb(telemetry.diskFreeBytes)} GB free (${100 - diskPct}%)`
                 : "Unavailable"}
             </div>
           </div>
           <div>
-            <div className="text-xs text-[#64748B]">Recommended Mode</div>
-            <div className="mt-1 font-mono text-lg font-bold text-[#10B981]">
+            <div className="text-xs text-[#6B6880]">Recommended Mode</div>
+            <div className="mt-1 font-mono text-lg font-bold text-[#7C5CFF]">
               {telemetry.recommendedMode} ({telemetry.hardwareTier})
             </div>
           </div>
         </div>
 
-        <p className="mt-4 text-xs text-[#64748B] dark:text-slate-400">
+        <p className="mt-4 text-xs text-[#6B6880] dark:text-slate-400">
           {telemetry.hardwareSummaryNote}
         </p>
       </div>
@@ -169,24 +169,24 @@ export function SystemMonitorView({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <form
           onSubmit={approveAndLog}
-          className="lg:col-span-5 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm"
+          className="lg:col-span-5 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm"
         >
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-[#06B6D4]" />
-            <h3 className="text-base font-bold text-[#202938] dark:text-white">
+            <h3 className="text-base font-bold text-[#1A1826] dark:text-white">
               Windows PC Operations Builder (Permission-Gated)
             </h3>
           </div>
-          <p className="text-xs text-[#64748B] dark:text-slate-400 leading-relaxed">
+          <p className="text-xs text-[#6B6880] dark:text-slate-400 leading-relaxed">
             In browser preview, commands are logged &amp; validated safely without touching host OS files. When installed on Windows 10/11, <code className="font-mono">pc_controller.py</code> executes whitelisted actions only with explicit owner approval.
           </p>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-[#6B6880]">
             <span>Operation Preset</span>
             <select
               value={selectedPreset}
               onChange={(e) => setSelectedPreset(e.target.value)}
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             >
               {Object.keys(commandMap).map((k) => (
                 <option key={k} value={k}>
@@ -197,30 +197,30 @@ export function SystemMonitorView({
           </label>
 
           {selectedPreset === "Search Project Files" && (
-            <label className="block text-xs text-[#64748B]">
+            <label className="block text-xs text-[#6B6880]">
               <span>Target Windows Path</span>
               <input
                 type="text"
                 value={customTarget}
                 onChange={(e) => setCustomTarget(e.target.value)}
-                className="mt-1 w-full font-mono bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+                className="mt-1 w-full font-mono bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
               />
             </label>
           )}
 
-          <div className="p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800">
-            <div className="text-[11px] text-[#64748B] mb-1">Command Preview</div>
+          <div className="p-3 rounded-lg bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800">
+            <div className="text-[11px] text-[#6B6880] mb-1">Command Preview</div>
             <code className="text-xs font-mono text-cyan-700 dark:text-cyan-400 break-all">
               {commandMap[selectedPreset]}
             </code>
           </div>
 
-          <label className="flex items-start gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+          <label className="flex items-start gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-0.5 accent-[#10B981]"
+              className="mt-0.5 accent-[#7C5CFF]"
             />
             <span>I confirm this operation is safe and authorize logging/executing it.</span>
           </label>
@@ -228,33 +228,33 @@ export function SystemMonitorView({
           <button
             type="submit"
             disabled={!confirmed || telemetry.emergencyStopActive}
-            className="w-full py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer"
+            className="w-full py-2.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer"
           >
             Approve &amp; Queue Safe Operation
           </button>
 
           {notice && (
-            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 text-xs text-emerald-800 dark:text-emerald-200">
+            <div className="p-3 rounded-lg bg-violet-50 dark:bg-violet-500/10 border border-violet-300 text-xs text-violet-800 dark:text-violet-200">
               {notice}
             </div>
           )}
         </form>
 
-        <section className="lg:col-span-7 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+        <section className="lg:col-span-7 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-[#06B6D4]" />
-              <h3 className="text-base font-bold text-[#202938] dark:text-white">
+              <h3 className="text-base font-bold text-[#1A1826] dark:text-white">
                 Execution &amp; Security Audit Trails
               </h3>
             </div>
 
-            <div className="inline-flex rounded-lg p-1 bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 gap-1">
+            <div className="inline-flex rounded-lg p-1 bg-[#EFEDF7] dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 gap-1">
               <button
                 type="button"
                 onClick={() => setLogTab("desktop")}
                 className={`px-3 py-1 rounded text-xs font-medium cursor-pointer ${
-                  logTab === "desktop" ? "bg-[#10B981] text-white font-semibold" : "text-[#64748B]"
+                  logTab === "desktop" ? "bg-[#7C5CFF] text-white font-semibold" : "text-[#6B6880]"
                 }`}
               >
                 Desktop Actions ({desktopActions.length})
@@ -263,7 +263,7 @@ export function SystemMonitorView({
                 type="button"
                 onClick={() => setLogTab("security")}
                 className={`px-3 py-1 rounded text-xs font-medium cursor-pointer ${
-                  logTab === "security" ? "bg-[#10B981] text-white font-semibold" : "text-[#64748B]"
+                  logTab === "security" ? "bg-[#7C5CFF] text-white font-semibold" : "text-[#6B6880]"
                 }`}
               >
                 Security Audit ({auditLogs.length})
@@ -274,17 +274,17 @@ export function SystemMonitorView({
           <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-[380px] overflow-y-auto">
             {logTab === "desktop" ? (
               desktopActions.length === 0 ? (
-                <p className="text-xs text-[#64748B] py-4">No desktop control actions logged yet.</p>
+                <p className="text-xs text-[#6B6880] py-4">No desktop control actions logged yet.</p>
               ) : (
                 desktopActions.map((act) => (
                   <div key={act.id} className="py-3 flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-xs font-mono font-semibold text-[#10B981]">
+                      <div className="text-xs font-mono font-semibold text-[#7C5CFF]">
                         {act.action} · {act.status.toUpperCase()} ({act.executedIn})
                       </div>
-                      <div className="text-xs text-[#202938] dark:text-slate-300 mt-0.5">{act.detail}</div>
+                      <div className="text-xs text-[#1A1826] dark:text-slate-300 mt-0.5">{act.detail}</div>
                     </div>
-                    <span className="text-[11px] font-mono tabular-nums text-[#64748B] shrink-0">
+                    <span className="text-[11px] font-mono tabular-nums text-[#6B6880] shrink-0">
                       {act.createdAt.slice(0, 19).replace("T", " ")}
                     </span>
                   </div>
@@ -297,9 +297,9 @@ export function SystemMonitorView({
                     <div className="text-xs font-mono font-semibold text-cyan-700 dark:text-cyan-400">
                       {log.eventType} · {log.actor}
                     </div>
-                    <div className="text-xs text-[#202938] dark:text-slate-300 mt-0.5">{log.detail}</div>
+                    <div className="text-xs text-[#1A1826] dark:text-slate-300 mt-0.5">{log.detail}</div>
                   </div>
-                  <span className="text-[11px] font-mono tabular-nums text-[#64748B] shrink-0">
+                  <span className="text-[11px] font-mono tabular-nums text-[#6B6880] shrink-0">
                     {log.createdAt.slice(0, 19).replace("T", " ")}
                   </span>
                 </div>

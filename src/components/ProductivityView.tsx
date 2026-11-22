@@ -93,7 +93,7 @@ export function ProductivityView({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Personal Productivity, Study & Daily Planner
@@ -114,7 +114,7 @@ export function ProductivityView({
       </div>
 
       {briefing && (
-        <div className="bg-white dark:bg-[#0D1420] border border-cyan-500/40 rounded-xl p-6">
+        <div className="bg-white dark:bg-[#101018] border border-cyan-500/40 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
             AURIX Daily Focus Briefing
           </h3>
@@ -126,7 +126,7 @@ export function ProductivityView({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Tasks */}
-        <section className="lg:col-span-6 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4">
+        <section className="lg:col-span-6 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Task & Study Queue
@@ -156,13 +156,13 @@ export function ProductivityView({
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
               placeholder="New task or study milestone..."
-              className="w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
             <div className="grid grid-cols-3 gap-2">
               <select
                 value={taskCat}
                 onChange={(e) => setTaskCat(e.target.value as TaskItem["category"])}
-                className="bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"
               >
                 <option value="daily">Daily</option>
                 <option value="study">Study</option>
@@ -172,7 +172,7 @@ export function ProductivityView({
               <select
                 value={taskPriority}
                 onChange={(e) => setTaskPriority(e.target.value as TaskItem["priority"])}
-                className="bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"
               >
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
@@ -182,7 +182,7 @@ export function ProductivityView({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
+                className="bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
               />
             </div>
             <button
@@ -203,7 +203,7 @@ export function ProductivityView({
                   className="flex items-start gap-2.5 text-left cursor-pointer"
                 >
                   {t.status === "done" ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" />
                   ) : (
                     <Circle className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                   )}
@@ -236,7 +236,7 @@ export function ProductivityView({
         </section>
 
         {/* Notes */}
-        <section className="lg:col-span-6 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4">
+        <section className="lg:col-span-6 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4">
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Knowledge Notes & Reminders
           </h3>
@@ -249,12 +249,12 @@ export function ProductivityView({
                 value={noteTitle}
                 onChange={(e) => setNoteTitle(e.target.value)}
                 placeholder="Note title..."
-                className="col-span-2 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="col-span-2 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
               <select
                 value={noteCat}
                 onChange={(e) => setNoteCat(e.target.value)}
-                className="bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-slate-100"
               >
                 <option>Learning</option>
                 <option>Company</option>
@@ -268,7 +268,7 @@ export function ProductivityView({
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder="Write note..."
-              className="w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
             <button
               type="submit"

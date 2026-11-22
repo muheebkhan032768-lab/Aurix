@@ -76,7 +76,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
   return (
     <div className="space-y-6">
       {/* Verified Revenue & Filter Header */}
-      <div className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Briefcase className="w-4 h-4 text-cyan-500" />
@@ -92,7 +92,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-[#070B12] border border-slate-200 dark:border-slate-800 rounded-lg">
+        <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 rounded-lg">
           {(["all", "client", "proposal", "quotation", "invoice", "package", "marketing"] as const).map((k) => (
             <button
               key={k}
@@ -115,7 +115,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
         <div className="lg:col-span-5 space-y-6">
           <form
             onSubmit={handleCreate}
-            className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-3"
+            className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-3"
           >
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Log Business Record
@@ -127,7 +127,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
                 <select
                   value={kind}
                   onChange={(e) => setKind(e.target.value as BusinessItemKind)}
-                  className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                  className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
                 >
                   <option value="client">Client</option>
                   <option value="proposal">Proposal</option>
@@ -146,7 +146,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
                   step="0.01"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                  className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
                 />
               </label>
             </div>
@@ -158,14 +158,14 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Title (e.g., E-Commerce Redesign)"
-                className="bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
               <input
                 type="text"
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 placeholder="Client Name"
-                className="bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </div>
 
@@ -174,7 +174,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               placeholder="Scope, deliverables, or terms..."
-              className="w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
 
             <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
@@ -196,7 +196,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
             </button>
           </form>
 
-          <div className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-3">
+          <div className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-3">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               AI Proposal & Marketing Drafter
             </h3>
@@ -205,7 +205,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
               value={draftBrief}
               onChange={(e) => setDraftBrief(e.target.value)}
               placeholder="Describe client requirements or campaign goal for AURIX to draft..."
-              className="w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
             <button
               type="button"
@@ -218,7 +218,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
             </button>
             {error && <p className="text-xs text-red-500">{error}</p>}
             {draftResult && (
-              <pre className="p-3 rounded-lg bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-800 text-xs whitespace-pre-wrap max-h-60 overflow-auto text-slate-800 dark:text-slate-200">
+              <pre className="p-3 rounded-lg bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 text-xs whitespace-pre-wrap max-h-60 overflow-auto text-slate-800 dark:text-slate-200">
                 {draftResult}
               </pre>
             )}
@@ -226,7 +226,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
         </div>
 
         {/* Ledger Table */}
-        <section className="lg:col-span-7 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6">
+        <section className="lg:col-span-7 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6">
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-4">
             Business Records
           </h3>

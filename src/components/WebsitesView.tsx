@@ -59,7 +59,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Isolated Website List */}
-      <aside className="lg:col-span-4 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 space-y-3">
+      <aside className="lg:col-span-4 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Isolated Website Records
@@ -108,7 +108,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
 
       {/* Selected Website Inspector & Editor */}
       {draft && (
-        <section className="lg:col-span-8 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-5">
+        <section className="lg:col-span-8 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800/80">
             <div className="flex items-center gap-2.5">
               <Globe className="w-5 h-5 text-cyan-500" />
@@ -140,7 +140,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                 type="text"
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -149,7 +149,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
               <select
                 value={draft.status}
                 onChange={(e) => setDraft({ ...draft, status: e.target.value as ProjectStatus })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               >
                 <option value="active">Active</option>
                 <option value="planned">Planned</option>
@@ -166,7 +166,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                 type="text"
                 value={draft.tagline}
                 onChange={(e) => setDraft({ ...draft, tagline: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -176,7 +176,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                 type="text"
                 value={draft.purpose}
                 onChange={(e) => setDraft({ ...draft, purpose: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               />
             </label>
           </div>
@@ -219,7 +219,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                 value={newDomain}
                 onChange={(e) => setNewDomain(e.target.value)}
                 placeholder="Add domain (e.g., amveyronix.com)..."
-                className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
+                className="flex-1 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
               />
               <button
                 type="button"
@@ -252,7 +252,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                     stack: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
                   })
                 }
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -267,7 +267,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                     hostingProviders: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
                   })
                 }
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -282,7 +282,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                     files: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
                   })
                 }
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -292,7 +292,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                 type="text"
                 value={draft.databaseNotes}
                 onChange={(e) => setDraft({ ...draft, databaseNotes: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
           </div>
@@ -304,7 +304,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                 rows={2}
                 value={draft.pendingTasks}
                 onChange={(e) => setDraft({ ...draft, pendingTasks: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -314,7 +314,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
                 rows={2}
                 value={draft.knownBugs}
                 onChange={(e) => setDraft({ ...draft, knownBugs: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
           </div>
@@ -325,7 +325,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
               rows={2}
               value={draft.deploymentHistory}
               onChange={(e) => setDraft({ ...draft, deploymentHistory: e.target.value })}
-              className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
           </label>
         </section>

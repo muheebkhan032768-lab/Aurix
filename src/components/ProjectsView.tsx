@@ -40,7 +40,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800 rounded-lg">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#101018] border border-slate-200 dark:border-slate-800 rounded-lg">
           {(["all", "active", "planned", "completed", "abandoned"] as const).map((st) => (
             <button
               key={st}
@@ -70,7 +70,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
       {editing && (
         <form
           onSubmit={handleSave}
-          className="bg-white dark:bg-[#0D1420] border border-cyan-500/50 rounded-xl p-6 space-y-4"
+          className="bg-white dark:bg-[#101018] border border-cyan-500/50 rounded-xl p-6 space-y-4"
         >
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
@@ -93,7 +93,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
                 required
                 value={editing.name}
                 onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               />
             </label>
             <label className="block text-xs text-slate-500 dark:text-slate-400">
@@ -101,7 +101,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
               <select
                 value={editing.status}
                 onChange={(e) => setEditing({ ...editing, status: e.target.value as ProjectStatus })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               >
                 <option value="active">Active</option>
                 <option value="planned">Planned</option>
@@ -128,7 +128,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
               rows={2}
               value={editing.description}
               onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-              className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
             />
           </label>
 
@@ -144,7 +144,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
                     stack: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
                   })
                 }
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
             <label className="block text-xs text-slate-500 dark:text-slate-400">
@@ -153,7 +153,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
                 type="text"
                 value={editing.pendingTasks}
                 onChange={(e) => setEditing({ ...editing, pendingTasks: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
           </div>
@@ -169,7 +169,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
       )}
 
       {visible.length === 0 ? (
-        <div className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-10 text-center text-sm text-slate-500 dark:text-slate-400">
+        <div className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-10 text-center text-sm text-slate-500 dark:text-slate-400">
           No projects match the "{filter}" status filter.
         </div>
       ) : (
@@ -177,7 +177,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
           {visible.map((p) => (
             <div
               key={p.id}
-              className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col justify-between"
+              className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-start justify-between gap-3">

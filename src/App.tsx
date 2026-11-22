@@ -5,9 +5,11 @@ import {
   Home,
   Lock,
   Menu,
+  Moon,
   OctagonAlert,
   Settings,
   ShieldCheck,
+  Sun,
   Video,
   Volume2,
   X,
@@ -73,13 +75,13 @@ class SelfHealingErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#F8FAFC] text-[#202938] flex items-center justify-center p-6">
-          <div className="max-w-md w-full rounded-2xl border border-emerald-500/40 bg-white shadow-xl p-6 space-y-4">
-            <div className="text-xs font-mono uppercase tracking-[0.2em] text-[#10B981]">
+        <div className="min-h-screen bg-[#F6F5FB] text-[#1A1826] flex items-center justify-center p-6">
+          <div className="max-w-md w-full rounded-2xl border border-violet-500/40 bg-white shadow-xl p-6 space-y-4">
+            <div className="text-xs font-mono uppercase tracking-[0.2em] text-[#7C5CFF]">
               AURIX Self-Healing Recovery
             </div>
             <h1 className="text-lg font-semibold">Runtime Anomaly Contained</h1>
-            <p className="text-xs text-[#64748B] leading-relaxed">
+            <p className="text-xs text-[#6B6880] leading-relaxed">
               AURIX intercepted a render anomaly before crash:{" "}
               <span className="font-mono text-rose-600">{this.state.errorMsg}</span>
             </p>
@@ -94,7 +96,7 @@ class SelfHealingErrorBoundary extends React.Component<
                 }).catch(() => {});
                 this.setState({ hasError: false, errorMsg: "", repairing: false });
               }}
-              className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold text-xs cursor-pointer"
             >
               {this.state.repairing ? "Running 12-Step Self-Heal..." : "Auto-Recover & Restore Dashboard"}
             </button>
@@ -174,7 +176,7 @@ export default function App() {
 
 function AurixShell() {
   const [data, setData] = useState<BootstrapPayload | null>(null);
-  const [activeSection, setActiveSection] = useState<AurixSectionId>("blueprint");
+  const [activeSection, setActiveSection] = useState<AurixSectionId>("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pendingQuickPrompt, setPendingQuickPrompt] = useState<string | null>(null);
   const [browserOnline, setBrowserOnline] = useState(
@@ -295,7 +297,7 @@ function AurixShell() {
   }, [data, startupPhase, locked, mediaConsentChoice]);
 
   if (!data || startupPhase === "loading") {
-    return <div className="min-h-screen bg-[#F8FAFC]" aria-label="Launching AURIX 2.0" />;
+    return <div className="min-h-screen bg-[#F6F5FB]" aria-label="Launching AURIX 2.0" />;
   }
 
   if (startupPhase === "animating") {
@@ -521,23 +523,23 @@ function AurixShell() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1117] text-[#202938] dark:text-slate-100 flex flex-col">
+    <div className="aurix-app-bg flex min-h-screen flex-col text-[#1A1826] dark:text-slate-100">
       {/* PIN Lock Gate */}
       {locked && (
         <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-md flex items-center justify-center p-4">
           <form
             onSubmit={handleUnlock}
-            className="w-full max-w-sm bg-white dark:bg-[#0F1724] border border-emerald-500/40 rounded-2xl p-8 text-center space-y-5 shadow-2xl"
+            className="w-full max-w-sm bg-white dark:bg-[#12121A] border border-violet-500/40 rounded-2xl p-8 text-center space-y-5 shadow-2xl"
           >
             <img
               src="/src/assets/images/aurix_core_emblem_1795088206132.jpg"
               alt="AURIX Security Core"
               referrerPolicy="no-referrer"
-              className="w-20 h-20 rounded-full mx-auto object-cover border-2 border-[#10B981]"
+              className="w-20 h-20 rounded-full mx-auto object-cover border-2 border-[#7C5CFF]"
             />
             <div>
-              <h2 className="text-xl font-semibold text-[#202938] dark:text-white">AURIX Session Locked</h2>
-              <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
+              <h2 className="text-xl font-semibold text-[#1A1826] dark:text-white">AURIX Session Locked</h2>
+              <p className="text-xs text-[#6B6880] dark:text-slate-400 mt-1">
                 Enter Abdul Muheeb&apos;s personal PIN to unlock workspace.
               </p>
             </div>
@@ -547,12 +549,12 @@ function AurixShell() {
               value={pinAttempt}
               onChange={(e) => setPinAttempt(e.target.value)}
               placeholder="Enter PIN..."
-              className="w-full text-center tracking-widest bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm text-[#202938] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+              className="w-full text-center tracking-widest bg-[#EFEDF7] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm text-[#1A1826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFF]"
             />
             {pinError && <p className="text-xs text-rose-600">{pinError}</p>}
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-sm font-semibold cursor-pointer"
+              className="w-full py-2.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white text-sm font-semibold cursor-pointer"
             >
               Unlock AURIX
             </button>
@@ -560,30 +562,32 @@ function AurixShell() {
         </div>
       )}
 
-      {/* Bright Glassmorphism Top HUD Command Header */}
-      <header className="h-16 px-4 sm:px-6 bg-white/90 dark:bg-[#0F1724]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 sticky top-0 z-30">
+      {/* Premium application header */}
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-black/5 bg-white/80 px-3 backdrop-blur-xl sm:px-6 dark:border-white/10 dark:bg-[#0B0B10]/85">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open navigation"
-            className="md:hidden p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-[#202938] dark:text-slate-200"
+            className="md:hidden p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-[#1A1826] dark:text-slate-200"
           >
             <Menu className="w-4 h-4" />
           </button>
-          <AurixLogo className="w-7 h-7 text-[#10B981] shrink-0" />
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#7C5CFF_0%,#22D3EE_100%)] shadow-[0_10px_24px_-12px_rgba(124,92,255,0.9)]">
+            <AurixLogo className="h-5 w-5 text-white" />
+          </div>
           <div className="min-w-0">
-            <div className="font-display text-sm sm:text-base font-bold tracking-wider text-[#202938] dark:text-white whitespace-nowrap">
-              AURIX 2.0
+            <div className="font-display text-[15px] font-semibold leading-tight tracking-tight text-[#1A1826] dark:text-white whitespace-nowrap">
+              AURIX
             </div>
-            <div className="hidden sm:block text-[10px] font-mono tracking-[0.18em] text-[#D6AD60] font-semibold uppercase truncate">
-              POWERED BY AM VEYRONIX
+            <div className="hidden text-[9px] font-medium uppercase tracking-[0.2em] text-[#6B6880] sm:block dark:text-slate-400 whitespace-nowrap">
+              Powered by AM Veyronix
             </div>
           </div>
         </div>
 
         {/* Clean 5-Item Single-Line Navigation Bar */}
-        <nav className="hidden md:flex items-center gap-1 p-1 rounded-xl bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800">
+        <nav className="hidden items-center gap-1 rounded-full border border-black/5 bg-white/70 p-1 shadow-[0_1px_0_rgba(255,255,255,0.6)_inset] md:flex dark:border-white/10 dark:bg-white/[0.04]">
           {TOP_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = activeTopGroup.id === item.id;
@@ -592,10 +596,10 @@ function AurixShell() {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveSection(item.sections[0])}
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
                   active
-                    ? "bg-[#10B981] text-white font-semibold shadow-sm"
-                    : "text-[#64748B] dark:text-slate-300 hover:text-[#202938] dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-800/80"
+                    ? "bg-[linear-gradient(135deg,#7C5CFF,#6D3EF5)] font-semibold text-white shadow-[0_8px_20px_-12px_rgba(124,92,255,0.9)]"
+                    : "text-[#6B6880] hover:bg-black/[0.04] hover:text-[#1A1826] dark:text-slate-300 dark:hover:bg-white/[0.06] dark:hover:text-white"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -606,7 +610,26 @@ function AurixShell() {
         </nav>
 
         {/* Right HUD Status: Online/Offline + Emergency Stop + Clock + Owner */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              updateSettings({
+                ...data.settings,
+                theme: data.settings.theme === "dark" ? "light" : "dark",
+              })
+            }
+            aria-label={data.settings.theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            title="Toggle light / dark theme"
+            className="cursor-pointer rounded-full border border-black/5 bg-white/70 p-2 text-[#1A1826] transition-colors hover:border-[#7C5CFF]/40 hover:text-[#7C5CFF] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+          >
+            {data.settings.theme === "dark" ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </button>
+
           <button
             type="button"
             onClick={() => toggleEmergencyStop(!data.telemetry.emergencyStopActive)}
@@ -614,7 +637,7 @@ function AurixShell() {
             className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold cursor-pointer whitespace-nowrap shrink-0 transition-colors ${
               data.telemetry.emergencyStopActive
                 ? "bg-rose-600 border-rose-700 text-white"
-                : "bg-white dark:bg-[#0B111B] border-rose-300 dark:border-rose-700/70 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                : "bg-white dark:bg-[#0B0B10] border-rose-300 dark:border-rose-700/70 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
             }`}
           >
             <OctagonAlert className="w-3.5 h-3.5 shrink-0" />
@@ -622,10 +645,10 @@ function AurixShell() {
           </button>
 
           <div className="hidden lg:block text-right pr-2 border-r border-slate-200 dark:border-slate-800">
-            <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#64748B]">
+            <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#6B6880]">
               {effectiveOnline ? "ONLINE MODE" : "OFFLINE MODE"}
             </div>
-            <div className="text-xs font-mono font-semibold text-[#10B981] tabular-nums">
+            <div className="text-xs font-mono font-semibold text-[#7C5CFF] tabular-nums">
               {clockText}
             </div>
           </div>
@@ -635,20 +658,20 @@ function AurixShell() {
               type="button"
               onClick={() => setLocked(true)}
               title="Lock AURIX Session"
-              className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#10B981] text-[#202938] dark:text-slate-200 cursor-pointer"
+              className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-[#7C5CFF] text-[#1A1826] dark:text-slate-200 cursor-pointer"
             >
-              <Lock className="w-3.5 h-3.5 text-[#D6AD60]" />
+              <Lock className="w-3.5 h-3.5 text-[#22D3EE]" />
             </button>
           )}
 
-          <div className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-[#EEF2F7] dark:bg-[#0B111B]">
+          <div className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-[#EFEDF7] dark:bg-[#0B0B10]">
             <img
               src="/src/assets/images/avatar_abdul_muheeb_1795088206648.jpg"
               alt={data.owner.name}
               referrerPolicy="no-referrer"
               className="w-6 h-6 rounded-full object-cover shrink-0"
             />
-            <span className="hidden sm:inline text-xs font-medium text-[#202938] dark:text-slate-200 whitespace-nowrap">
+            <span className="hidden sm:inline text-xs font-medium text-[#1A1826] dark:text-slate-200 whitespace-nowrap">
               {data.owner.name}
             </span>
           </div>
@@ -658,13 +681,13 @@ function AurixShell() {
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 md:hidden flex">
-          <div className="w-64 bg-white dark:bg-[#0F1724] border-r border-slate-200 dark:border-slate-800 p-4 overflow-y-auto space-y-4">
+          <div className="w-64 bg-white dark:bg-[#12121A] border-r border-slate-200 dark:border-slate-800 p-4 overflow-y-auto space-y-4">
             <div className="flex items-center justify-between">
-              <span className="font-display font-bold text-base text-[#202938] dark:text-white">AURIX 2.0</span>
+              <span className="font-display font-bold text-base text-[#1A1826] dark:text-white">AURIX 2.0</span>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 text-[#64748B]"
+                className="p-1.5 text-[#6B6880]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -683,8 +706,8 @@ function AurixShell() {
                     }}
                     className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-medium ${
                       active
-                        ? "bg-[#10B981] text-white font-semibold"
-                        : "text-[#64748B] dark:text-slate-300"
+                        ? "bg-[#7C5CFF] text-white font-semibold"
+                        : "text-[#6B6880] dark:text-slate-300"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -706,10 +729,10 @@ function AurixShell() {
           aria-modal="true"
           aria-labelledby="aurix-media-consent-title"
         >
-          <div className="w-full max-w-md bg-white dark:bg-[#0F1724] border border-emerald-500/40 rounded-2xl p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md bg-white dark:bg-[#12121A] border border-violet-500/40 rounded-2xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/35 flex items-center justify-center shrink-0">
-                <Volume2 className="w-5 h-5 text-[#10B981]" />
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/35 flex items-center justify-center shrink-0">
+                <Volume2 className="w-5 h-5 text-[#7C5CFF]" />
               </div>
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/35 flex items-center justify-center shrink-0">
                 <Video className="w-5 h-5 text-[#06B6D4]" />
@@ -717,22 +740,22 @@ function AurixShell() {
               <div>
                 <h2
                   id="aurix-media-consent-title"
-                  className="text-base font-semibold text-[#202938] dark:text-white"
+                  className="text-base font-semibold text-[#1A1826] dark:text-white"
                 >
                   Allow Microphone &amp; Camera Access?
                 </h2>
-                <p className="text-xs text-[#64748B] dark:text-slate-400">
+                <p className="text-xs text-[#6B6880] dark:text-slate-400">
                   AURIX will welcome you aloud immediately after
                 </p>
               </div>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#64748B] dark:text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#6B6880] dark:text-slate-300 leading-relaxed">
               Grant Microphone &amp; Camera access for live voice conversation and vision snapshots, or select &quot;Continue &amp; Speak&quot; to proceed with voice greeting and text/upload control.
             </p>
 
             {mediaConsentMsg && (
-              <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-[#D6AD60] px-3 py-2 text-xs text-[#202938] dark:text-amber-200">
+              <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-[#22D3EE] px-3 py-2 text-xs text-[#1A1826] dark:text-amber-200">
                 {mediaConsentMsg}
               </div>
             )}
@@ -749,7 +772,7 @@ function AurixShell() {
                   setMediaConsentChoice("declined");
                   setWelcomeTriggerCount((c) => c + 1);
                 }}
-                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-medium text-[#202938] dark:text-slate-200 hover:bg-[#EEF2F7] dark:hover:bg-slate-800 cursor-pointer whitespace-nowrap"
+                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-medium text-[#1A1826] dark:text-slate-200 hover:bg-[#EFEDF7] dark:hover:bg-slate-800 cursor-pointer whitespace-nowrap"
               >
                 Continue &amp; Speak
               </button>
@@ -777,7 +800,7 @@ function AurixShell() {
                     );
                   }
                 }}
-                className="px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer whitespace-nowrap"
+                className="px-4 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold text-xs cursor-pointer whitespace-nowrap"
               >
                 Allow Access
               </button>
@@ -790,17 +813,17 @@ function AurixShell() {
       {(activeTopGroup.id === "company" ||
         activeTopGroup.id === "developer" ||
         activeTopGroup.id === "security") && (
-        <div className="px-4 sm:px-6 pt-4 max-w-[1440px] w-full mx-auto">
-          <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className="mx-auto w-full max-w-[1560px] px-3 pt-4 sm:px-6">
+          <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-black/5 bg-white/60 p-1.5 dark:border-white/10 dark:bg-white/[0.03]">
             {SUB_TABS[activeTopGroup.id].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveSection(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                className={`cursor-pointer whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
                   activeSection === tab.id
-                    ? "bg-[#10B981]/12 border border-[#10B981]/45 text-emerald-700 dark:text-emerald-300 font-semibold"
-                    : "border border-transparent text-[#64748B] dark:text-slate-400 hover:text-[#202938] dark:hover:text-slate-200"
+                    ? "bg-white font-semibold text-[#1A1826] shadow-sm dark:bg-white/10 dark:text-white"
+                    : "text-[#6B6880] hover:bg-white/70 hover:text-[#1A1826] dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200"
                 }`}
               >
                 {tab.label}
@@ -810,7 +833,7 @@ function AurixShell() {
         </div>
       )}
 
-      <main className="flex-1 p-4 sm:p-6 max-w-[1440px] w-full mx-auto">
+      <main className="mx-auto w-full max-w-[1560px] flex-1 px-3 py-5 sm:px-6 sm:py-7">
         {activeSection === "home" && (
           <CommandHubView
             owner={data.owner}

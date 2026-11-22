@@ -51,7 +51,7 @@ export function HomeView({
     <div className="space-y-8">
       {/* Central Command Hero */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        <div className="lg:col-span-8 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6 sm:p-8 flex flex-col justify-between">
+        <div className="lg:col-span-8 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6 sm:p-8 flex flex-col justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-3">
               <span>{company.name}</span>
@@ -82,7 +82,7 @@ export function HomeView({
                 value={quickInput}
                 onChange={(e) => setQuickInput(e.target.value)}
                 placeholder="Ask AURIX about AM NEXORA, code architecture, business plans, or research..."
-                className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700/80 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="flex-1 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700/80 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
               <button
                 type="submit"
@@ -123,8 +123,8 @@ export function HomeView({
         </div>
 
         {/* Core Identity Panel */}
-        <div className="lg:col-span-4 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6 flex flex-col items-center justify-between text-center">
-          <div className="w-36 h-36 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700/80 bg-[#070B12] flex items-center justify-center">
+        <div className="lg:col-span-4 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6 flex flex-col items-center justify-between text-center">
+          <div className="w-36 h-36 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700/80 bg-[#0B0B10] flex items-center justify-center">
             <img
               src="/src/assets/images/aurix_core_emblem_1795088206132.jpg"
               alt="AURIX precision geometric AI core"
@@ -168,7 +168,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate("websites")}
-          className="text-left bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
+          className="text-left bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
         >
           <div className="text-xs text-slate-500 dark:text-slate-400">Isolated Websites</div>
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
@@ -180,7 +180,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate("projects")}
-          className="text-left bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
+          className="text-left bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
         >
           <div className="text-xs text-slate-500 dark:text-slate-400">Active Projects</div>
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
@@ -192,7 +192,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate("productivity")}
-          className="text-left bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
+          className="text-left bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
         >
           <div className="text-xs text-slate-500 dark:text-slate-400">Open Tasks</div>
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
@@ -204,7 +204,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate("company")}
-          className="text-left bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
+          className="text-left bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 hover:border-cyan-500/50 rounded-xl p-5 transition-colors cursor-pointer"
         >
           <div className="text-xs text-slate-500 dark:text-slate-400">Company Services</div>
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
@@ -216,7 +216,7 @@ export function HomeView({
 
       {/* Websites & Priority Tasks */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-7 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6">
+        <div className="lg:col-span-7 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               AM VEYRONIX Website Registry
@@ -251,7 +251,7 @@ export function HomeView({
           </div>
         </div>
 
-        <div className="lg:col-span-5 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6">
+        <div className="lg:col-span-5 bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700/80 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Owner Action Queue

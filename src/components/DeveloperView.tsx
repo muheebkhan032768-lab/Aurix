@@ -64,7 +64,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800 rounded-lg">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#101018] border border-slate-200 dark:border-slate-800 rounded-lg">
           <button
             type="button"
             onClick={() => setTab("assistant")}
@@ -102,7 +102,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <form
             onSubmit={runAssist}
-            className="lg:col-span-5 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
+            className="lg:col-span-5 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
           >
             <div className="flex items-center gap-2">
               <Code2 className="w-4 h-4 text-cyan-500" />
@@ -117,7 +117,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                 <select
                   value={languageTarget}
                   onChange={(e) => setLanguageTarget(e.target.value)}
-                  className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                  className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
                 >
                   <option>Python</option>
                   <option>C# .NET WPF</option>
@@ -134,7 +134,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                 <select
                   value={projectScope}
                   onChange={(e) => setProjectScope(e.target.value)}
-                  className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                  className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
                 >
                   <option value="Global">General Engineering</option>
                   {websites.map((w) => (
@@ -151,7 +151,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
               <select
                 value={taskType}
                 onChange={(e) => setTaskType(e.target.value)}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               >
                 <option>Architecture & Code Review</option>
                 <option>Debug & Root Cause Fix</option>
@@ -169,7 +169,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                 value={instruction}
                 onChange={(e) => setInstruction(e.target.value)}
                 placeholder="Describe what to inspect, debug, or build..."
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -180,7 +180,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                 value={codeSnippet}
                 onChange={(e) => setCodeSnippet(e.target.value)}
                 placeholder="Paste source code here..."
-                className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -204,7 +204,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
             </button>
           </form>
 
-          <section className="lg:col-span-7 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col">
+          <section className="lg:col-span-7 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-3">
               Planned Changes & Technical Output
             </h3>
@@ -213,7 +213,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                 {error}
               </div>
             )}
-            <div className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-auto max-h-[560px]">
+            <div className="flex-1 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-auto max-h-[560px]">
               {output ? (
                 <pre className="text-xs font-mono whitespace-pre-wrap text-slate-800 dark:text-slate-200 leading-relaxed">
                   {output}
@@ -228,7 +228,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <aside className="lg:col-span-4 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 space-y-2 max-h-[620px] overflow-y-auto">
+          <aside className="lg:col-span-4 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 space-y-2 max-h-[620px] overflow-y-auto">
             <div className="px-1 pb-2 text-xs text-slate-500 dark:text-slate-400">
               Complete native Windows 10/11 x64 Python + C# WPF source tree ready to compile with build_x64.ps1 and Inno Setup.
             </div>
@@ -254,7 +254,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
             ))}
           </aside>
 
-          <section className="lg:col-span-8 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col">
+          <section className="lg:col-span-8 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col">
             {activeFile ? (
               <>
                 <div className="pb-3 mb-4 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-4">
@@ -270,7 +270,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                     {activeFile.category}
                   </span>
                 </div>
-                <pre className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-auto max-h-[500px] text-xs font-mono text-slate-800 dark:text-slate-200 leading-relaxed">
+                <pre className="flex-1 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 rounded-lg p-4 overflow-auto max-h-[500px] text-xs font-mono text-slate-800 dark:text-slate-200 leading-relaxed">
                   {activeFile.content}
                 </pre>
               </>

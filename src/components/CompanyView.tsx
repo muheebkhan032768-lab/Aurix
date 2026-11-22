@@ -56,7 +56,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Building2 className="w-4 h-4 text-cyan-500" />
@@ -85,7 +85,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Services & Future Products */}
-        <div className="lg:col-span-5 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-5">
+        <div className="lg:col-span-5 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-5">
           <div>
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Official Services Catalog
@@ -118,7 +118,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
               value={newService}
               onChange={(e) => setNewService(e.target.value)}
               placeholder="Add service offering..."
-              className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="flex-1 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
             <button
               type="button"
@@ -135,7 +135,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
         </div>
 
         {/* Strategy & Plans */}
-        <div className="lg:col-span-7 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4">
+        <div className="lg:col-span-7 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4">
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Strategy, Marketing & Hiring Plans
           </h3>
@@ -146,7 +146,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
               rows={2}
               value={draft.vision}
               onChange={(e) => setDraft({ ...draft, vision: e.target.value })}
-              className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
             />
           </label>
 
@@ -156,7 +156,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
               rows={2}
               value={draft.strategy}
               onChange={(e) => setDraft({ ...draft, strategy: e.target.value })}
-              className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
             />
           </label>
 
@@ -167,7 +167,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
                 rows={3}
                 value={draft.marketingPlan}
                 onChange={(e) => setDraft({ ...draft, marketingPlan: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               />
             </label>
 
@@ -177,7 +177,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
                 rows={3}
                 value={draft.hiringPlan}
                 onChange={(e) => setDraft({ ...draft, hiringPlan: e.target.value })}
-                className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
               />
             </label>
           </div>
@@ -185,7 +185,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
       </div>
 
       {/* Company Documents */}
-      <section className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-5">
+      <section className="bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
@@ -208,12 +208,12 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
             value={docTitle}
             onChange={(e) => setDocTitle(e.target.value)}
             placeholder="Document title..."
-            className="md:col-span-5 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+            className="md:col-span-5 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
           />
           <select
             value={docCategory}
             onChange={(e) => setDocCategory(e.target.value)}
-            className="md:col-span-3 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+            className="md:col-span-3 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
           >
             <option value="Strategy">Strategy</option>
             <option value="Client Requirement">Client Requirement</option>
@@ -235,7 +235,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
           value={docContent}
           onChange={(e) => setDocContent(e.target.value)}
           placeholder="Document content or client brief notes..."
-          className="w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+          className="w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
         />
 
         {draft.documents.length === 0 ? (

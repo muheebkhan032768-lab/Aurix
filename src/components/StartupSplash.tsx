@@ -85,7 +85,7 @@ export function StartupSplash({
     };
   }, [soundEnabled, soundVolume, durationSeconds]);
 
-  // Polished Futuristic Startup Backdrop matching bright silver/cyan/emerald AURIX 2.0 identity
+  // Polished Premium startup backdrop matching bright silver/cyan/violet AURIX 2.0 identity
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -122,8 +122,8 @@ export function StartupSplash({
       const elapsedSec = (now - startTime) / 1000;
       const tNorm = Math.min(1, elapsedSec / (totalMs / 1000));
 
-      // Clean dark-slate studio stage for glowing metallic silver & cyan emergence
-      ctx.fillStyle = "#080B10";
+      // Clean dark-slate studio stage for glowing violet & cyan emergence
+      ctx.fillStyle = "#0B0B10";
       ctx.fillRect(0, 0, w, h);
 
       const impactBoost =
@@ -131,15 +131,15 @@ export function StartupSplash({
       const auraIntensity = Math.min(1, tNorm / 0.18) * (tNorm > 0.88 ? 1 - (tNorm - 0.88) * 3 : 1);
 
       const grad = ctx.createRadialGradient(cx, cy, 12, cx, cy, Math.max(w, h) * 0.54);
-      grad.addColorStop(0, `rgba(6, 182, 212, ${0.24 * auraIntensity * impactBoost})`);
-      grad.addColorStop(0.32, `rgba(16, 185, 129, ${0.14 * auraIntensity * impactBoost})`);
-      grad.addColorStop(0.65, `rgba(214, 173, 96, ${0.06 * auraIntensity})`);
+      grad.addColorStop(0, `rgba(124, 92, 255, ${0.24 * auraIntensity * impactBoost})`);
+      grad.addColorStop(0.32, `rgba(34, 211, 238, ${0.14 * auraIntensity * impactBoost})`);
+      grad.addColorStop(0.65, `rgba(167, 139, 250, ${0.06 * auraIntensity})`);
       grad.addColorStop(1, "rgba(8, 11, 16, 0)");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
       ctx.save();
-      ctx.strokeStyle = `rgba(6, 182, 212, ${0.14 * auraIntensity})`;
+      ctx.strokeStyle = `rgba(124, 92, 255, ${0.14 * auraIntensity})`;
       ctx.lineWidth = 1;
       for (const rMult of [0.22, 0.36]) {
         ctx.beginPath();
@@ -156,7 +156,7 @@ export function StartupSplash({
 
         ctx.beginPath();
         ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(6, 182, 212, ${ringAlpha})`;
+        ctx.strokeStyle = `rgba(124, 92, 255, ${ringAlpha})`;
         ctx.lineWidth = 2.8 * (1 - waveP) + 0.6;
         ctx.stroke();
 
@@ -164,7 +164,7 @@ export function StartupSplash({
           const r2 = 18 + (waveP - 0.08) * maxR * 0.85;
           ctx.beginPath();
           ctx.arc(cx, cy, r2, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(16, 185, 129, ${ringAlpha * 0.72})`;
+          ctx.strokeStyle = `rgba(34, 211, 238, ${ringAlpha * 0.72})`;
           ctx.lineWidth = 1.6;
           ctx.stroke();
         }
@@ -174,9 +174,9 @@ export function StartupSplash({
         const flareAlpha =
           tNorm < 0.3 ? (tNorm - 0.22) / 0.08 : tNorm < 0.55 ? 1 - (tNorm - 0.3) * 1.4 : 0.55;
         const beam = ctx.createLinearGradient(w * 0.08, cy, w * 0.92, cy);
-        beam.addColorStop(0, "rgba(6, 182, 212, 0)");
+        beam.addColorStop(0, "rgba(124, 92, 255, 0)");
         beam.addColorStop(0.5, `rgba(103, 232, 249, ${Math.max(0, flareAlpha * 0.62)})`);
-        beam.addColorStop(1, "rgba(16, 185, 129, 0)");
+        beam.addColorStop(1, "rgba(34, 211, 238, 0)");
         ctx.fillStyle = beam;
         ctx.fillRect(w * 0.08, cy - 1, w * 0.84, 2);
       }
@@ -197,8 +197,8 @@ export function StartupSplash({
         ctx.beginPath();
         ctx.arc(px, py, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = p.cyan
-          ? `rgba(6, 182, 212, ${p.alpha * particleFade})`
-          : `rgba(16, 185, 129, ${p.alpha * 0.82 * particleFade})`;
+          ? `rgba(124, 92, 255, ${p.alpha * particleFade})`
+          : `rgba(34, 211, 238, ${p.alpha * 0.82 * particleFade})`;
         ctx.fill();
       }
 
@@ -221,7 +221,7 @@ export function StartupSplash({
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-[#080B10] flex flex-col items-center justify-center overflow-hidden select-none transition-opacity duration-500 ${
+      className={`fixed inset-0 z-50 bg-[#0B0B10] flex flex-col items-center justify-center overflow-hidden select-none transition-opacity duration-500 ${
         exiting ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       role="dialog"
@@ -229,7 +229,7 @@ export function StartupSplash({
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
-      {/* Center Stage: Metallic Silver AURIX + Cyan & Emerald 2.0 */}
+      {/* Center Stage: AURIX wordmark with violet & cyan accents */}
       <div className="relative z-10 flex flex-col items-center justify-center px-6 text-center">
         <div
           className="mb-7 transition-transform duration-300"
@@ -241,12 +241,12 @@ export function StartupSplash({
           <svg
             viewBox="0 0 112 112"
             className="w-24 h-24 sm:w-28 sm:h-28"
-            style={{ filter: "drop-shadow(0 0 22px rgba(6, 182, 212, 0.55))" }}
+            style={{ filter: "drop-shadow(0 0 22px rgba(124, 92, 255, 0.55))" }}
             fill="none"
             aria-hidden="true"
           >
             <g style={{ transformOrigin: "56px 56px", transform: `rotate(${ringRotate}deg)` }}>
-              <circle cx="56" cy="56" r="50" stroke="#10B981" strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="18 10" />
+              <circle cx="56" cy="56" r="50" stroke="#7C5CFF" strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="18 10" />
               <circle cx="56" cy="56" r="41" stroke="#06B6D4" strokeWidth="2.2" strokeDasharray="135 90" />
             </g>
             <path
@@ -278,10 +278,10 @@ export function StartupSplash({
                     className="inline-block"
                     style={{
                       opacity: easeOut,
-                      color: "#F8FAFC",
+                      color: "#F6F5FB",
                       transform: `translateY(${yShift}px) scale(${slamScale})`,
                       textShadow:
-                        "0 2px 0 #CBD5E1, 0 4px 0 #475569, 0 0 28px rgba(6, 182, 212, 0.72), 0 0 56px rgba(16, 185, 129, 0.35)",
+                        "0 2px 0 #CBD5E1, 0 4px 0 #475569, 0 0 28px rgba(124, 92, 255, 0.72), 0 0 56px rgba(34, 211, 238, 0.35)",
                     }}
                   >
                     {ch}
@@ -306,7 +306,7 @@ export function StartupSplash({
                   style={{
                     color: "#06B6D4",
                     textShadow:
-                      "0 2px 0 #0E7490, 0 0 26px rgba(6, 182, 212, 0.9), 0 0 52px rgba(16, 185, 129, 0.5)",
+                      "0 2px 0 #0E7490, 0 0 26px rgba(124, 92, 255, 0.9), 0 0 52px rgba(34, 211, 238, 0.5)",
                   }}
                 >
                   {ch}
@@ -332,9 +332,9 @@ export function StartupSplash({
           className="mt-6 font-display text-sm sm:text-base md:text-lg font-semibold tracking-[0.42em] uppercase"
           style={{
             opacity: taglineOpacity,
-            color: "#A7F3D0",
+            color: "#DDD6FE",
             transform: `translateY(${(1 - taglineOpacity) * 10}px)`,
-            textShadow: "0 0 20px rgba(16, 185, 129, 0.75)",
+            textShadow: "0 0 20px rgba(34, 211, 238, 0.75)",
           }}
         >
           ADVANCED UNIFIED INTELLIGENCE X
@@ -343,10 +343,10 @@ export function StartupSplash({
         <div className="mt-8 w-64 sm:w-80">
           <div className="h-1.5 w-full rounded-full bg-slate-800/90 overflow-hidden border border-cyan-500/35">
             <div
-              className="h-full bg-gradient-to-r from-[#10B981] via-[#06B6D4] to-[#D6AD60] transition-[width] duration-75"
+              className="h-full bg-gradient-to-r from-[#7C5CFF] via-[#06B6D4] to-[#22D3EE] transition-[width] duration-75"
               style={{
                 width: `${Math.round(progress * 100)}%`,
-                boxShadow: "0 0 14px rgba(6, 182, 212, 0.85)",
+                boxShadow: "0 0 14px rgba(124, 92, 255, 0.85)",
               }}
             />
           </div>
@@ -371,20 +371,20 @@ export function StartupSplash({
       )}
 
       {/* PERMANENT BOTTOM-RIGHT AM VEYRONIX BRANDING */}
-      <div className="fixed bottom-8 right-8 z-20 text-right pointer-events-none bg-slate-950/90 backdrop-blur-md border border-[#D6AD60]/60 rounded-xl px-5 py-3 shadow-[0_0_28px_rgba(6,182,212,0.22)]">
+      <div className="fixed bottom-8 right-8 z-20 text-right pointer-events-none bg-slate-950/90 backdrop-blur-md border border-[#22D3EE]/60 rounded-xl px-5 py-3 shadow-[0_0_28px_rgba(6,182,212,0.22)]">
         <div className="text-[11px] sm:text-xs font-bold tracking-[0.28em] text-slate-200 uppercase">
           POWERED BY:
         </div>
         <div
           className="mt-0.5 font-display text-xl sm:text-2xl md:text-3xl font-bold tracking-[0.18em]"
           style={{
-            color: "#D6AD60",
-            textShadow: "0 0 16px rgba(214, 173, 96, 0.65)",
+            color: "#22D3EE",
+            textShadow: "0 0 16px rgba(167, 139, 250, 0.65)",
           }}
         >
           AM VEYRONIX
         </div>
-        <div className="mt-1.5 ml-auto h-[2px] w-28 bg-gradient-to-r from-[#10B981] to-[#06B6D4]" />
+        <div className="mt-1.5 ml-auto h-[2px] w-28 bg-gradient-to-r from-[#7C5CFF] to-[#06B6D4]" />
       </div>
     </div>
   );

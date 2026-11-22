@@ -38,6 +38,7 @@ import type {
   WebsiteRecord,
 } from "../types/aurix";
 import { cancelOfflineVoice, speakWithOfflineBritishVoice } from "../utils/offlineVoice";
+import { AurixOrb } from "./AurixOrb";
 
 type FocusNodeId = "company" | "websites" | "projects" | "tasks" | "system";
 type OrbState = "ready" | "listening" | "thinking" | "speaking" | "executing" | "error";
@@ -888,9 +889,9 @@ export function CommandHubView({
         state === "error"
           ? "#E11D48"
           : state === "listening"
-            ? "#10B981"
+            ? "#7C5CFF"
             : state === "speaking"
-              ? "#D6AD60"
+              ? "#22D3EE"
               : state === "thinking" || state === "executing"
                 ? "#06B6D4"
                 : "rgba(16, 185, 129, 0.6)";
@@ -906,8 +907,8 @@ export function CommandHubView({
         sphereGrad.addColorStop(1, "#9F1239");
       } else if (state === "speaking") {
         sphereGrad.addColorStop(0, "#FFFBEB");
-        sphereGrad.addColorStop(0.45, "#D6AD60");
-        sphereGrad.addColorStop(0.85, "#10B981");
+        sphereGrad.addColorStop(0.45, "#22D3EE");
+        sphereGrad.addColorStop(0.85, "#7C5CFF");
         sphereGrad.addColorStop(1, "#047857");
       } else if (state === "thinking" || state === "executing") {
         sphereGrad.addColorStop(0, "#ECFEFF");
@@ -915,7 +916,7 @@ export function CommandHubView({
         sphereGrad.addColorStop(1, "#0E7490");
       } else {
         sphereGrad.addColorStop(0, "#ECFDF5");
-        sphereGrad.addColorStop(0.45, "#10B981");
+        sphereGrad.addColorStop(0.45, "#7C5CFF");
         sphereGrad.addColorStop(1, "#047857");
       }
 
@@ -943,11 +944,11 @@ export function CommandHubView({
             ? "#E11D48"
             : state === "speaking"
               ? i % 2 === 0
-                ? "#D6AD60"
-                : "#10B981"
+                ? "#22D3EE"
+                : "#7C5CFF"
               : state === "thinking" || state === "executing"
                 ? "#06B6D4"
-                : "#10B981";
+                : "#7C5CFF";
         bCtx.beginPath();
         bCtx.roundRect(x, y, barW, barH, 2);
         bCtx.fill();
@@ -1060,13 +1061,13 @@ export function CommandHubView({
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
         {/* LEFT + CENTER STAGE: BRIGHT GLASSMORPHISM ORB & WORKSPACE OVERVIEW */}
-        <section className="xl:col-span-7 relative rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#0F1724]/95 backdrop-blur-xl shadow-sm p-5 sm:p-6 flex flex-col justify-between overflow-hidden min-h-[620px]">
+        <section className="aurix-card relative flex min-h-[620px] flex-col justify-between overflow-hidden p-5 sm:p-6 xl:col-span-7">
           <div className="flex flex-wrap items-center justify-between gap-3 z-10">
             <div>
-              <div className="text-xs text-[#64748B] dark:text-slate-400">
+              <div className="text-xs text-[#6B6880] dark:text-slate-400">
                 British Voice Companion · {telemetry.recommendedMode} Hardware Profile ({telemetry.installedRamGb} GB RAM)
               </div>
-              <h1 className="text-lg sm:text-xl font-bold text-[#202938] dark:text-white mt-0.5">
+              <h1 className="text-lg sm:text-xl font-bold text-[#1A1826] dark:text-white mt-0.5">
                 Welcome, {owner.name}
               </h1>
             </div>
@@ -1082,12 +1083,12 @@ export function CommandHubView({
                 }
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer transition-colors whitespace-nowrap ${
                   settings.proactiveTalkEnabled
-                    ? "bg-emerald-50 dark:bg-emerald-500/15 border-[#10B981]/50 text-emerald-700 dark:text-emerald-300"
-                    : "bg-[#EEF2F7] dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-[#64748B] dark:text-slate-300"
+                    ? "bg-violet-50 dark:bg-violet-500/15 border-[#7C5CFF]/50 text-violet-700 dark:text-violet-300"
+                    : "bg-[#EFEDF7] dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-[#6B6880] dark:text-slate-300"
                 }`}
               >
                 {settings.proactiveTalkEnabled ? (
-                  <Pause className="w-3.5 h-3.5 text-[#10B981]" />
+                  <Pause className="w-3.5 h-3.5 text-[#7C5CFF]" />
                 ) : (
                   <Play className="w-3.5 h-3.5" />
                 )}
@@ -1105,8 +1106,8 @@ export function CommandHubView({
                 title="Do Not Disturb suppresses unsolicited spoken prompts"
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer transition-colors whitespace-nowrap ${
                   settings.doNotDisturb
-                    ? "bg-amber-50 dark:bg-amber-500/15 border-[#D6AD60] text-[#9A742E] dark:text-amber-300"
-                    : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-[#64748B] dark:text-slate-300"
+                    ? "bg-amber-50 dark:bg-amber-500/15 border-[#22D3EE] text-[#9A742E] dark:text-amber-300"
+                    : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-[#6B6880] dark:text-slate-300"
                 }`}
               >
                 <BellOff className="w-3.5 h-3.5" />
@@ -1120,12 +1121,12 @@ export function CommandHubView({
                   setVoiceMuted((v) => !v);
                 }}
                 aria-label={voiceMuted ? "Unmute AURIX voice" : "Mute AURIX voice"}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#10B981] text-[#202938] dark:text-slate-200 cursor-pointer"
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#7C5CFF] text-[#1A1826] dark:text-slate-200 cursor-pointer"
               >
                 {voiceMuted ? (
                   <VolumeX className="w-4 h-4 text-rose-500" />
                 ) : (
-                  <Volume2 className="w-4 h-4 text-[#10B981]" />
+                  <Volume2 className="w-4 h-4 text-[#7C5CFF]" />
                 )}
               </button>
             </div>
@@ -1146,22 +1147,26 @@ export function CommandHubView({
               <button
                 type="button"
                 onClick={toggleMicTalk}
-                title="Click orb to speak with AURIX"
-                className="relative group cursor-pointer focus:outline-none"
+                title="Click the orb to speak with AURIX"
+                className="group cursor-pointer focus:outline-none"
               >
-                <canvas ref={orbCanvasRef} className="w-[260px] h-[260px] sm:w-[290px] sm:h-[290px] block" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] font-mono tracking-[0.22em] text-white/95 uppercase">AURIX 2.0</span>
-                  <span className="text-sm font-display font-bold tracking-[0.16em] text-white mt-0.5 drop-shadow">
-                    {orbState.toUpperCase()}
-                  </span>
-                </div>
+                <AurixOrb
+                  state={
+                    orbState === "listening"
+                      ? "listening"
+                      : orbState === "thinking" || orbState === "executing"
+                        ? "thinking"
+                        : orbState === "speaking"
+                          ? "speaking"
+                          : "idle"
+                  }
+                  size={252}
+                />
               </button>
 
-              <div className="-mt-2 flex flex-col items-center gap-2">
-                <canvas ref={barsCanvasRef} className="w-[230px] sm:w-[264px] h-[40px] block" />
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-lg bg-[#EEF2F7] dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs font-medium text-[#202938] dark:text-slate-200">
-                  <Mic className={`w-3.5 h-3.5 ${recording ? "text-rose-500" : "text-[#10B981]"}`} />
+              <div className="mt-4 flex flex-col items-center gap-2">
+                <div className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-3.5 py-1.5 text-xs font-medium text-[#1A1826] dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-200">
+                  <Mic className={`w-3.5 h-3.5 ${recording ? "text-rose-500" : "text-[#7C5CFF]"}`} />
                   <span>{statusLabel}</span>
                 </div>
               </div>
@@ -1178,7 +1183,7 @@ export function CommandHubView({
                   <path
                     key={y}
                     d={`M 0 160 C 26 160, 28 ${y}, 58 ${y}`}
-                    stroke={branches[idx]?.id === focusedNode ? "#10B981" : "rgba(100,116,139,0.28)"}
+                    stroke={branches[idx]?.id === focusedNode ? "#7C5CFF" : "rgba(100,116,139,0.28)"}
                     strokeWidth={branches[idx]?.id === focusedNode ? "2.2" : "1.1"}
                   />
                 ))}
@@ -1194,26 +1199,26 @@ export function CommandHubView({
                     onClick={() => setFocusedNode(b.id)}
                     className={`w-full text-left rounded-xl px-3.5 py-2.5 border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                       selected
-                        ? "bg-emerald-50/90 dark:bg-emerald-500/15 border-[#10B981] shadow-sm"
-                        : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-800 hover:border-[#06B6D4]"
+                        ? "bg-violet-50/90 dark:bg-violet-500/15 border-[#7C5CFF] shadow-sm"
+                        : "bg-[#F6F5FB] dark:bg-[#0B0B10] border-slate-200 dark:border-slate-800 hover:border-[#06B6D4]"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
                         className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                           selected
-                            ? "bg-[#10B981] text-white"
-                            : "bg-white dark:bg-slate-800 text-[#64748B] dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                            ? "bg-[#7C5CFF] text-white"
+                            : "bg-white dark:bg-slate-800 text-[#6B6880] dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                         }`}
                       >
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-xs font-semibold text-[#202938] dark:text-white truncate">{b.title}</div>
-                        <div className="text-[11px] text-[#64748B] dark:text-slate-400 truncate">{b.sub}</div>
+                        <div className="text-xs font-semibold text-[#1A1826] dark:text-white truncate">{b.title}</div>
+                        <div className="text-[11px] text-[#6B6880] dark:text-slate-400 truncate">{b.sub}</div>
                       </div>
                     </div>
-                    <div className="text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-300 shrink-0 tabular-nums">
+                    <div className="text-xs font-mono font-semibold text-violet-700 dark:text-violet-300 shrink-0 tabular-nums">
                       {b.metric}
                     </div>
                   </button>
@@ -1223,9 +1228,9 @@ export function CommandHubView({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 z-10 text-xs">
-            <div className="text-[#64748B] dark:text-slate-400">
+            <div className="text-[#6B6880] dark:text-slate-400">
               {isOnline ? "Hybrid Cloud + Local Ready" : "100% Offline Engine Active"} · Voice:{" "}
-              <span className="font-medium text-[#202938] dark:text-slate-200">
+              <span className="font-medium text-[#1A1826] dark:text-slate-200">
                 British Male ({settings.voiceName})
               </span>
             </div>
@@ -1234,7 +1239,7 @@ export function CommandHubView({
                 type="button"
                 onClick={() => triggerProactiveTurn(true)}
                 disabled={sending || telemetry.emergencyStopActive}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EEF2F7] dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-[#202938] dark:text-slate-100 font-medium cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EFEDF7] dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-[#1A1826] dark:text-slate-100 font-medium cursor-pointer whitespace-nowrap"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#06B6D4]" />
                 <span>Speak &amp; Advise</span>
@@ -1242,7 +1247,7 @@ export function CommandHubView({
               <button
                 type="button"
                 onClick={() => onNavigate(activeBranch.targetSection)}
-                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold cursor-pointer whitespace-nowrap"
               >
                 <span>Open {activeBranch.title}</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -1252,14 +1257,14 @@ export function CommandHubView({
         </section>
 
         {/* RIGHT CONVERSATION, VOICE COMMANDS & LAUNCHER DRAWER */}
-        <section className="xl:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0F1724] backdrop-blur-xl shadow-sm p-5 flex flex-col justify-between min-h-[620px] max-h-[760px]">
-          <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 p-4 space-y-3 shrink-0">
+        <section className="aurix-card flex max-h-[760px] min-h-[620px] flex-col justify-between p-5 xl:col-span-5">
+          <div className="rounded-xl bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 p-4 space-y-3 shrink-0">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#06B6D4] font-semibold">
                   Live Voice Companion &amp; Commands
                 </div>
-                <h2 className="text-base font-semibold text-[#202938] dark:text-white mt-0.5">
+                <h2 className="text-base font-semibold text-[#1A1826] dark:text-white mt-0.5">
                   {activeBranch.title} · {activeBranch.metric}
                 </h2>
               </div>
@@ -1272,7 +1277,7 @@ export function CommandHubView({
                     language: e.target.value as AurixLanguage,
                   })
                 }
-                className="bg-white dark:bg-[#0F1724] border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#202938] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+                className="bg-white dark:bg-[#12121A] border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#1A1826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFF]"
               >
                 <option value="English">English (UK)</option>
                 <option value="Urdu">Urdu</option>
@@ -1291,7 +1296,7 @@ export function CommandHubView({
                   key={chip.label}
                   type="button"
                   onClick={() => sendCommandToAurix(chip.cmd)}
-                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#0F1724] hover:border-[#10B981] border border-slate-200 dark:border-slate-700 text-xs font-medium text-[#202938] dark:text-slate-200 cursor-pointer transition-colors whitespace-nowrap"
+                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#12121A] hover:border-[#7C5CFF] border border-slate-200 dark:border-slate-700 text-xs font-medium text-[#1A1826] dark:text-slate-200 cursor-pointer transition-colors whitespace-nowrap"
                 >
                   {chip.label}
                 </button>
@@ -1300,7 +1305,7 @@ export function CommandHubView({
           </div>
 
           {notice && (
-            <div className="mt-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-[#D6AD60] px-3.5 py-2 text-xs text-[#202938] dark:text-amber-200 shrink-0">
+            <div className="mt-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-[#22D3EE] px-3.5 py-2 text-xs text-[#1A1826] dark:text-amber-200 shrink-0">
               {notice}
             </div>
           )}
@@ -1308,10 +1313,10 @@ export function CommandHubView({
           {/* Live Conversation Transcript */}
           <div className="flex-1 overflow-y-auto py-3 pr-1 space-y-3 min-h-[260px]">
             {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center px-4 text-xs text-[#64748B] dark:text-slate-400">
+              <div className="h-full flex flex-col items-center justify-center text-center px-4 text-xs text-[#6B6880] dark:text-slate-400">
                 <p>Click the orb to speak, tap &ldquo;Speak &amp; Advise&rdquo;, or type a command below.</p>
                 <p className="mt-1">
-                  Try: <span className="font-mono text-[#10B981]">&ldquo;Open YouTube&rdquo;</span> or{" "}
+                  Try: <span className="font-mono text-[#7C5CFF]">&ldquo;Open YouTube&rdquo;</span> or{" "}
                   <span className="font-mono text-[#06B6D4]">&ldquo;Run self heal&rdquo;</span>
                 </p>
               </div>
@@ -1324,8 +1329,8 @@ export function CommandHubView({
                     <div
                       className={`max-w-[90%] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed border ${
                         isUser
-                          ? "bg-[#10B981]/10 dark:bg-[#10B981]/20 border-[#10B981]/40 text-[#202938] dark:text-white"
-                          : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-800 text-[#202938] dark:text-slate-100"
+                          ? "bg-[#7C5CFF]/10 dark:bg-[#7C5CFF]/20 border-[#7C5CFF]/40 text-[#1A1826] dark:text-white"
+                          : "bg-[#F6F5FB] dark:bg-[#0B0B10] border-slate-200 dark:border-slate-800 text-[#1A1826] dark:text-slate-100"
                       }`}
                     >
                       <div className="whitespace-pre-wrap">{m.content}</div>
@@ -1336,7 +1341,7 @@ export function CommandHubView({
                             href={act.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold text-xs"
                           >
                             <span>{act.label}</span>
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -1349,7 +1354,7 @@ export function CommandHubView({
                           <button
                             type="button"
                             onClick={() => onNavigate(act.section as AurixSectionId)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold text-xs cursor-pointer"
                           >
                             <span>{act.label}</span>
                             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -1358,8 +1363,8 @@ export function CommandHubView({
                       )}
 
                       {act?.type === "self_heal" && (
-                        <div className="mt-2.5 rounded-lg bg-white dark:bg-[#0F1724] border border-emerald-500/40 p-2.5 text-xs space-y-1.5">
-                          <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300 font-mono">
+                        <div className="mt-2.5 rounded-lg bg-white dark:bg-[#12121A] border border-violet-500/40 p-2.5 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between text-violet-700 dark:text-violet-300 font-mono">
                             <span className="inline-flex items-center gap-1">
                               <ShieldCheck className="w-3.5 h-3.5" />
                               STATUS: {act.report.overallStatus.toUpperCase()}
@@ -1377,7 +1382,7 @@ export function CommandHubView({
                       )}
 
                       {act?.type === "creative" && (
-                        <div className="mt-2.5 rounded-lg bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-700 p-2.5 space-y-2">
+                        <div className="mt-2.5 rounded-lg bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700 p-2.5 space-y-2">
                           {act.asset.svgMarkup && (
                             <>
                               <div
@@ -1387,7 +1392,7 @@ export function CommandHubView({
                               <button
                                 type="button"
                                 onClick={() => downloadPictureSvgPng(act.asset)}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#10B981] text-white text-xs font-semibold cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#7C5CFF] text-white text-xs font-semibold cursor-pointer"
                               >
                                 <Download className="w-3 h-3" />
                                 <span>Download PNG</span>
@@ -1398,7 +1403,7 @@ export function CommandHubView({
                             <button
                               type="button"
                               onClick={() => onNavigate("creative")}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#10B981] text-white text-xs font-semibold cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#7C5CFF] text-white text-xs font-semibold cursor-pointer"
                             >
                               <span>Open Motion Video Studio →</span>
                             </button>
@@ -1407,12 +1412,12 @@ export function CommandHubView({
                       )}
 
                       {!isUser && (
-                        <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-[#64748B] dark:text-slate-400">
+                        <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-[#6B6880] dark:text-slate-400">
                           <span>AURIX · British Male · {m.language || settings.language}</span>
                           <button
                             type="button"
                             onClick={() => speakTextWithAurix(m.content)}
-                            className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 hover:underline cursor-pointer font-medium"
+                            className="inline-flex items-center gap-1 text-violet-700 dark:text-violet-300 hover:underline cursor-pointer font-medium"
                           >
                             <Volume2 className="w-3 h-3" />
                             <span>Speak</span>
@@ -1436,7 +1441,7 @@ export function CommandHubView({
               setInputText("");
               sendCommandToAurix(msg);
             }}
-            className="rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 focus-within:border-[#10B981] p-2 shrink-0"
+            className="rounded-xl bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 focus-within:border-[#7C5CFF] p-2 shrink-0"
           >
             <div className="flex items-center gap-2">
               <button
@@ -1446,7 +1451,7 @@ export function CommandHubView({
                 className={`p-2.5 rounded-lg border transition-colors cursor-pointer shrink-0 ${
                   recording
                     ? "bg-rose-600 border-rose-500 text-white"
-                    : "bg-white dark:bg-[#0F1724] border-slate-200 dark:border-slate-700 hover:border-[#10B981] text-[#10B981]"
+                    : "bg-white dark:bg-[#12121A] border-slate-200 dark:border-slate-700 hover:border-[#7C5CFF] text-[#7C5CFF]"
                 }`}
               >
                 {recording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -1460,7 +1465,7 @@ export function CommandHubView({
                   lastActivityRef.current = Date.now();
                 }}
                 placeholder="Ask AURIX, open YouTube/site, run self-heal, or create..."
-                className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[#202938] dark:text-white placeholder:text-[#64748B] focus:outline-none min-w-0"
+                className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[#1A1826] dark:text-white placeholder:text-[#6B6880] focus:outline-none min-w-0"
               />
 
               <input
@@ -1479,7 +1484,7 @@ export function CommandHubView({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 title="Upload audio clip"
-                className="p-2.5 rounded-lg bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-700 hover:border-[#06B6D4] text-[#64748B] dark:text-slate-300 cursor-pointer shrink-0"
+                className="p-2.5 rounded-lg bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700 hover:border-[#06B6D4] text-[#6B6880] dark:text-slate-300 cursor-pointer shrink-0"
               >
                 <Upload className="w-4 h-4" />
               </button>
@@ -1487,7 +1492,7 @@ export function CommandHubView({
               <button
                 type="submit"
                 disabled={sending || !inputText.trim() || telemetry.emergencyStopActive}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold text-xs cursor-pointer shrink-0 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 disabled:opacity-50 text-white font-semibold text-xs cursor-pointer shrink-0 whitespace-nowrap"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Send</span>

@@ -47,7 +47,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
   // 5-Module Studio State
   const [activeStudio, setActiveStudio] = useState<StudioTab>("picture");
   const [creativePrompt, setCreativePrompt] = useState(
-    "Futuristic AM VEYRONIX clean glassmorphism command center with emerald accents"
+    "Futuristic AM VEYRONIX clean glassmorphism command center with violet accents"
   );
   const [writingType, setWritingType] = useState("Client Email Proposal");
   const [generating, setGenerating] = useState(false);
@@ -245,7 +245,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
       const sc = scenes[sceneIdx];
 
       const grad = ctx.createLinearGradient(0, 0, 960, 540);
-      grad.addColorStop(0, sc.bgTop || "#F8FAFC");
+      grad.addColorStop(0, sc.bgTop || "#F6F5FB");
       grad.addColorStop(1, sc.bgBottom || "#E2E8F0");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 960, 540);
@@ -256,7 +256,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
         for (let r = 65; r <= 185; r += 38) {
           ctx.beginPath();
           ctx.arc(0, 0, r, elapsed + r * 0.01, elapsed + r * 0.01 + Math.PI * 1.35);
-          ctx.strokeStyle = sc.accentColor || "#10B981";
+          ctx.strokeStyle = sc.accentColor || "#7C5CFF";
           ctx.lineWidth = 3;
           ctx.stroke();
         }
@@ -271,7 +271,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
         ctx.lineWidth = 4;
         ctx.stroke();
       } else if (sc.motion === "grid") {
-        ctx.strokeStyle = `${sc.accentColor || "#D6AD60"}66`;
+        ctx.strokeStyle = `${sc.accentColor || "#22D3EE"}66`;
         ctx.lineWidth = 1.6;
         for (let gx = -400; gx <= 400; gx += 50) {
           ctx.beginPath();
@@ -283,9 +283,9 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
         const pulseR = 65 + Math.sin(elapsed * 4) * 22;
         ctx.beginPath();
         ctx.arc(0, 0, pulseR, 0, Math.PI * 2);
-        ctx.fillStyle = `${sc.accentColor || "#10B981"}33`;
+        ctx.fillStyle = `${sc.accentColor || "#7C5CFF"}33`;
         ctx.fill();
-        ctx.strokeStyle = sc.accentColor || "#10B981";
+        ctx.strokeStyle = sc.accentColor || "#7C5CFF";
         ctx.lineWidth = 3;
         ctx.stroke();
       }
@@ -293,19 +293,19 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
 
       ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
       ctx.fillRect(48, 396, 864, 96);
-      ctx.strokeStyle = sc.accentColor || "#10B981";
+      ctx.strokeStyle = sc.accentColor || "#7C5CFF";
       ctx.lineWidth = 1.5;
       ctx.strokeRect(48, 396, 864, 96);
 
-      ctx.fillStyle = "#10B981";
+      ctx.fillStyle = "#7C5CFF";
       ctx.font = "bold 13px monospace";
       ctx.fillText(`AURIX 2.0 · SCENE ${sceneIdx + 1}/${scenes.length} · ${asset.title.toUpperCase()}`, 72, 426);
 
-      ctx.fillStyle = "#202938";
+      ctx.fillStyle = "#1A1826";
       ctx.font = "600 22px sans-serif";
       ctx.fillText(sc.caption.slice(0, 68), 72, 462);
 
-      ctx.fillStyle = sc.accentColor || "#10B981";
+      ctx.fillStyle = sc.accentColor || "#7C5CFF";
       ctx.fillRect(48, 488, 864 * ((sceneIdx + localT) / scenes.length), 4);
 
       raf = requestAnimationFrame(draw);
@@ -348,13 +348,13 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
   return (
     <div className="space-y-6">
       {/* 1. Complete AURIX Download + Quick Web Launchers */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F1724] p-5 sm:p-6 space-y-4 shadow-sm">
+      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#12121A] p-5 sm:p-6 space-y-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-xs font-mono uppercase tracking-[0.16em] text-[#06B6D4] font-semibold">
               Creative, Website &amp; Windows Desktop Suite
             </div>
-            <h1 className="text-xl font-bold text-[#202938] dark:text-white mt-0.5">
+            <h1 className="text-xl font-bold text-[#1A1826] dark:text-white mt-0.5">
               5-Module AI Studio, Launchers &amp; Sandbox File Manager
             </h1>
           </div>
@@ -362,14 +362,14 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
           <div className="flex flex-wrap items-center gap-2">
             <a
               href="/api/project/complete-download.zip"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold text-xs whitespace-nowrap"
             >
               <Package className="w-4 h-4" />
               <span>Download Complete AURIX 2.0 Project (.zip)</span>
             </a>
             <a
               href="/api/deliverables/download.zip"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[#D6AD60] bg-amber-50 dark:bg-amber-500/10 text-[#9A742E] dark:text-amber-300 font-semibold text-xs whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[#22D3EE] bg-amber-50 dark:bg-amber-500/10 text-[#9A742E] dark:text-amber-300 font-semibold text-xs whitespace-nowrap"
             >
               <Laptop className="w-4 h-4" />
               <span>Windows Native Scripts Only (.zip)</span>
@@ -395,13 +395,13 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
               href={item.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-xl border border-slate-200 dark:border-slate-800 hover:border-[#10B981] bg-[#F8FAFC] dark:bg-[#0B111B] p-3 flex items-center justify-between gap-2 transition-colors"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 hover:border-[#7C5CFF] bg-[#F6F5FB] dark:bg-[#0B0B10] p-3 flex items-center justify-between gap-2 transition-colors"
             >
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-[#202938] dark:text-white truncate">{item.label}</div>
-                <div className="text-[11px] font-mono text-[#64748B] truncate">{item.sub}</div>
+                <div className="text-xs font-semibold text-[#1A1826] dark:text-white truncate">{item.label}</div>
+                <div className="text-[11px] font-mono text-[#6B6880] truncate">{item.sub}</div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+              <ExternalLink className="w-3.5 h-3.5 text-[#7C5CFF] shrink-0" />
             </a>
           ))}
         </div>
@@ -409,16 +409,16 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
         {/* 2. 5-Module AI Studio */}
-        <section className="xl:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F1724] p-5 space-y-4 shadow-sm">
+        <section className="xl:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#12121A] p-5 space-y-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#10B981]" />
-              <h2 className="text-sm font-semibold text-[#202938] dark:text-white">
+              <Sparkles className="w-4 h-4 text-[#7C5CFF]" />
+              <h2 className="text-sm font-semibold text-[#1A1826] dark:text-white">
                 Zero-Cost AI Creative &amp; Engineering Studio
               </h2>
             </div>
 
-            <div className="inline-flex flex-wrap rounded-xl p-1 bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 gap-1">
+            <div className="inline-flex flex-wrap rounded-xl p-1 bg-[#EFEDF7] dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 gap-1">
               {(
                 [
                   { id: "picture", label: "Image", icon: ImageIcon },
@@ -436,8 +436,8 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                     onClick={() => setActiveStudio(tab.id)}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer whitespace-nowrap ${
                       activeStudio === tab.id
-                        ? "bg-[#10B981] text-white font-semibold"
-                        : "text-[#64748B] dark:text-slate-300 hover:text-[#202938] dark:hover:text-white"
+                        ? "bg-[#7C5CFF] text-white font-semibold"
+                        : "text-[#6B6880] dark:text-slate-300 hover:text-[#1A1826] dark:hover:text-white"
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -454,7 +454,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                 <select
                   value={codeLang}
                   onChange={(e) => setCodeLang(e.target.value)}
-                  className="rounded-lg bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-[#202938] dark:text-white"
+                  className="rounded-lg bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-[#1A1826] dark:text-white"
                 >
                   <option>TypeScript / React</option>
                   <option>Python (Desktop &amp; Automation)</option>
@@ -466,7 +466,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                   value={codeInstruction}
                   onChange={(e) => setCodeInstruction(e.target.value)}
                   placeholder="What should AURIX build, fix, or refactor?"
-                  className="rounded-lg bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-[#202938] dark:text-white"
+                  className="rounded-lg bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-[#1A1826] dark:text-white"
                 />
               </div>
               <textarea
@@ -474,18 +474,18 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                 value={codeSnippet}
                 onChange={(e) => setCodeSnippet(e.target.value)}
                 placeholder="Paste code to inspect or leave blank to scaffold..."
-                className="w-full rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 p-3 font-mono text-xs text-[#202938] dark:text-slate-100"
+                className="w-full rounded-xl bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 p-3 font-mono text-xs text-[#1A1826] dark:text-slate-100"
               />
               <button
                 type="submit"
                 disabled={codingBusy}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white text-xs font-semibold cursor-pointer"
               >
                 <Code2 className="w-3.5 h-3.5" />
                 <span>{codingBusy ? "Analyzing..." : "Generate / Review Code"}</span>
               </button>
               {codeResult && (
-                <pre className="p-3.5 rounded-xl bg-slate-900 text-emerald-300 font-mono text-xs whitespace-pre-wrap max-h-64 overflow-y-auto border border-slate-700">
+                <pre className="p-3.5 rounded-xl bg-slate-900 text-violet-300 font-mono text-xs whitespace-pre-wrap max-h-64 overflow-y-auto border border-slate-700">
                   {codeResult}
                 </pre>
               )}
@@ -495,7 +495,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
               <form onSubmit={(e) => handleGenerateCreative(e)} className="space-y-2.5">
                 {activeStudio === "writing" && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-[#64748B]">Format:</span>
+                    <span className="text-xs text-[#6B6880]">Format:</span>
                     {["Client Email Proposal", "Product Description", "Social Media Post", "Marketing Copy", "Master Prompt"].map((fmt) => (
                       <button
                         key={fmt}
@@ -503,8 +503,8 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         onClick={() => setWritingType(fmt)}
                         className={`px-2.5 py-1 rounded-lg border text-xs cursor-pointer ${
                           writingType === fmt
-                            ? "bg-[#10B981]/10 border-[#10B981] text-emerald-700 dark:text-emerald-300 font-semibold"
-                            : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-700 text-[#64748B]"
+                            ? "bg-[#7C5CFF]/10 border-[#7C5CFF] text-violet-700 dark:text-violet-300 font-semibold"
+                            : "bg-[#F6F5FB] dark:bg-[#0B0B10] border-slate-200 dark:border-slate-700 text-[#6B6880]"
                         }`}
                       >
                         {fmt}
@@ -519,7 +519,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                     value={creativePrompt}
                     onChange={(e) => setCreativePrompt(e.target.value)}
                     placeholder={`Describe the ${activeStudio} output to create...`}
-                    className="flex-1 rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs sm:text-sm text-[#202938] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+                    className="flex-1 rounded-xl bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 text-xs sm:text-sm text-[#1A1826] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFF]"
                   />
                   <button
                     type="submit"
@@ -529,7 +529,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         // trigger prompt kind smoothly via form below
                       }
                     }}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#10B981] hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold text-xs cursor-pointer shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#7C5CFF] hover:bg-violet-600 disabled:opacity-50 text-white font-semibold text-xs cursor-pointer shrink-0 whitespace-nowrap"
                   >
                     <Play className="w-3.5 h-3.5" />
                     <span>{generating ? "Generating..." : "Generate Free"}</span>
@@ -539,7 +539,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                       type="button"
                       disabled={generating || !creativePrompt.trim()}
                       onClick={(e) => handleGenerateCreative(e, "prompt")}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0B111B] text-xs font-medium text-[#202938] dark:text-slate-200 cursor-pointer shrink-0 whitespace-nowrap"
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0B0B10] text-xs font-medium text-[#1A1826] dark:text-slate-200 cursor-pointer shrink-0 whitespace-nowrap"
                     >
                       <Wand2 className="w-3.5 h-3.5 text-[#06B6D4]" />
                       <span>Master Prompt</span>
@@ -549,11 +549,11 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
               </form>
 
               {asset && (
-                <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#F8FAFC] dark:bg-[#0B111B] p-4 space-y-3">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#F6F5FB] dark:bg-[#0B0B10] p-4 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <div className="text-xs font-semibold text-[#202938] dark:text-white">{asset.title}</div>
-                      <div className="text-[11px] font-mono text-[#10B981] uppercase">
+                      <div className="text-xs font-semibold text-[#1A1826] dark:text-white">{asset.title}</div>
+                      <div className="text-[11px] font-mono text-[#7C5CFF] uppercase">
                         Engine: {asset.source} · $0 Cost
                       </div>
                     </div>
@@ -563,7 +563,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         <button
                           type="button"
                           onClick={downloadPngFromSvg}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold text-xs cursor-pointer"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>Download PNG</span>
@@ -571,7 +571,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         <button
                           type="button"
                           onClick={downloadSvg}
-                          className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs text-[#202938] dark:text-slate-200 cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer"
                         >
                           SVG
                         </button>
@@ -583,7 +583,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         type="button"
                         disabled={recordingVideo}
                         onClick={exportWebmVideo}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 disabled:opacity-60 text-white font-semibold text-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 disabled:opacity-60 text-white font-semibold text-xs cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>{recordingVideo ? "Recording 6s WebM..." : "Export WebM Video"}</span>
@@ -598,7 +598,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                           setCopiedText(true);
                           setTimeout(() => setCopiedText(false), 1800);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] text-white font-semibold text-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C5CFF] text-white font-semibold text-xs cursor-pointer"
                       >
                         <Copy className="w-3.5 h-3.5" />
                         <span>{copiedText ? "Copied!" : "Copy Text"}</span>
@@ -617,7 +617,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                           a.click();
                           URL.revokeObjectURL(url);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] text-white font-semibold text-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C5CFF] text-white font-semibold text-xs cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Download HTML5 Site</span>
@@ -636,16 +636,16 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                     <div className="space-y-1.5">
                       <canvas
                         ref={videoCanvasRef}
-                        className="w-full aspect-video rounded-xl border border-slate-200 dark:border-slate-700 bg-[#F8FAFC]"
+                        className="w-full aspect-video rounded-xl border border-slate-200 dark:border-slate-700 bg-[#F6F5FB]"
                       />
-                      <p className="text-[11px] text-[#64748B]">
+                      <p className="text-[11px] text-[#6B6880]">
                         Rendered cleanly using CPU-safe HTML5 Canvas motion storyboard encoder (compatible with Intel HD 3000 / entry-level laptops).
                       </p>
                     </div>
                   )}
 
                   {(asset.kind === "prompt" || asset.kind === "writing") && (
-                    <pre className="p-3.5 rounded-xl bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-700 text-xs text-[#202938] dark:text-slate-100 whitespace-pre-wrap font-sans leading-relaxed">
+                    <pre className="p-3.5 rounded-xl bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-700 text-xs text-[#1A1826] dark:text-slate-100 whitespace-pre-wrap font-sans leading-relaxed">
                       {asset.writtenText || asset.engineeredPrompt}
                     </pre>
                   )}
@@ -662,7 +662,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         rows={5}
                         value={editableWebsiteHtml}
                         onChange={(e) => setEditableWebsiteHtml(e.target.value)}
-                        className="w-full rounded-xl bg-slate-900 text-emerald-300 p-3 font-mono text-[11px] border border-slate-700"
+                        className="w-full rounded-xl bg-slate-900 text-violet-300 p-3 font-mono text-[11px] border border-slate-700"
                       />
                     </div>
                   )}
@@ -671,13 +671,13 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
 
               {/* Built-In Client Photo Canvas Editor (Always visible in Image Studio) */}
               {activeStudio === "picture" && (
-                <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#F8FAFC] dark:bg-[#0B111B] p-4 space-y-3">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#F6F5FB] dark:bg-[#0B0B10] p-4 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <div className="text-xs font-semibold text-[#202938] dark:text-white">
+                      <div className="text-xs font-semibold text-[#1A1826] dark:text-white">
                         Local Photo Resizer &amp; Filter Canvas Editor
                       </div>
-                      <div className="text-[11px] text-[#64748B]">
+                      <div className="text-[11px] text-[#6B6880]">
                         Upload any PNG/JPG to resize, adjust brightness/contrast/grayscale locally, and export PNG.
                       </div>
                     </div>
@@ -698,7 +698,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0F1724] text-xs font-medium text-[#202938] dark:text-slate-200 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#12121A] text-xs font-medium text-[#1A1826] dark:text-slate-200 cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5 text-[#06B6D4]" />
                       <span>Upload Photo</span>
@@ -708,7 +708,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                   {uploadedImgUrl && (
                     <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
-                        <label className="text-[#64748B]">
+                        <label className="text-[#6B6880]">
                           Brightness ({imgBrightness}%)
                           <input
                             type="range"
@@ -716,10 +716,10 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             max="180"
                             value={imgBrightness}
                             onChange={(e) => setImgBrightness(Number(e.target.value))}
-                            className="w-full accent-[#10B981]"
+                            className="w-full accent-[#7C5CFF]"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-[#6B6880]">
                           Contrast ({imgContrast}%)
                           <input
                             type="range"
@@ -727,10 +727,10 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             max="180"
                             value={imgContrast}
                             onChange={(e) => setImgContrast(Number(e.target.value))}
-                            className="w-full accent-[#10B981]"
+                            className="w-full accent-[#7C5CFF]"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-[#6B6880]">
                           Grayscale ({imgGrayscale}%)
                           <input
                             type="range"
@@ -738,10 +738,10 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             max="100"
                             value={imgGrayscale}
                             onChange={(e) => setImgGrayscale(Number(e.target.value))}
-                            className="w-full accent-[#10B981]"
+                            className="w-full accent-[#7C5CFF]"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-[#6B6880]">
                           Width (px)
                           <input
                             type="number"
@@ -749,10 +749,10 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             max={2048}
                             value={imgWidth}
                             onChange={(e) => setImgWidth(Number(e.target.value))}
-                            className="mt-0.5 w-full rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0F1724] px-2 py-1 text-[#202938] dark:text-white"
+                            className="mt-0.5 w-full rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#12121A] px-2 py-1 text-[#1A1826] dark:text-white"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-[#6B6880]">
                           Height (px)
                           <input
                             type="number"
@@ -760,7 +760,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             max={2048}
                             value={imgHeight}
                             onChange={(e) => setImgHeight(Number(e.target.value))}
-                            className="mt-0.5 w-full rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0F1724] px-2 py-1 text-[#202938] dark:text-white"
+                            className="mt-0.5 w-full rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#12121A] px-2 py-1 text-[#1A1826] dark:text-white"
                           />
                         </label>
                       </div>
@@ -771,7 +771,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                       <button
                         type="button"
                         onClick={downloadEditedPhoto}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] text-white text-xs font-semibold cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C5CFF] text-white text-xs font-semibold cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Export Edited PNG</span>
@@ -785,16 +785,16 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
         </section>
 
         {/* 3. Live Local Sandbox Workspace File Editor */}
-        <section className="xl:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F1724] p-5 flex flex-col justify-between space-y-4 shadow-sm">
+        <section className="xl:col-span-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#12121A] p-5 flex flex-col justify-between space-y-4 shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileCode2 className="w-4 h-4 text-[#10B981]" />
-                <h2 className="text-sm font-semibold text-[#202938] dark:text-white">
+                <FileCode2 className="w-4 h-4 text-[#7C5CFF]" />
+                <h2 className="text-sm font-semibold text-[#1A1826] dark:text-white">
                   Local File Creator &amp; Editor
                 </h2>
               </div>
-              <span className="text-[11px] font-mono text-[#64748B]">./workspace_files</span>
+              <span className="text-[11px] font-mono text-[#6B6880]">./workspace_files</span>
             </div>
 
             {files.length > 0 && (
@@ -809,8 +809,8 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                     }}
                     className={`px-2.5 py-1 rounded-lg border text-xs font-mono cursor-pointer ${
                       activeFileName === f.name
-                        ? "bg-emerald-50 dark:bg-emerald-500/15 border-[#10B981] text-emerald-700 dark:text-emerald-300 font-semibold"
-                        : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-800 text-[#64748B] dark:text-slate-300"
+                        ? "bg-violet-50 dark:bg-violet-500/15 border-[#7C5CFF] text-violet-700 dark:text-violet-300 font-semibold"
+                        : "bg-[#F6F5FB] dark:bg-[#0B0B10] border-slate-200 dark:border-slate-800 text-[#6B6880] dark:text-slate-300"
                     }`}
                   >
                     {f.name}
@@ -821,13 +821,13 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
 
             <form onSubmit={handleSaveFile} className="space-y-2.5">
               <div className="flex items-center gap-2">
-                <FolderPlus className="w-4 h-4 text-[#D6AD60] shrink-0" />
+                <FolderPlus className="w-4 h-4 text-[#22D3EE] shrink-0" />
                 <input
                   type="text"
                   value={activeFileName}
                   onChange={(e) => setActiveFileName(e.target.value)}
                   placeholder="filename.txt / script.py / notes.md"
-                  className="flex-1 rounded-lg bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-mono text-[#202938] dark:text-white"
+                  className="flex-1 rounded-lg bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs font-mono text-[#1A1826] dark:text-white"
                 />
               </div>
 
@@ -835,15 +835,15 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                 rows={10}
                 value={fileContent}
                 onChange={(e) => setFileContent(e.target.value)}
-                className="w-full rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono text-[#202938] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#10B981]"
+                className="w-full rounded-xl bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono text-[#1A1826] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#7C5CFF]"
               />
 
-              {fileFeedback && <div className="text-xs text-[#10B981] font-medium">{fileFeedback}</div>}
+              {fileFeedback && <div className="text-xs text-[#7C5CFF] font-medium">{fileFeedback}</div>}
 
               <button
                 type="submit"
                 disabled={savingFile || !activeFileName.trim()}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#7C5CFF] hover:bg-violet-600 text-white font-semibold text-xs cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{savingFile ? "Saving..." : "Save File to Workspace"}</span>
@@ -851,7 +851,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
             </form>
           </div>
 
-          <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 p-3 text-xs text-[#64748B] flex items-center gap-2">
+          <div className="rounded-xl bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 p-3 text-xs text-[#6B6880] flex items-center gap-2">
             <Globe className="w-4 h-4 text-[#06B6D4] shrink-0" />
             <span>
               In-browser edits remain sandboxed in <code className="font-mono">./workspace_files</code>. Download the complete Windows ZIP above to run native Windows automation via <code className="font-mono">AURIX_Portable_Start.bat</code>.

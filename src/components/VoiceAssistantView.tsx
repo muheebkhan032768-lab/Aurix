@@ -6,6 +6,7 @@ import {
   getAvailableBritishVoices,
   speakWithOfflineBritishVoice,
 } from "../utils/offlineVoice";
+import { AurixOrb } from "./AurixOrb";
 
 interface VoiceAssistantViewProps {
   settings: AppSettings;
@@ -100,7 +101,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
         const barH = Math.max(4, amp * (h * 0.8));
         const x = i * gap + gap * 0.25;
         const y = (h - barH) / 2;
-        ctx.fillStyle = recording || testingMic ? "#10B981" : speaking ? "#D6AD60" : "#CBD5E1";
+        ctx.fillStyle = recording || testingMic ? "#7C5CFF" : speaking ? "#22D3EE" : "#CBD5E1";
         ctx.fillRect(x, y, Math.max(3, gap * 0.5), barH);
       }
       rafRef.current = requestAnimationFrame(draw);
@@ -370,40 +371,49 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
     setStatusMessage(`Listening for wake phrase "${settings.wakePhrase}"...`);
   };
 
+  const orbVisualState = speaking
+    ? "speaking"
+    : processing
+      ? "thinking"
+      : recording || testingMic
+        ? "listening"
+        : "idle";
+
   return (
     <div className="space-y-6">
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Waveform & Controls */}
-        <div className="lg:col-span-7 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+        <div className="aurix-card flex flex-col justify-between p-6 lg:col-span-7">
           <div>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-[#202938] dark:text-white">
+                <h2 className="text-lg font-bold text-[#1A1826] dark:text-white">
                   AURIX Voice Engine &amp; Mic Diagnostics
                 </h2>
-                <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">{statusMessage}</p>
+                <p className="text-xs text-[#6B6880] dark:text-slate-400 mt-1">{statusMessage}</p>
               </div>
               <span className="text-xs font-mono text-[#06B6D4] font-semibold">
                 {settings.voiceName} · {settings.language}
               </span>
             </div>
 
-            <div className="mt-5 bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 rounded-xl p-4">
-              <canvas ref={canvasRef} width={620} height={110} className="w-full h-28" />
+            <div className="mt-5 flex flex-col items-center rounded-2xl border border-black/5 bg-[#FBFBFF] p-4 dark:border-white/10 dark:bg-white/[0.03]">
+              <AurixOrb state={orbVisualState} size={132} showLabel />
+              <canvas ref={canvasRef} width={620} height={110} className="mt-3 h-20 w-full opacity-80" />
             </div>
 
             {/* Live Mic Volume Test Bar */}
-            <div className="mt-4 rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 p-3.5 space-y-2">
+            <div className="mt-4 rounded-xl bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 p-3.5 space-y-2">
               <div className="flex items-center justify-between gap-2 text-xs">
-                <span className="font-medium text-[#202938] dark:text-slate-200 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-[#10B981]" />
+                <span className="font-medium text-[#1A1826] dark:text-slate-200 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-[#7C5CFF]" />
                   <span>Live Microphone Volume Test</span>
                 </span>
-                <span className="font-mono text-[#64748B] tabular-nums">{micLevelPct}%</span>
+                <span className="font-mono text-[#6B6880] tabular-nums">{micLevelPct}%</span>
               </div>
               <div className="h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div
-                  className="h-full bg-[#10B981] transition-all duration-75"
+                  className="h-full bg-[#7C5CFF] transition-all duration-75"
                   style={{ width: `${micLevelPct}%` }}
                 />
               </div>
@@ -416,7 +426,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
                 type="button"
                 onClick={startRecording}
                 disabled={processing}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 disabled:opacity-50 text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
               >
                 <Mic className="w-4 h-4" />
                 <span>{processing ? "Processing..." : settings.pushToTalk ? "Push to Speak" : "Start Voice Input"}</span>
@@ -437,8 +447,8 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               onClick={toggleMicVolumeTest}
               className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border text-xs font-medium cursor-pointer whitespace-nowrap ${
                 testingMic
-                  ? "border-[#10B981] bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                  : "border-slate-300 dark:border-slate-700 text-[#202938] dark:text-slate-200"
+                  ? "border-[#7C5CFF] bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300"
+                  : "border-slate-300 dark:border-slate-700 text-[#1A1826] dark:text-slate-200"
               }`}
             >
               <Activity className="w-3.5 h-3.5" />
@@ -451,7 +461,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border text-xs font-medium cursor-pointer whitespace-nowrap ${
                 wakeListening
                   ? "border-[#06B6D4] text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-500/15"
-                  : "border-slate-300 dark:border-slate-700 text-[#202938] dark:text-slate-200"
+                  : "border-slate-300 dark:border-slate-700 text-[#1A1826] dark:text-slate-200"
               }`}
             >
               {wakeListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
@@ -462,7 +472,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               <button
                 type="button"
                 onClick={stopAudioPlayback}
-                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#D6AD60] bg-amber-50 dark:bg-amber-500/10 text-[#9A742E] dark:text-amber-300 text-xs font-semibold cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#22D3EE] bg-amber-50 dark:bg-amber-500/10 text-[#9A742E] dark:text-amber-300 text-xs font-semibold cursor-pointer whitespace-nowrap"
               >
                 <Square className="w-3.5 h-3.5" />
                 <span>Interrupt Voice</span>
@@ -478,20 +488,20 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
         </div>
 
         {/* Voice Identity Calibration */}
-        <div className="lg:col-span-5 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
-          <h3 className="text-base font-bold text-[#202938] dark:text-white">
+        <div className="aurix-card space-y-4 p-6 lg:col-span-5">
+          <h3 className="text-base font-bold text-[#1A1826] dark:text-white">
             British Voice Identity &amp; Calibration
           </h3>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-xs text-[#64748B] dark:text-slate-400">
+            <label className="block text-xs text-[#6B6880] dark:text-slate-400">
               <span>Cloud Persona</span>
               <select
                 value={settings.voiceName}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, voiceName: e.target.value as AppSettings["voiceName"] })
                 }
-                className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+                className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
               >
                 <option value="Charon">Charon (Calm Executive)</option>
                 <option value="Fenrir">Fenrir (Deep Precision)</option>
@@ -499,14 +509,14 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               </select>
             </label>
 
-            <label className="block text-xs text-[#64748B] dark:text-slate-400">
+            <label className="block text-xs text-[#6B6880] dark:text-slate-400">
               <span>Primary Language</span>
               <select
                 value={settings.language}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, language: e.target.value as AurixLanguage })
                 }
-                className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+                className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
               >
                 <option value="English">English (UK)</option>
                 <option value="Urdu">Urdu</option>
@@ -515,12 +525,12 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
             </label>
           </div>
 
-          <label className="block text-xs text-[#64748B] dark:text-slate-400">
+          <label className="block text-xs text-[#6B6880] dark:text-slate-400">
             <span>Installed Offline British Voices ({availableVoices.length} detected)</span>
             <select
               value={selectedBrowserVoice}
               onChange={(e) => setSelectedBrowserVoice(e.target.value)}
-              className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+              className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
             >
               {availableVoices.length === 0 ? (
                 <option value="">Default System Speech Engine</option>
@@ -535,31 +545,31 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
           </label>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
-            <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.handsFreeVadEnabled}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, handsFreeVadEnabled: e.target.checked })
                 }
-                className="accent-[#10B981]"
+                className="accent-[#7C5CFF]"
               />
               <span>Hands-Free VAD Auto-Submit</span>
             </label>
-            <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-[#1A1826] dark:text-slate-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={settings.pushToTalk}
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, pushToTalk: e.target.checked })
                 }
-                className="accent-[#10B981]"
+                className="accent-[#7C5CFF]"
               />
               <span>Push-to-Talk Mode</span>
             </label>
           </div>
 
-          <label className="block text-xs text-[#64748B] dark:text-slate-400">
+          <label className="block text-xs text-[#6B6880] dark:text-slate-400">
             <span>Speaking Speed: {settings.voiceSpeed.toFixed(2)}x</span>
             <input
               type="range"
@@ -568,11 +578,11 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               step="0.05"
               value={settings.voiceSpeed}
               onChange={(e) => onUpdateSettings({ ...settings, voiceSpeed: Number(e.target.value) })}
-              className="mt-1.5 w-full accent-[#10B981]"
+              className="mt-1.5 w-full accent-[#7C5CFF]"
             />
           </label>
 
-          <label className="block text-xs text-[#64748B] dark:text-slate-400">
+          <label className="block text-xs text-[#6B6880] dark:text-slate-400">
             <span>VAD / Mic Sensitivity: {settings.vadSensitivity}%</span>
             <input
               type="range"
@@ -583,24 +593,24 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               onChange={(e) =>
                 onUpdateSettings({ ...settings, vadSensitivity: Number(e.target.value) })
               }
-              className="mt-1.5 w-full accent-[#10B981]"
+              className="mt-1.5 w-full accent-[#7C5CFF]"
             />
           </label>
 
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
-            <label className="block text-xs text-[#64748B] dark:text-slate-400">
+            <label className="block text-xs text-[#6B6880] dark:text-slate-400">
               <span>Test Voice Synthesis</span>
               <textarea
                 rows={2}
                 value={testPhrase}
                 onChange={(e) => setTestPhrase(e.target.value)}
-                className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
+                className="mt-1 w-full bg-[#F6F5FB] dark:bg-[#0B0B10] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#1A1826] dark:text-white"
               />
             </label>
             <button
               type="button"
               onClick={() => playMaleVoice(testPhrase)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7C5CFF] hover:bg-violet-600 text-white text-xs font-semibold cursor-pointer"
             >
               <Volume2 className="w-3.5 h-3.5" />
               <span>Play AURIX British Voice</span>
@@ -610,24 +620,24 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
       </section>
 
       {/* Voice History */}
-      <section className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-        <h3 className="text-base font-bold text-[#202938] dark:text-white mb-4">
+      <section className="bg-white dark:bg-[#12121A] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+        <h3 className="text-base font-bold text-[#1A1826] dark:text-white mb-4">
           Voice Conversation Log
         </h3>
         {turns.length === 0 ? (
-          <p className="text-sm text-[#64748B] dark:text-slate-400">
+          <p className="text-sm text-[#6B6880] dark:text-slate-400">
             Record a voice prompt above to transcribe and hear AURIX respond in your British Male voice configuration.
           </p>
         ) : (
           <div className="divide-y divide-slate-200 dark:divide-slate-800">
             {turns.map((t) => (
               <div key={t.id} className="py-4 space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-[#64748B]">
+                <div className="flex items-center justify-between text-xs text-[#6B6880]">
                   <span>Abdul Muheeb ({t.language})</span>
                   <span className="font-mono tabular-nums">{t.timestamp}</span>
                 </div>
-                <p className="text-sm font-semibold text-[#202938] dark:text-white">{t.userText}</p>
-                <p className="text-sm text-[#64748B] dark:text-slate-300">{t.aurixText}</p>
+                <p className="text-sm font-semibold text-[#1A1826] dark:text-white">{t.userText}</p>
+                <p className="text-sm text-[#6B6880] dark:text-slate-300">{t.aurixText}</p>
               </div>
             ))}
           </div>

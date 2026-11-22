@@ -148,7 +148,7 @@ export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <form
         onSubmit={runAnalysis}
-        className="lg:col-span-5 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
+        className="lg:col-span-5 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 space-y-4"
       >
         <div className="flex items-center gap-2">
           <Eye className="w-4 h-4 text-cyan-500" />
@@ -215,7 +215,7 @@ export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
         </div>
 
         {cameraOpen && (
-          <div className="space-y-2 p-3 rounded-lg bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-800">
+          <div className="space-y-2 p-3 rounded-lg bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800">
             <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-md max-h-48 object-cover" />
             <button
               type="button"
@@ -249,7 +249,7 @@ export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
               value={textContent}
               onChange={(e) => setTextContent(e.target.value)}
               placeholder="Paste TXT, CSV, code, or logs..."
-              className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="mt-1 w-full font-mono bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
           </label>
         )}
@@ -266,7 +266,7 @@ export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
               value={secondaryText}
               onChange={(e) => setSecondaryText(e.target.value)}
               placeholder="Or paste second document for comparison..."
-              className="w-full font-mono bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+              className="w-full font-mono bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
           </div>
         )}
@@ -277,7 +277,7 @@ export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="mt-1 w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
+            className="mt-1 w-full bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
           />
         </label>
 
@@ -297,7 +297,7 @@ export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
         )}
       </form>
 
-      <section className="lg:col-span-7 bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col">
+      <section className="lg:col-span-7 bg-white dark:bg-[#101018] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 flex flex-col">
         <div className="flex items-center justify-between gap-4 mb-4">
           <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Intelligence Report
@@ -315,7 +315,7 @@ export function FileVisionView({ onSaveMemory }: FileVisionViewProps) {
           )}
         </div>
 
-        <div className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-800 rounded-lg p-5 overflow-auto max-h-[600px]">
+        <div className="flex-1 bg-slate-50 dark:bg-[#0B0B10] border border-slate-200 dark:border-slate-800 rounded-lg p-5 overflow-auto max-h-[600px]">
           {analysis ? (
             <div className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
               {analysis}

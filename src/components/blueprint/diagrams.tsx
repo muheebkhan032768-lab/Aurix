@@ -29,21 +29,21 @@ export function BlueprintPanel({
 }) {
   return (
     <section
-      className={`relative rounded-[3px] border border-[#00f2ff]/20 bg-[#061018]/80 ${className}`}
+      className={`relative rounded-[3px] border border-[#A78BFA]/20 bg-[#101018]/80 ${className}`}
     >
       {CORNERS.map((corner) => (
         <span
           key={corner}
           aria-hidden="true"
-          className={`pointer-events-none absolute h-2.5 w-2.5 border-[#00f2ff]/60 ${corner}`}
+          className={`pointer-events-none absolute h-2.5 w-2.5 border-[#A78BFA]/60 ${corner}`}
         />
       ))}
-      <header className="flex items-center justify-between gap-2 border-b border-[#00f2ff]/15 px-2.5 py-1.5">
-        <h2 className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#7fe6f7]">
+      <header className="flex items-center justify-between gap-2 border-b border-[#A78BFA]/15 px-2.5 py-1.5">
+        <h2 className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#C4B5FD]">
           {title}
         </h2>
         {tag ? (
-          <span className="truncate text-[8px] uppercase tracking-[0.16em] text-[#3f7488]">
+          <span className="truncate text-[8px] uppercase tracking-[0.16em] text-[#7C7890]">
             {tag}
           </span>
         ) : null}
@@ -64,7 +64,7 @@ export function OrthographicView({ view }: { view: OrthoViewSpec }) {
   const gradientId = `ortho-core-${view.id}`;
 
   return (
-    <figure className="rounded-[2px] border border-[#00f2ff]/15 bg-[#050e14]/70 p-1.5">
+    <figure className="rounded-[2px] border border-[#A78BFA]/15 bg-[#0E0E16]/70 p-1.5">
       <svg
         viewBox="0 0 200 200"
         className="h-auto w-full"
@@ -79,31 +79,31 @@ export function OrthographicView({ view }: { view: OrthoViewSpec }) {
           </radialGradient>
         </defs>
 
-        <g stroke="#00f2ff" strokeOpacity="0.12" strokeDasharray="3 6">
+        <g stroke="#A78BFA" strokeOpacity="0.12" strokeDasharray="3 6">
           <line x1="100" y1="10" x2="100" y2="190" />
           <line x1="10" y1="100" x2="190" y2="100" />
         </g>
 
-        <circle cx="100" cy="100" r="72" fill="none" stroke="#00f2ff" strokeOpacity="0.3" />
+        <circle cx="100" cy="100" r="72" fill="none" stroke="#A78BFA" strokeOpacity="0.3" />
         <circle
           cx="100"
           cy="100"
           r="56"
           fill="none"
-          stroke="#00f2ff"
+          stroke="#A78BFA"
           strokeOpacity="0.16"
           strokeDasharray="2 6"
         />
 
         {view.id === "top" && (
           <>
-            <circle cx="100" cy="100" r="40" fill="none" stroke="#00f2ff" strokeOpacity="0.2" />
+            <circle cx="100" cy="100" r="40" fill="none" stroke="#A78BFA" strokeOpacity="0.2" />
             <circle
               cx="100"
               cy="100"
               r="24"
               fill="none"
-              stroke="#00f2ff"
+              stroke="#A78BFA"
               strokeOpacity="0.25"
               strokeDasharray="1 5"
             />
@@ -118,7 +118,7 @@ export function OrthographicView({ view }: { view: OrthoViewSpec }) {
             height="96"
             rx="16"
             fill="none"
-            stroke="#00f2ff"
+            stroke="#A78BFA"
             strokeOpacity="0.22"
             strokeDasharray="4 4"
           />
@@ -132,8 +132,8 @@ export function OrthographicView({ view }: { view: OrthoViewSpec }) {
             <g key={deg}>
               <polygon
                 points={hexPoints(x, y, 9)}
-                fill="#050e14"
-                stroke="#00f2ff"
+                fill="#0E0E16"
+                stroke="#A78BFA"
                 strokeOpacity="0.55"
               />
               <circle cx={x} cy={y} r="2" fill="#7ef9ff" />
@@ -150,15 +150,15 @@ export function OrthographicView({ view }: { view: OrthoViewSpec }) {
         />
         <circle cx="100" cy="100" r="4.5" fill="#f2feff" />
 
-        <g stroke="#00f2ff" strokeOpacity="0.45">
+        <g stroke="#A78BFA" strokeOpacity="0.45">
           <line x1="34" y1="182" x2="166" y2="182" />
           <line x1="34" y1="178" x2="34" y2="186" />
           <line x1="166" y1="178" x2="166" y2="186" />
         </g>
       </svg>
       <figcaption className="mt-1 flex items-center justify-between gap-2 px-0.5 text-[8px] uppercase tracking-[0.18em]">
-        <span className="text-[#9fe8f5]">{view.label}</span>
-        <span className="text-[#3f7488]">{view.meta}</span>
+        <span className="text-[#DDD6FE]">{view.label}</span>
+        <span className="text-[#7C7890]">{view.meta}</span>
       </figcaption>
     </figure>
   );
@@ -179,13 +179,13 @@ function CoreLabel({
 
   return (
     <div className={`max-w-[10rem] ${textAlign} ${className}`}>
-      <div className="bg-[#050e14]/70 px-1 text-[9px] font-semibold uppercase leading-tight tracking-[0.16em] text-[#a9eef9]">
+      <div className="bg-[#0E0E16]/70 px-1 text-[9px] font-semibold uppercase leading-tight tracking-[0.16em] text-[#DDD6FE]">
         {node.label}
       </div>
-      <div className="mt-0.5 px-1 text-[8px] uppercase tracking-[0.14em] text-[#468196]">
+      <div className="mt-0.5 px-1 text-[8px] uppercase tracking-[0.14em] text-[#8B87A0]">
         {node.detail}
       </div>
-      <div className={`mt-1 h-px w-8 bg-[#00f2ff]/40 ${lineAlign}`} />
+      <div className={`mt-1 h-px w-8 bg-[#A78BFA]/40 ${lineAlign}`} />
     </div>
   );
 }
@@ -200,7 +200,7 @@ export function CoreDiagram() {
           <defs>
             <radialGradient id="core-halo">
               <stop offset="0%" stopColor="#d8fdff" stopOpacity="0.95" />
-              <stop offset="32%" stopColor="#00f2ff" stopOpacity="0.6" />
+              <stop offset="32%" stopColor="#A78BFA" stopOpacity="0.6" />
               <stop offset="62%" stopColor="#0096c7" stopOpacity="0.18" />
               <stop offset="100%" stopColor="#0096c7" stopOpacity="0" />
             </radialGradient>
@@ -212,13 +212,13 @@ export function CoreDiagram() {
             </radialGradient>
           </defs>
 
-          <circle cx="300" cy="300" r="252" fill="none" stroke="#00f2ff" strokeOpacity="0.16" />
+          <circle cx="300" cy="300" r="252" fill="none" stroke="#A78BFA" strokeOpacity="0.16" />
           <circle
             cx="300"
             cy="300"
             r="246"
             fill="none"
-            stroke="#00f2ff"
+            stroke="#A78BFA"
             strokeOpacity="0.08"
             strokeDasharray="1 7"
           />
@@ -228,7 +228,7 @@ export function CoreDiagram() {
               cy="300"
               r="214"
               fill="none"
-              stroke="#00f2ff"
+              stroke="#A78BFA"
               strokeOpacity="0.22"
               strokeDasharray="2 12"
             />
@@ -239,18 +239,18 @@ export function CoreDiagram() {
               cy="300"
               r="176"
               fill="none"
-              stroke="#4cc9f0"
+              stroke="#22D3EE"
               strokeOpacity="0.28"
               strokeDasharray="18 10"
             />
           </g>
-          <circle cx="300" cy="300" r="140" fill="none" stroke="#00f2ff" strokeOpacity="0.14" />
+          <circle cx="300" cy="300" r="140" fill="none" stroke="#A78BFA" strokeOpacity="0.14" />
           <circle
             cx="300"
             cy="300"
             r="96"
             fill="none"
-            stroke="#00f2ff"
+            stroke="#A78BFA"
             strokeOpacity="0.2"
             strokeDasharray="3 9"
           />
@@ -266,7 +266,7 @@ export function CoreDiagram() {
                 y1={300 + inner * Math.sin(a)}
                 x2={300 + outer * Math.cos(a)}
                 y2={300 + outer * Math.sin(a)}
-                stroke="#00f2ff"
+                stroke="#A78BFA"
                 strokeOpacity={i % 3 === 0 ? 0.4 : 0.18}
               />
             );
@@ -295,7 +295,7 @@ export function CoreDiagram() {
                   y1={300 + 150 * Math.sin(a)}
                   x2={nx}
                   y2={ny}
-                  stroke="#00f2ff"
+                  stroke="#A78BFA"
                   strokeOpacity="0.28"
                   strokeDasharray="4 5"
                 />
@@ -304,13 +304,13 @@ export function CoreDiagram() {
                   y1={ny}
                   x2={lx}
                   y2={ly}
-                  stroke="#00f2ff"
+                  stroke="#A78BFA"
                   strokeOpacity="0.35"
                 />
                 <polygon
                   points={hexPoints(nx, ny, 13)}
-                  fill="#050e14"
-                  stroke="#4cc9f0"
+                  fill="#0E0E16"
+                  stroke="#22D3EE"
                   strokeOpacity="0.75"
                 />
                 <circle cx={nx} cy={ny} r="3" fill="#9ff7ff" />
@@ -318,7 +318,7 @@ export function CoreDiagram() {
             );
           })}
 
-          <g fill="#3f7488" fontSize="8" letterSpacing="2">
+          <g fill="#7C7890" fontSize="8" letterSpacing="2">
             <text x="300" y="24" textAnchor="middle">
               Y+
             </text>
@@ -351,12 +351,12 @@ export function CoreDiagram() {
         {CORE_NODES.map((node) => (
           <li
             key={node.label}
-            className="rounded-[2px] border border-[#00f2ff]/15 bg-[#050e14]/70 px-2 py-1"
+            className="rounded-[2px] border border-[#A78BFA]/15 bg-[#0E0E16]/70 px-2 py-1"
           >
-            <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-[#a9eef9]">
+            <div className="text-[8px] font-semibold uppercase tracking-[0.14em] text-[#DDD6FE]">
               {node.label}
             </div>
-            <div className="text-[7px] uppercase tracking-[0.12em] text-[#468196]">
+            <div className="text-[7px] uppercase tracking-[0.12em] text-[#8B87A0]">
               {node.detail}
             </div>
           </li>
@@ -386,12 +386,12 @@ export function ExplodedDiagram() {
           rx="92"
           ry="58"
           fill="none"
-          stroke="#00f2ff"
+          stroke="#A78BFA"
           strokeOpacity="0.18"
           strokeDasharray="3 7"
         />
         <circle cx="120" cy="105" r="30" fill="url(#exploded-core)" className="blueprint-pulse" />
-        <circle cx="120" cy="105" r="30" fill="none" stroke="#d9fdff" strokeOpacity="0.6" />
+        <circle cx="120" cy="105" r="30" fill="none" stroke="#F5F3FF" strokeOpacity="0.6" />
 
         {angles.map((deg, i) => {
           const a = (deg * Math.PI) / 180;
@@ -406,7 +406,7 @@ export function ExplodedDiagram() {
                 y1={ty}
                 x2={x}
                 y2={y}
-                stroke="#4cc9f0"
+                stroke="#22D3EE"
                 strokeOpacity="0.4"
                 strokeDasharray="2 4"
               />
@@ -416,8 +416,8 @@ export function ExplodedDiagram() {
                 width="14"
                 height="14"
                 transform={`rotate(45 ${x} ${y})`}
-                fill="#061018"
-                stroke="#00f2ff"
+                fill="#101018"
+                stroke="#A78BFA"
                 strokeOpacity="0.65"
               />
               <text x={x} y={y + 1.5} textAnchor="middle" fontSize="6" fill="#9ff7ff">
@@ -428,16 +428,16 @@ export function ExplodedDiagram() {
         })}
       </svg>
 
-      <ul className="mt-2 divide-y divide-[#00f2ff]/10 border-t border-[#00f2ff]/10">
+      <ul className="mt-2 divide-y divide-[#A78BFA]/10 border-t border-[#A78BFA]/10">
         {EXPLODED_PARTS.map((part) => (
           <li key={part.index} className="flex items-baseline gap-2 py-1">
-            <span className="w-4 shrink-0 text-[8px] tracking-[0.16em] text-[#3f7488]">
+            <span className="w-4 shrink-0 text-[8px] tracking-[0.16em] text-[#7C7890]">
               {part.index}
             </span>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#a9eef9]">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#DDD6FE]">
               {part.name}
             </span>
-            <span className="ml-auto text-right text-[8px] uppercase tracking-[0.1em] text-[#468196]">
+            <span className="ml-auto text-right text-[8px] uppercase tracking-[0.1em] text-[#8B87A0]">
               {part.detail}
             </span>
           </li>
@@ -453,20 +453,20 @@ export function SystemFlow() {
       <div className="flex flex-wrap items-stretch gap-1.5">
         {FLOW_STEPS.map((step, i) => (
           <div key={step.index} className="flex min-w-[8.5rem] flex-1 items-center gap-1.5">
-            <div className="flex-1 rounded-[2px] border border-[#00f2ff]/20 bg-[#050e14]/70 px-2 py-1.5">
+            <div className="flex-1 rounded-[2px] border border-[#A78BFA]/20 bg-[#0E0E16]/70 px-2 py-1.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[8px] tracking-[0.2em] text-[#3f7488]">{step.index}</span>
-                <span className="h-1 w-1 rounded-full bg-[#00f2ff]/70" />
+                <span className="text-[8px] tracking-[0.2em] text-[#7C7890]">{step.index}</span>
+                <span className="h-1 w-1 rounded-full bg-[#A78BFA]/70" />
               </div>
-              <div className="mt-0.5 text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-[#b7ecf7]">
+              <div className="mt-0.5 text-[9px] font-semibold uppercase leading-tight tracking-[0.14em] text-[#E9E5FF]">
                 {step.label}
               </div>
-              <div className="text-[8px] uppercase tracking-[0.1em] text-[#468196]">
+              <div className="text-[8px] uppercase tracking-[0.1em] text-[#8B87A0]">
                 {step.detail}
               </div>
             </div>
             {i < FLOW_STEPS.length - 1 && (
-              <span aria-hidden="true" className="text-[10px] text-[#00f2ff]/50">
+              <span aria-hidden="true" className="text-[10px] text-[#A78BFA]/50">
                 →
               </span>
             )}
@@ -474,8 +474,8 @@ export function SystemFlow() {
         ))}
       </div>
 
-      <div className="flex items-center gap-2 rounded-[2px] border border-dashed border-[#00f2ff]/25 px-2 py-1 text-[8px] uppercase tracking-[0.16em] text-[#468196]">
-        <span aria-hidden="true" className="text-[#00f2ff]/70">
+      <div className="flex items-center gap-2 rounded-[2px] border border-dashed border-[#A78BFA]/25 px-2 py-1 text-[8px] uppercase tracking-[0.16em] text-[#8B87A0]">
+        <span aria-hidden="true" className="text-[#A78BFA]/70">
           ↺
         </span>
         <span>Feedback loop — output, memory and tool results return to brain and interface</span>
@@ -488,24 +488,24 @@ export function ModuleTable() {
   return (
     <table className="w-full border-collapse text-left">
       <thead>
-        <tr className="text-[8px] uppercase tracking-[0.2em] text-[#3f7488]">
-          <th className="border-b border-[#00f2ff]/20 px-1.5 py-1.5 font-medium">Module</th>
-          <th className="border-b border-[#00f2ff]/20 px-1.5 py-1.5 font-medium">Description</th>
-          <th className="border-b border-[#00f2ff]/20 px-1.5 py-1.5 text-right font-medium">
+        <tr className="text-[8px] uppercase tracking-[0.2em] text-[#7C7890]">
+          <th className="border-b border-[#A78BFA]/20 px-1.5 py-1.5 font-medium">Module</th>
+          <th className="border-b border-[#A78BFA]/20 px-1.5 py-1.5 font-medium">Description</th>
+          <th className="border-b border-[#A78BFA]/20 px-1.5 py-1.5 text-right font-medium">
             Type
           </th>
         </tr>
       </thead>
       <tbody>
         {BLUEPRINT_MODULES.map((module) => (
-          <tr key={module.name} className="align-top transition-colors hover:bg-[#00f2ff]/[0.06]">
-            <td className="whitespace-nowrap border-b border-[#00f2ff]/10 px-1.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#b7ecf7]">
+          <tr key={module.name} className="align-top transition-colors hover:bg-[#A78BFA]/[0.06]">
+            <td className="whitespace-nowrap border-b border-[#A78BFA]/10 px-1.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#E9E5FF]">
               {module.name}
             </td>
-            <td className="border-b border-[#00f2ff]/10 px-1.5 py-1.5 text-[9px] leading-relaxed text-[#7fa9b8]">
+            <td className="border-b border-[#A78BFA]/10 px-1.5 py-1.5 text-[9px] leading-relaxed text-[#A7A3B8]">
               {module.description}
             </td>
-            <td className="border-b border-[#00f2ff]/10 px-1.5 py-1.5 text-right text-[8px] uppercase tracking-[0.12em] text-[#00f2ff]/70">
+            <td className="border-b border-[#A78BFA]/10 px-1.5 py-1.5 text-right text-[8px] uppercase tracking-[0.12em] text-[#A78BFA]/70">
               {module.type}
             </td>
           </tr>
