@@ -29,6 +29,8 @@ function getClient(): GoogleGenAI {
   return new GoogleGenAI({
     apiKey,
     httpOptions: {
+      // Audio models (transcribe / TTS) are only published on v1beta.
+      apiVersion: "v1beta",
       headers: {
         "User-Agent": "aistudio-build",
       },
