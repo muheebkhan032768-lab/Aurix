@@ -164,6 +164,33 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   });
 }
 
+/** The model this key reliably serves; every cloud call can fall back to it. */
+const FALLBACK_MODEL = "gemini-3.1-flash-lite";
+
+/**
+ * Runs a generation request and, when the preferred model is unavailable
+ * (quota, demand spike, retirement), retries once on the fallback model so the
+ * owner still gets a real cloud answer instead of the offline engine.
+ */
+async function generateWithFallback(
+  request: (model: string) => Promise<GenerateContentResponse>,
+  primary: string,
+  deadlineMs = 20_000
+): Promise<{ response: GenerateContentResponse; modelUsed: string }> {
+  try {
+    return {
+      response: await withTimeout(request(primary), deadlineMs, "AURIX cloud reply timed out."),
+      modelUsed: primary,
+    };
+  } catch (err) {
+    if (primary === FALLBACK_MODEL) throw err;
+    return {
+      response: await withTimeout(request(FALLBACK_MODEL), deadlineMs, "AURIX cloud reply timed out."),
+      modelUsed: FALLBACK_MODEL,
+    };
+  }
+}
+
 export async function chatWithAurix(params: {
   history: ChatMessage[];
   userMessage: string;
@@ -216,7 +243,6 @@ export async function chatWithAurix(params: {
 
   try {
     const ai = getClient();
-    const thinkingEnum = mapThinkingLevel(model, depth);
     const attachmentParts = (params.attachments || []).map((a) => ({
       inlineData: { mimeType: a.mimeType, data: a.dataBase64 },
     }));
@@ -231,29 +257,34 @@ export async function chatWithAurix(params: {
       },
     ];
 
-    const request = ai.models.generateContent({
-      model,
-      contents,
-      config: {
-        systemInstruction,
-        ...(params.fast ? { maxOutputTokens: 220, temperature: 0.6 } : {}),
-        ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
-      },
-    });
+    const request = (targetModel: string) => {
+      const thinkingEnum = mapThinkingLevel(targetModel, depth);
+      return ai.models.generateContent({
+        model: targetModel,
+        contents,
+        config: {
+          systemInstruction,
+          ...(params.fast ? { maxOutputTokens: 220, temperature: 0.6 } : {}),
+          ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
+        },
+      });
+    };
 
     // A spoken reply never waits longer than a couple of seconds; the catch
     // below then answers from the offline brain instead of leaving the user
     // waiting on the model.
-    const response: GenerateContentResponse = params.fast
-      ? await withTimeout(request, 5000, "AURIX voice reply timed out.")
-      : await withTimeout(request, 20_000, "AURIX cloud reply timed out.");
+    const { response, modelUsed } = await generateWithFallback(
+      request,
+      model,
+      params.fast ? 5000 : 20_000
+    );
 
     const text = response.text?.trim();
     if (!text) {
       throw new Error("AURIX received an empty response from the model.");
     }
-    markAiSuccess(model);
-    return { text, modelUsed: model, thinkingLevel: depth };
+    markAiSuccess(modelUsed);
+    return { text, modelUsed, thinkingLevel: depth };
   } catch (err) {
     markAiFailure(err);
     markAiBlocked(err instanceof Error ? err.message : "AI request failed.", 1);
@@ -470,18 +501,22 @@ export async function analyzeFileOrImage(params: {
 
   parts.push({ text: promptBody });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: { parts },
-    config: {
-      systemInstruction,
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
-    },
-  });
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: { parts },
+        config: {
+          systemInstruction,
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   return {
     analysis: response.text?.trim() || "No analysis generated.",
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 
@@ -508,15 +543,19 @@ export async function researchWebWithGrounding(params: {
       "You are executing Internet Research with live Google Search grounding. Clearly distinguish verified source-backed facts from your synthesis or assumptions. Provide structured, actionable engineering or business insights for Abdul Muheeb.",
   });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: params.query,
-    config: {
-      systemInstruction,
-      tools: [{ googleSearch: {} }],
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
-    },
-  });
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: params.query,
+        config: {
+          systemInstruction,
+          tools: [{ googleSearch: {} }],
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
   const sources: { title: string; uri: string }[] = [];
@@ -533,7 +572,7 @@ export async function researchWebWithGrounding(params: {
   return {
     summary: response.text?.trim() || "No research results returned.",
     sources,
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 
@@ -572,20 +611,24 @@ Always start with a concise "Planned Changes & Architecture Rationale" section e
   }
   const ai = getClient();
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: `Request: ${params.instruction}\n\nCode / Context:\n\`\`\`\n${params.codeSnippet || "(No code snippet supplied — provide architectural design or starter implementation)"}\n\`\`\``,
-    config: {
-      systemInstruction,
-      thinkingConfig: {
-        thinkingLevel: params.deepReasoning ? ThinkingLevel.HIGH : ThinkingLevel.MEDIUM,
-      },
-    },
-  });
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: `Request: ${params.instruction}\n\nCode / Context:\n\`\`\`\n${params.codeSnippet || "(No code snippet supplied — provide architectural design or starter implementation)"}\n\`\`\``,
+        config: {
+          systemInstruction,
+          thinkingConfig: {
+            thinkingLevel: params.deepReasoning ? ThinkingLevel.HIGH : ThinkingLevel.MEDIUM,
+          },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   return {
     result: response.text?.trim() || "No engineering output returned.",
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 
@@ -608,21 +651,25 @@ export async function draftBusinessDocument(params: {
       "You are drafting an internal AM VEYRONIX business document for Abdul Muheeb's review. Never fabricate past clients, fake revenue, or fake testimonials. Mark all placeholder figures clearly as '[Owner to confirm]'. Remind the owner that nothing is sent externally without explicit approval.",
   });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-4-hydrogen",
-    contents: `Draft a professional ${params.kind.toUpperCase()} for AM VEYRONIX.
+  const { response, modelUsed } = await generateWithFallback(
+    (targetModel) =>
+      ai.models.generateContent({
+        model: targetModel,
+        contents: `Draft a professional ${params.kind.toUpperCase()} for AM VEYRONIX.
 Client / Target: ${params.clientName || "Prospective Client"}
 Currency: ${params.currency}
 Scope & Brief: ${params.brief}`,
-    config: {
-      systemInstruction,
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
-    },
-  });
+        config: {
+          systemInstruction,
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+        },
+      }),
+    "gemini-4-hydrogen"
+  );
 
   return {
     draft: response.text?.trim() || "No draft generated.",
-    modelUsed: "gemini-4-hydrogen",
+    modelUsed,
   };
 }
 

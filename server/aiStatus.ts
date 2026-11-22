@@ -113,7 +113,9 @@ export async function probeAiConnection(force = false): Promise<AiStatusPayload[
         ai.models.generateContent({
           model: "gemini-3.1-flash-lite",
           contents: [{ role: "user", parts: [{ text: "Reply with the single word: ready" }] }],
-          config: { maxOutputTokens: 4, temperature: 0 },
+          // Flash Lite spends part of the budget on internal thinking, so a
+          // tiny cap produced an empty candidate and a false "degraded" state.
+          config: { maxOutputTokens: 32, temperature: 0 },
         }),
         timer,
       ]);
