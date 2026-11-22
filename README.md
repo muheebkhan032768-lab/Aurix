@@ -12,6 +12,12 @@ AURIX 2.0 (Advanced Unified Responsive Intelligence X) is a full-stack, bright g
 - **5-Module Creative & Development Studio**: Picture SVG/PNG + Canvas Editor, 4-Scene WebM Motion Video Studio, AI Writing Studio, Coding Diagnostics Studio, and Responsive HTML5 Website Generator.
 - **Native Windows 10/11 Suite (`windows_native/`)**: Includes Python Core orchestration (`pc_controller.py`, `voice_engine.py`, `self_healer.py`, `security_argon2.py`), C# .NET 8 WPF desktop shell, and Inno Setup installer scripts.
 
+## Owner Identity, Visual Learning & Activation (new)
+- **OR-based owner authentication**: face (with blink liveness) **or** voice (challenge-phrase replay protection) **or** PIN unlocks the personal session. Templates are encrypted on the machine and matched by the local server.
+- **TEACH AURIX**: floating ~1/8-screen camera preview (right by default, movable left, auto-minimizes after 60 s with a live indicator), object teaching with review-before-save, gesture teaching, custom voice tasks, and the AURIX Memory Center for approved examples.
+- **Chrome/Gmail activation**: a local Chrome extension reports when Chrome starts or Gmail opens; AURIX then asks the owner to verify (only when locked). Windows autostart script included.
+- Full details, privacy model, calibration numbers, test report and limitations: [`docs/AURIX_UPGRADE.md`](docs/AURIX_UPGRADE.md). Desktop bridge: [`desktop/README.md`](desktop/README.md).
+
 ## Quick Start
 ```bash
 npm install

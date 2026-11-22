@@ -17,6 +17,10 @@ export type AurixSectionId =
   | "models"
   | "memory"
   | "automation"
+  | "identity"
+  | "teach"
+  | "training"
+  | "activation"
   | "settings";
 
 export type AurixLanguage = "English" | "Urdu" | "Hindi";
@@ -432,6 +436,108 @@ export interface DesktopActionLog {
   executedIn: string;
   detail: string;
   createdAt: string;
+}
+
+/* ------------------------------------------------------------------ */
+/* AURIX owner identity, training memory & activation                  */
+/* ------------------------------------------------------------------ */
+
+export interface BiometricSettings {
+  faceEnabled: boolean;
+  voiceEnabled: boolean;
+  authPhrase: string;
+  faceThreshold: number;
+  voiceThreshold: number;
+  requireBiometricOnBoot: boolean;
+  sendImagesToCloud: boolean;
+  gmailActivationEnabled: boolean;
+  chromeActivationEnabled: boolean;
+  requireChallengePhrase: boolean;
+  autoStartWithWindows: boolean;
+  trainingPreviewSeconds: number;
+  updatedAt: string;
+}
+
+export interface BiometricSession {
+  status: "locked" | "unlocked";
+  method: string | null;
+  verifiedAt: string | null;
+  lockedAt: string | null;
+}
+
+export interface BiometricEnrollment {
+  face: { enrolled: boolean; samples: number; updatedAt: string | null };
+  voice: { enrolled: boolean; samples: number; updatedAt: string | null };
+}
+
+export interface AuthEventEntry {
+  id: string;
+  method: string;
+  outcome: string;
+  score: number | null;
+  detail: string;
+  createdAt: string;
+}
+
+export interface VisionModelInfo {
+  name: string;
+  downloaded: boolean;
+  bytes: number;
+}
+
+export interface ActivationStatusPayload {
+  pending: { source: string; detail: string; createdAt: string } | null;
+  session: BiometricSession;
+  events: Array<{ id: string; source: string; status: string; detail: string; createdAt: string }>;
+  settings: { gmailActivationEnabled: boolean; chromeActivationEnabled: boolean; autoStartWithWindows: boolean };
+}
+
+export interface BiometricSnapshot {
+  settings: BiometricSettings;
+  enrollment: BiometricEnrollment;
+  session: BiometricSession;
+  /** True only when an owner PIN actually exists (recovery path availability). */
+  hasPin: boolean;
+  authEvents: AuthEventEntry[];
+  activation: ActivationStatusPayload;
+  models: VisionModelInfo[];
+}
+
+export type TrainingKind = "object" | "gesture" | "voice_command" | "task";
+
+export interface TrainingExample {
+  id: string;
+  kind: TrainingKind;
+  label: string;
+  description: string;
+  category: string;
+  assetUrl: string | null;
+  trigger: string | null;
+  action: { urls?: string[]; note?: string; requiresConfirmation?: boolean } | null;
+  approved: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TrainingStats {
+  total: number;
+  byKind: Record<string, number>;
+  storageDir: string;
+}
+
+export interface TrainingMatch {
+  example: TrainingExample;
+  score: number;
+}
+
+export interface VerificationResponse {
+  granted: boolean;
+  method: "face" | "voice";
+  score: number;
+  threshold: number;
+  reason: string;
+  session: BiometricSession;
+  details: string[];
 }
 
 export interface CreativeAsset {

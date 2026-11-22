@@ -4,6 +4,7 @@ import type {
   AppSettings,
   AurixLanguage,
   AurixSectionId,
+  BiometricSnapshot,
   BootstrapPayload,
   BusinessItem,
   CompanyProfile,
@@ -39,6 +40,13 @@ import { NexusTopBar } from "./components/cockpit/NexusTopBar";
 import { CommandCenterView } from "./components/cockpit/CommandCenterView";
 import { MemoryCenterView } from "./components/MemoryCenterView";
 import { AutomationCenterView } from "./components/AutomationCenterView";
+import { AuthGate } from "./components/biometrics/AuthGate";
+import { AurixStatusRail } from "./components/biometrics/AurixStatusRail";
+import { IdentityCenterView } from "./components/biometrics/IdentityCenterView";
+import { TeachAurixView } from "./components/learning/TeachAurixView";
+import { TrainingMemoryCenterView } from "./components/learning/TrainingMemoryCenterView";
+import { ActivationView } from "./components/integration/ActivationView";
+import { patchRuntime } from "./biometrics/runtime";
 
 class SelfHealingErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -152,15 +160,42 @@ function AurixShell() {
   const [pinError, setPinError] = useState<string | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
+  // Owner identity gate (face / voice / PIN, OR-based)
+  const [biometrics, setBiometrics] = useState<BiometricSnapshot | null>(null);
+  const [pendingActivation, setPendingActivation] = useState<{ source: string; detail: string; createdAt: string } | null>(null);
+  const [unlockGreeting, setUnlockGreeting] = useState<string | null>(null);
+
+  const refreshBiometrics = useCallback(async () => {
+    try {
+      const res = await fetch("/api/biometrics/status");
+      if (!res.ok) throw new Error("status unavailable");
+      const bio = (await res.json()) as BiometricSnapshot;
+      setBiometrics(bio);
+      setPendingActivation(bio.activation?.pending ?? null);
+      patchRuntime({ serverOnline: true, session: bio.session.status, sessionMethod: bio.session.method });
+      return bio;
+    } catch {
+      patchRuntime({ serverOnline: false });
+      return null;
+    }
+  }, []);
+
   const loadBootstrap = useCallback(async () => {
     const res = await fetch("/api/bootstrap");
     const json = (await res.json()) as BootstrapPayload;
     setData(json);
-    if (json.security.hasPin && json.security.requirePinOnBoot) {
+    const bio = await refreshBiometrics();
+    const biometricLocked = Boolean(
+      bio &&
+        (bio.enrollment.face.enrolled || bio.enrollment.voice.enrolled) &&
+        bio.settings.requireBiometricOnBoot &&
+        bio.session.status === "locked"
+    );
+    if (biometricLocked || (json.security.hasPin && json.security.requirePinOnBoot)) {
       setLocked(true);
     }
     setStartupPhase(json.settings.startupAnimationEnabled ? "animating" : "ready");
-  }, []);
+  }, [refreshBiometrics]);
 
   useEffect(() => {
     loadBootstrap();
@@ -195,10 +230,19 @@ function AurixShell() {
     window.addEventListener("mousemove", bump);
     window.addEventListener("keydown", bump);
     const timer = setInterval(() => {
-      if (!data?.security.hasPin || !data?.settings.autoLockEnabled || locked) return;
+      if (locked || !data?.settings.autoLockEnabled) return;
+      const bioEnrolled = Boolean(biometrics && (biometrics.enrollment.face.enrolled || biometrics.enrollment.voice.enrolled));
+      if (!data?.security.hasPin && !bioEnrolled) return;
       const limitMs = data.security.inactivityMinutes * 60 * 1000;
       if (Date.now() - lastActivityRef.current > limitMs) {
-        setLocked(true);
+        void fetch("/api/biometrics/session/lock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: `Inactivity auto-lock after ${data.security.inactivityMinutes} minutes.` }),
+        })
+          .then(() => refreshBiometrics())
+          .finally(() => setLocked(true));
+        patchRuntime({ session: "locked", sessionMethod: null });
       }
     }, 15000);
     return () => {
@@ -206,7 +250,30 @@ function AurixShell() {
       window.removeEventListener("keydown", bump);
       clearInterval(timer);
     };
-  }, [data?.security.hasPin, data?.security.inactivityMinutes, data?.settings.autoLockEnabled, locked]);
+  }, [data?.security.hasPin, data?.security.inactivityMinutes, data?.settings.autoLockEnabled, locked, biometrics, refreshBiometrics]);
+
+  // While locked, watch for a Chrome/Gmail activation request so the gate can
+  // explain why verification is being asked for.
+  useEffect(() => {
+    if (!locked) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch("/api/activation/status");
+        if (!res.ok) return;
+        const status = await res.json();
+        setPendingActivation(status.pending ?? null);
+      } catch {
+        // Server briefly unavailable — keep the gate as-is.
+      }
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [locked]);
+
+  useEffect(() => {
+    if (!unlockGreeting) return;
+    const timer = window.setTimeout(() => setUnlockGreeting(null), 9000);
+    return () => window.clearTimeout(timer);
+  }, [unlockGreeting]);
 
   // Post-Startup Readiness & Automatic Immediate Voice Greeting
   useEffect(() => {
@@ -269,6 +336,13 @@ function AurixShell() {
     const out = await res.json();
     setData((prev) => (prev ? { ...prev, security: out.status } : prev));
     if (out.ok) {
+      // Open the server-side owner session too, so personal training memory is readable.
+      await fetch("/api/biometrics/session/unlock-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pinAttempt }),
+      }).catch(() => undefined);
+      await refreshBiometrics();
       setLocked(false);
       setPinAttempt("");
       lastActivityRef.current = Date.now();
@@ -450,6 +524,50 @@ function AurixShell() {
     setData((prev) => (prev ? { ...prev, security, auditLogs } : prev));
   };
 
+  const handleBiometricVerified = async (method: string) => {
+    await refreshBiometrics();
+    setPendingActivation(null);
+    setLocked(false);
+    setPinError(null);
+    lastActivityRef.current = Date.now();
+    sessionStorage.removeItem("aurix_greeted_this_launch");
+    greetingAttemptedRef.current = false;
+    const hour = new Date().getHours();
+    const partOfDay = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    const firstName = (data?.owner.name || "Muheeb").split(" ")[0];
+    setUnlockGreeting(`${partOfDay}, ${firstName}. AURIX systems are online — verified by ${method}. How may I assist you today?`);
+    setWelcomeTriggerCount((count) => count + 1);
+  };
+
+  const lockAurixNow = async (reason: string) => {
+    try {
+      await fetch("/api/biometrics/session/lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+    } finally {
+      patchRuntime({ session: "locked", sessionMethod: null });
+      await refreshBiometrics();
+      setLocked(true);
+    }
+  };
+
+  const logoutAurix = async () => {
+    try {
+      await fetch("/api/biometrics/session/logout", { method: "POST" });
+    } finally {
+      patchRuntime({ session: "locked", sessionMethod: null });
+      await refreshBiometrics();
+      setLocked(true);
+    }
+  };
+
+  const dismissPendingActivation = async () => {
+    await fetch("/api/activation/pending/clear", { method: "POST" }).catch(() => undefined);
+    setPendingActivation(null);
+  };
+
   const handleSecurityPrefs = async (inactivityMinutes: number, requirePinOnBoot: boolean) => {
     const res = await fetch("/api/security/config", {
       method: "PUT",
@@ -459,6 +577,22 @@ function AurixShell() {
     const security = await res.json();
     setData((prev) => (prev ? { ...prev, security } : prev));
   };
+
+  // Identity gate: no personal dashboard is rendered until the owner verifies.
+  if (locked && biometrics) {
+    return (
+      <AuthGate
+        ownerName={data.owner.name}
+        snapshot={biometrics}
+        pendingActivation={pendingActivation}
+        onVerified={(method) => void handleBiometricVerified(method)}
+        onRefresh={async () => {
+          await refreshBiometrics();
+        }}
+        onDismissPending={dismissPendingActivation}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#05080D] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,217,255,0.10),transparent_62%)] text-slate-100 flex flex-col">
@@ -636,7 +770,42 @@ function AurixShell() {
             auditLogs={data.auditLogs}
             onSetPin={handleSetPin}
             onUpdatePrefs={handleSecurityPrefs}
-            onLockNow={() => setLocked(true)}
+            onLockNow={() => void lockAurixNow("Owner locked AURIX from the Security Center.")}
+          />
+        )}
+
+        {activeSection === "identity" && biometrics && (
+          <IdentityCenterView
+            snapshot={biometrics}
+            ownerName={data.owner.name}
+            onRefresh={async () => {
+              await refreshBiometrics();
+            }}
+            onLockNow={() => void lockAurixNow("Owner locked AURIX from Personal Authentication.")}
+            onLogout={() => void logoutAurix()}
+            onNavigate={setActiveSection}
+          />
+        )}
+
+        {activeSection === "teach" && biometrics && (
+          <TeachAurixView
+            snapshot={biometrics}
+            onRefresh={async () => {
+              await refreshBiometrics();
+            }}
+            onOpenMemory={() => setActiveSection("training")}
+          />
+        )}
+
+        {activeSection === "training" && <TrainingMemoryCenterView />}
+
+        {activeSection === "activation" && biometrics && (
+          <ActivationView
+            snapshot={biometrics}
+            onRefresh={async () => {
+              await refreshBiometrics();
+            }}
+            onRequestAuth={() => setLocked(true)}
           />
         )}
 
@@ -754,6 +923,14 @@ function AurixShell() {
           </div>
         </div>
       )}
+
+      {unlockGreeting && (
+        <div className="pointer-events-none fixed left-1/2 top-4 z-40 w-[min(92vw,560px)] -translate-x-1/2 rounded-2xl border border-emerald-400/35 bg-[#071B2A]/95 px-4 py-3 text-center text-xs text-emerald-200 shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-md">
+          {unlockGreeting}
+        </div>
+      )}
+
+      <AurixStatusRail />
 
       {startupPhase === "ready" && !locked && mediaConsentChoice && (
         <VoiceCommandSystem

@@ -56,6 +56,7 @@ import {
   transcribeAudioInput,
 } from "./server/gemini";
 import { NATIVE_WINDOWS_FILES } from "./server/nativeWindowsBundle";
+import { registerBiometricRoutes } from "./server/biometricRoutes";
 import { laptopControlStatus, planLaptopCommand, runLaptopPlan } from "./server/laptopControl";
 import { detectLocalOllamaModels } from "./server/offlineBrain";
 import { buildHardwareAudit } from "./server/hardwareAudit";
@@ -169,6 +170,28 @@ function collectCompleteProjectEntries(): Array<{ zipPath: string; content: Buff
 async function startServer() {
   const app = express();
   app.use(express.json({ limit: "25mb" }));
+
+  // Chrome activation bridge (browser extension) posts a signal from its own
+  // origin. It can only record that Chrome/Gmail was opened — it never unlocks
+  // anything, so a permissive origin here does not weaken authentication.
+  app.use("/api/activation", (req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    if (req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
+
+  // On-device MediaPipe runtime (served from the installed package, not a CDN).
+  app.use(
+    "/mediapipe/wasm",
+    express.static(path.resolve(process.cwd(), "node_modules/@mediapipe/tasks-vision/wasm"), { maxAge: "1d" })
+  );
+
+  registerBiometricRoutes(app);
 
   // Bootstrap entire state
   app.get("/api/bootstrap", async (_req, res) => {

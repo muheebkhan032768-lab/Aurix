@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "AURIX Owner Activation Bridge",
+  "version": "1.0.0",
+  "description": "Notifies the local AURIX assistant when Chrome starts or when Gmail is opened. It never reads page content, messages, passwords or OTPs.",
+  "permissions": ["tabs", "webNavigation"],
+  "host_permissions": ["http://127.0.0.1:3000/*", "http://localhost:3000/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "AURIX activation bridge" }
+}
