@@ -43,6 +43,7 @@ import {
 } from "./trainingStore";
 import { MODEL_SOURCES, modelStatus, serveModel } from "./visionAssets";
 import { analyzeFileOrImage } from "./gemini";
+import { hasAnyGeminiKey } from "./geminiPool";
 
 const ASSET_DIR = path.resolve(process.cwd(), "data", "training");
 const EXTENSION_DIR = path.resolve(process.cwd(), "desktop", "chrome-extension");
@@ -288,7 +289,7 @@ export function registerBiometricRoutes(app: Express): void {
 
     let cloudLabel: string | null = null;
     let cloudError: string | null = null;
-    if (settings.sendImagesToCloud && imageDataUrl && process.env.GEMINI_API_KEY) {
+    if (settings.sendImagesToCloud && imageDataUrl && hasAnyGeminiKey()) {
       const commaIndex = imageDataUrl.indexOf(",");
       const meta = imageDataUrl.slice(5, commaIndex);
       try {
@@ -312,7 +313,7 @@ export function registerBiometricRoutes(app: Express): void {
       cloudLabel,
       cloudError,
       cloudConsent: settings.sendImagesToCloud,
-      cloudAvailable: Boolean(process.env.GEMINI_API_KEY),
+      cloudAvailable: hasAnyGeminiKey(),
     });
   });
 

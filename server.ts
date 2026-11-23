@@ -55,6 +55,12 @@ import {
   synthesizeAurixVoice,
   transcribeAudioInput,
 } from "./server/gemini";
+import {
+  getGeminiPoolStatus,
+  hasAnyGeminiKey,
+  resetGeminiKey,
+  testGeminiKeys,
+} from "./server/geminiPool";
 import { NATIVE_WINDOWS_FILES } from "./server/nativeWindowsBundle";
 import { registerBiometricRoutes } from "./server/biometricRoutes";
 import { laptopControlStatus, planLaptopCommand, runLaptopPlan } from "./server/laptopControl";
@@ -221,7 +227,8 @@ async function startServer() {
     const settings = getAppSettings();
     const ollama = await detectLocalOllamaModels(Number((os.totalmem() / 1024 ** 3).toFixed(2)));
     res.json({
-      aiProviderConnected: Boolean(process.env.GEMINI_API_KEY) && !settings.offlineModeForced,
+      aiProviderConnected: hasAnyGeminiKey() && !settings.offlineModeForced,
+      configuredGeminiKeys: getGeminiPoolStatus().configuredKeys,
       localModelsAvailable: ollama.reachable && ollama.models.length > 0,
       ownerProfileLoaded: Boolean(owner?.name),
       companyKnowledgeLoaded: Boolean(company?.name),
@@ -229,6 +236,25 @@ async function startServer() {
       microphoneStatus: "unknown",
       checkedAt: new Date().toISOString(),
     });
+  });
+
+  // Gemini four-key failover pool — masked identifiers only, never a full key.
+  app.get("/api/ai/keys", (_req, res) => res.json(getGeminiPoolStatus()));
+
+  app.post("/api/ai/keys/test", async (_req, res) => {
+    try {
+      const settings = getAppSettings();
+      const result = await testGeminiKeys(settings.activeModel || "gemini-4-hydrogen");
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: err instanceof Error ? err.message : "Key test failed." });
+    }
+  });
+
+  app.post("/api/ai/keys/:slot/reset", (req, res) => {
+    const slot = Number(req.params.slot);
+    const ok = resetGeminiKey(slot);
+    res.status(ok ? 200 : 404).json({ ok, status: getGeminiPoolStatus() });
   });
 
   // Owner Profile
@@ -577,7 +603,7 @@ async function startServer() {
         buildHardwareAudit({
           ollamaReachable: ollama.reachable,
           ollamaModelCount: ollama.models.length,
-          cloudKeyConfigured: Boolean(process.env.GEMINI_API_KEY) && !settings.offlineModeForced,
+          cloudKeyConfigured: hasAnyGeminiKey() && !settings.offlineModeForced,
         })
       );
     } catch (err) {

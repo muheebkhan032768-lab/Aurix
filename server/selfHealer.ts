@@ -23,6 +23,7 @@ import {
   seedIfNeeded,
 } from "./db";
 import { detectLocalOllamaModels } from "./offlineBrain";
+import { hasAnyGeminiKey } from "./geminiPool";
 
 const execAsync = promisify(exec);
 const BACKUP_DIR = path.resolve(process.cwd(), "data", "backups");
@@ -262,7 +263,7 @@ export async function runSelfHealAudit(options?: {
   }
 
   // Check AI Engine (Gemini Key + Local Ollama + Offline Knowledge)
-  const hasGemini = Boolean(process.env.GEMINI_API_KEY);
+  const hasGemini = hasAnyGeminiKey();
   const ollama = await detectLocalOllamaModels(8);
   const aiHealth: SubsystemHealthStatus = hasGemini || ollama.reachable ? "healthy" : "warning";
   const aiDetail = hasGemini

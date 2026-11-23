@@ -1,4 +1,5 @@
 import { GoogleGenAI, ThinkingLevel, Type, type GenerateContentResponse } from "@google/genai";
+import { getPooledGeminiClient } from "./geminiPool";
 import type {
   AurixLanguage,
   ChatMessage,
@@ -20,23 +21,10 @@ import {
 } from "./offlineBrain";
 
 function getClient(): GoogleGenAI {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "GEMINI_API_KEY is not configured in the server environment. Please verify Settings > Secrets."
-    );
-  }
-  return new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      // The SDK defaults to the v1 endpoint, where the transcribe and TTS
-      // models are not published. v1beta exposes every model this app uses.
-      apiVersion: "v1beta",
-      headers: {
-        "User-Agent": "aistudio-build",
-      },
-    },
-  });
+  // Every Gemini request is routed through the four-key failover pool, which
+  // starts at the primary key and switches automatically when a key is rate
+  // limited, out of quota, revoked or temporarily unavailable.
+  return getPooledGeminiClient();
 }
 
 function mapThinkingLevel(model: string, level: ThinkingDepth): ThinkingLevel | undefined {
