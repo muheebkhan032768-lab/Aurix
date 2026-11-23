@@ -40,7 +40,7 @@ function rankVoices(language: AurixLanguage): DeviceVoice[] {
       if (wanted === "en" && lang.includes("gb")) score += 25;
       if (wanted === "en" && lang.includes("us")) score += 8;
       if (NATURAL_PATTERN.test(voice.name)) score += 30;
-      // AURIX speaks with a male voice: male voices always outrank female ones,
+      // DEX MADE speaks with a male voice: male voices always outrank female ones,
       // and a device's female voice is pushed out of the list entirely.
       if (isMaleVoiceName(voice.name)) score += 60;
       if (FEMALE_PATTERN.test(voice.name)) score -= 70;
@@ -69,7 +69,7 @@ export function getAvailableBritishVoices(): SpeechSynthesisVoice[] {
   return rankVoices("English").map((entry) => entry.voice);
 }
 
-/** The device voice AURIX will actually speak with, for the settings panel. */
+/** The device voice DEX MADE will actually speak with, for the settings panel. */
 export function getPreferredDeviceVoice(
   language: AurixLanguage = "English",
   preferredVoiceUri?: string
@@ -176,7 +176,7 @@ export function speakWithOfflineBritishVoice(
       language === "Urdu" ? "ur-PK" : language === "Hindi" ? "hi-IN" : preferred?.lang || "en-GB";
     utter.rate = rate;
     // A male device voice keeps a gentle lower pitch; when the device only has a
-    // neutral or female voice the pitch drops further so AURIX still sounds male.
+    // neutral or female voice the pitch drops further so DEX MADE still sounds male.
     utter.pitch = preferred && isMaleVoiceName(preferred.name) ? 0.95 : 0.82;
     utter.volume = Math.max(0, Math.min(1, volume ?? 1));
     utter.onstart = () => {

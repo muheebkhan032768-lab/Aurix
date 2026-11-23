@@ -57,7 +57,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
       const data = await res.json();
       if (data?.id && data?.text) setChallenge({ id: data.id, text: data.text });
     } catch {
-      setMessage("Could not reach the local Desk Mate challenge service.");
+      setMessage("Could not reach the local DEX MADE challenge service.");
     }
   }, []);
 
@@ -88,7 +88,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
       setProgress(0.5);
       if (!live.blinkDetected) {
         setPhase("denied");
-        setMessage("Liveness check failed: no blink was detected. A photo or still image cannot unlock Desk Mate. Blink once and try again.");
+        setMessage("Liveness check failed: no blink was detected. A photo or still image cannot unlock DEX MADE. Blink once and try again.");
         return;
       }
       const observation = await observeFace(video);
@@ -218,14 +218,14 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
           <div className="flex items-start gap-4">
             <img
               src="/src/assets/images/aurix_core_emblem_1795088206132.jpg"
-              alt="AURIX security core"
+              alt="DEX MADE security core"
               className="h-16 w-16 shrink-0 rounded-2xl border-2 border-[#00D9FF]/50 object-cover"
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#00D9FF]">
                 <Lock className="h-3 w-3" /> Personal session locked
               </div>
-              <h1 className="mt-1 font-display text-xl font-bold tracking-wide text-white">Desk Mate Identity Gate</h1>
+              <h1 className="mt-1 font-display text-xl font-bold tracking-wide text-white">DEX MADE Identity Gate</h1>
               <p className="mt-1 text-[11px] leading-relaxed text-[#94A8B8]">
                 Verify {ownerName || "the owner"} with face <span className="text-[#A9C8D5]">or</span> voice — one successful method opens the session. Nothing personal is shown until then.
               </p>
@@ -237,7 +237,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <div className="flex-1">
                 <span className="font-semibold">{pendingActivation.source === "gmail" ? "Gmail opened in Chrome" : "Chrome activity detected"}.</span>{" "}
-                {pendingActivation.detail} — verify the owner to activate Desk Mate.
+                {pendingActivation.detail} — verify the owner to activate DEX MADE.
               </div>
               <button type="button" onClick={() => void onDismissPending()} aria-label="Dismiss activation request" className="cursor-pointer text-amber-300 hover:text-amber-100">
                 <X className="h-3.5 w-3.5" />
@@ -299,11 +299,11 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                 <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-200">
                   {settings.faceEnabled
                     ? "No face profile is enrolled. Enroll it in Personal Authentication, or verify with voice."
-                    : "Face authentication is switched off in Desk Mate settings. Use voice or the owner PIN."}
+                    : "Face authentication is switched off in DEX MADE settings. Use voice or the owner PIN."}
                 </p>
               ) : phase === "granted" ? (
                 <p className="flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-300">
-                  <ShieldCheck className="h-4 w-4" /> Owner verified — unlocking Desk Mate.
+                  <ShieldCheck className="h-4 w-4" /> Owner verified — unlocking DEX MADE.
                 </p>
               ) : (
                 <div className="flex flex-wrap items-center gap-2">
@@ -336,7 +336,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                 <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-200">
                   {settings.voiceEnabled
                     ? "No voice profile is enrolled. Enroll it in Personal Authentication, or verify with face."
-                    : "Voice authentication is switched off in Desk Mate settings. Use face or the owner PIN."}
+                    : "Voice authentication is switched off in DEX MADE settings. Use face or the owner PIN."}
                 </p>
               ) : !speechOk ? (
                 <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-200">
@@ -344,7 +344,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                 </p>
               ) : phase === "granted" ? (
                 <p className="flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-300">
-                  <ShieldCheck className="h-4 w-4" /> Owner verified — unlocking Desk Mate.
+                  <ShieldCheck className="h-4 w-4" /> Owner verified — unlocking DEX MADE.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -385,7 +385,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
             <form onSubmit={submitPin} className="mt-4 space-y-3">
               {!snapshot.hasPin ? (
                 <p className="rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-200">
-                  No owner PIN is configured, so PIN unlock is unavailable. Verify with face or voice — Desk Mate will not accept an arbitrary PIN.
+                  No owner PIN is configured, so PIN unlock is unavailable. Verify with face or voice — DEX MADE will not accept an arbitrary PIN.
                 </p>
               ) : (
                 <>

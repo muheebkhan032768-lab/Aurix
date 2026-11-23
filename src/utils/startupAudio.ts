@@ -1,5 +1,5 @@
 /**
- * Warm cinematic startup sound for Desk Mate, synthesized with the Web Audio
+ * Warm cinematic startup sound for DEX MADE, synthesized with the Web Audio
  * API (no samples, nothing copyrighted).
  *
  * Shape: a soft air swell and a slowly opening pad in A major, one gentle

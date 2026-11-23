@@ -1,5 +1,5 @@
 export interface AlwaysOnMicHandlers {
-  /** True while AURIX is speaking, thinking or already recording. */
+  /** True while DEX MADE is speaking, thinking or already recording. */
   shouldPause: () => boolean;
   /** Called with the transcript of each spoken phrase. */
   onTranscript: (text: string) => void;
@@ -29,7 +29,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 
 /**
  * Keeps the microphone open and turns each spoken phrase into a transcript.
- * Used by AURIX's companion mode so it can listen without a button, and it
+ * Used by DEX MADE's companion mode so it can listen without a button, and it
  * works in browsers where live speech recognition is unavailable.
  */
 export function createAlwaysOnMic(handlers: AlwaysOnMicHandlers): AlwaysOnMicController {

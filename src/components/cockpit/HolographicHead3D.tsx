@@ -11,7 +11,7 @@ interface HolographicHead3DProps {
   state: VoiceSessionState;
   /** Live microphone energy 0..1. */
   level: number;
-  /** The line AURIX is speaking right now. */
+  /** The line DEX MADE is speaking right now. */
   reply: string;
   /** Character offset inside `reply` currently being voiced, -1 when silent. */
   spokenChars: number;
@@ -24,6 +24,7 @@ const STATE_HEX: Record<VoiceSessionState, string> = {
   idle: "#00D9FF",
   listening: "#22E7FF",
   processing: "#147DFF",
+  thinking: "#147DFF",
   speaking: "#2FE9C6",
   error: "#FB7185",
 };
@@ -31,7 +32,8 @@ const STATE_HEX: Record<VoiceSessionState, string> = {
 const STATE_LABEL: Record<VoiceSessionState, string> = {
   idle: "STANDBY",
   listening: "LISTENING",
-  processing: "THINKING",
+  processing: "PROCESSING",
+  thinking: "THINKING",
   speaking: "SPEAKING",
   error: "ATTENTION",
 };
@@ -940,7 +942,7 @@ export function HolographicHead3D({
   return (
     <section
       className="nexus-panel nexus-stage relative h-[clamp(440px,66vh,720px)] w-full overflow-hidden rounded-2xl"
-      aria-label="AURIX holographic neural head"
+      aria-label="DEX MADE holographic neural head"
       data-testid="holographic-face"
       data-voice-state={state}
       data-viseme={viseme}
@@ -967,7 +969,7 @@ export function HolographicHead3D({
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 sm:p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-[#00F2FF]/80">AURIX</p>
+            <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-[#00F2FF]/80">DEX MADE</p>
             <p className="mt-0.5 truncate text-[8px] font-mono uppercase tracking-[0.18em] text-[#5B7185]">
               Personal AI assistant · {VIEW_LABEL[view]}
             </p>

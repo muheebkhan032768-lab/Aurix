@@ -56,7 +56,7 @@ export function NexusTopBar({
           <AurixLogo className="w-8 h-8 text-[#00D9FF] shrink-0" />
           <div className="min-w-0">
             <div className="font-display text-sm font-bold tracking-[0.14em] text-white whitespace-nowrap">
-              AURIX 2.0
+              DEX MADE 2.0
             </div>
             <div className="hidden sm:block text-[9px] font-mono uppercase tracking-[0.24em] text-[#00D9FF]/70 whitespace-nowrap">
               Nexus Cockpit · AM VEYRONIX

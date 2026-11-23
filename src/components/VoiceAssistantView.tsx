@@ -35,7 +35,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
   const [selectedBrowserVoice, setSelectedBrowserVoice] = useState("");
   const [turns, setTurns] = useState<VoiceTurn[]>([]);
   const [testPhrase, setTestPhrase] = useState(
-    "Good day, Abdul Muheeb. AURIX is active in my British persona and ready to assist AM VEYRONIX."
+    "Good day, Abdul Muheeb. DEX MADE is active in my British persona and ready to assist AM VEYRONIX."
   );
   const [statusMessage, setStatusMessage] = useState("Ready for voice interaction.");
   const [error, setError] = useState<string | null>(null);
@@ -181,7 +181,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
   const playMaleVoice = async (text: string) => {
     stopAudioPlayback();
     setSpeaking(true);
-    setStatusMessage(`Speaking via AURIX voice (${settings.voiceName})…`);
+    setStatusMessage(`Speaking via DEX MADE voice (${settings.voiceName})…`);
     const started = await engineSpeak(text, {
       voiceName: settings.voiceName,
       language: settings.language,
@@ -251,7 +251,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
 
   const processTranscript = async (transcript: string) => {
     setProcessing(true);
-    setStatusMessage("AURIX reasoning...");
+    setStatusMessage("DEX MADE reasoning...");
     try {
       const chatRes = await fetch("/api/chat", {
         method: "POST",
@@ -341,7 +341,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-bold text-[#202938] dark:text-white">
-                  AURIX Voice Engine &amp; Mic Diagnostics
+                  DEX MADE Voice Engine &amp; Mic Diagnostics
                 </h2>
                 <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">{statusMessage}</p>
               </div>
@@ -565,7 +565,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
             >
               <Volume2 className="w-3.5 h-3.5" />
-              <span>Play AURIX British Voice</span>
+              <span>Play DEX MADE British Voice</span>
             </button>
           </div>
         </div>
@@ -578,7 +578,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
         </h3>
         {turns.length === 0 ? (
           <p className="text-sm text-[#64748B] dark:text-slate-400">
-            Record a voice prompt above to transcribe and hear AURIX respond in your British Male voice configuration.
+            Record a voice prompt above to transcribe and hear DEX MADE respond in your British Male voice configuration.
           </p>
         ) : (
           <div className="divide-y divide-slate-200 dark:divide-slate-800">

@@ -23,6 +23,69 @@ let runToken = 0;
 let lastEngine: "gemini" | "device" = "gemini";
 let progressTimer = 0;
 
+/* ------------------------------------------------------------------ */
+/* Amplification: gain → compressor → limiter                          */
+/* ------------------------------------------------------------------ */
+
+let audioGraph: AudioContext | null = null;
+let graphSource: MediaElementAudioSourceNode | null = null;
+
+/**
+ * Routes synthesized speech through a gain stage (up to 200%), a dynamic
+ * compressor and a soft limiter, so a louder target stays clear instead of
+ * clipping. Browsers cap the raw element volume at 100%, so the Web Audio
+ * graph is what makes amplification above 100% possible.
+ */
+async function applyPlaybackVolume(audio: HTMLAudioElement, volume: number) {
+  const target = Math.max(0.5, Math.min(2, Number.isFinite(volume) ? volume : 1));
+  // Up to 100% the element itself is enough; the graph is only needed to
+  // amplify, and it must never risk silencing the reply.
+  if (target <= 1) {
+    audio.volume = target;
+    return;
+  }
+  try {
+    const Ctor =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor) {
+      audio.volume = 1;
+      return;
+    }
+    if (!audioGraph || audioGraph.state === "closed") audioGraph = new Ctor();
+    await audioGraph.resume().catch(() => {});
+    if (audioGraph.state !== "running") {
+      // No audio gesture yet: play at full element volume rather than silence.
+      audio.volume = 1;
+      return;
+    }
+    const source = audioGraph.createMediaElementSource(audio);
+    const gain = audioGraph.createGain();
+    gain.gain.value = target;
+    const compressor = audioGraph.createDynamicsCompressor();
+    compressor.threshold.value = -20;
+    compressor.knee.value = 14;
+    compressor.ratio.value = 8;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+    source.connect(gain).connect(compressor).connect(audioGraph.destination);
+    graphSource = source;
+    audio.volume = 1;
+  } catch {
+    // A graph failure must never mute the reply — fall back to element volume.
+    audio.volume = 1;
+  }
+}
+
+function releaseAudioGraph() {
+  try {
+    graphSource?.disconnect();
+  } catch {
+    // Already disconnected.
+  }
+  graphSource = null;
+}
+
 function stopSpeechProgress() {
   if (progressTimer) window.clearInterval(progressTimer);
   progressTimer = 0;
@@ -97,6 +160,7 @@ export function cancelCompanionVoice() {
     audioEl.src = "";
     audioEl = null;
   }
+  releaseAudioGraph();
   cancelOfflineVoice();
 }
 
@@ -111,6 +175,7 @@ async function playSource(
   // Gemini audio is already paced by the server, so it plays at natural speed;
   // only an explicit speed change nudges it slightly.
   audio.playbackRate = speed === 1 ? 1 : Math.min(1.15, Math.max(0.85, speed));
+  await applyPlaybackVolume(audio, options.volume ?? 1);
   audioEl = audio;
   audio.onended = () => {
     if (run !== runToken) return;
@@ -161,7 +226,7 @@ export async function playCompanionAudioBase64(
 }
 
 /**
- * Speaks with AURIX's real Gemini voice and falls back to the browser voice
+ * Speaks with DEX MADE's real Gemini voice and falls back to the browser voice
  * when the speech service is unavailable, so the companion always answers.
  */
 export async function speakWithCompanionVoice(

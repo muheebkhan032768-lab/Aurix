@@ -124,7 +124,7 @@ export function SettingsView({
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold"
             >
               <Package className="w-4 h-4" />
-              <span>Download Complete AURIX 2.0 ZIP</span>
+              <span>Download Complete DEX MADE 2.0 ZIP</span>
             </a>
           </div>
         </div>
@@ -154,6 +154,7 @@ export function SettingsView({
               onChange={(e) => onUpdateSettings({ ...settings, wakePhrase: e.target.value })}
               className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
             />
+            <span className="mt-1 block text-[10px] text-[#94A3B8]">Default: Hello Dex Made</span>
           </label>
 
           <label className="block text-xs text-[#64748B]">

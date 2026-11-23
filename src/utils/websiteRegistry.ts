@@ -1,7 +1,7 @@
 /**
  * Central website command registry.
  *
- * Every website AURIX can open by voice lives here — one place to add a site,
+ * Every website DEX MADE can open by voice lives here — one place to add a site,
  * change a URL or add a spoken alias. The voice command parser reads this list,
  * so adding an entry is enough to make a new site voice-accessible.
  *
@@ -62,7 +62,7 @@ export const WEBSITE_REGISTRY: WebsiteEntry[] = [
       },
     ],
     authNote:
-      "Only one Facebook URL is configured. Sign in to the right account in Chrome; AURIX never asks for or stores the password.",
+      "Only one Facebook URL is configured. Sign in to the right account in Chrome; DEX MADE never asks for or stores the password.",
   },
   {
     id: "instagram",
@@ -103,6 +103,15 @@ export const WEBSITE_REGISTRY: WebsiteEntry[] = [
     commands: ["open tiktok", "launch tiktok", "access tiktok", "open my tiktok", "tiktok kholo"],
     keywords: ["tiktok"],
     category: "social",
+    action: "open_new_tab",
+  },
+  {
+    id: "daraz",
+    name: "Daraz",
+    url: "https://www.daraz.pk/#?",
+    commands: ["open daraz", "launch daraz", "access daraz", "open my daraz", "daraz kholo"],
+    keywords: ["daraz"],
+    category: "business",
     action: "open_new_tab",
   },
   {

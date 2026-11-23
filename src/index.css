@@ -70,7 +70,7 @@
   background: rgba(16, 185, 129, 0.55);
 }
 
-/* AURIX companion figure */
+/* DEX MADE companion figure */
 @keyframes aurix-companion-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
@@ -142,7 +142,7 @@
   animation: none;
 }
 
-/* AURIX 2.0 — NEXUS COCKPIT reactor & instrument motion */
+/* DEX MADE 2.0 — NEXUS COCKPIT reactor & instrument motion */
 @keyframes nexus-spin {
   to { transform: rotate(360deg); }
 }
@@ -211,7 +211,7 @@
   animation: nexus-rise 0.4s ease-out both;
 }
 
-/* Emblem star and voice waveform — they move while AURIX speaks */
+/* Emblem star and voice waveform — they move while DEX MADE speaks */
 .nexus-star {
   transform-box: fill-box;
   transform-origin: center;
@@ -306,7 +306,7 @@
 
 
 /* ------------------------------------------------------------------ */
-/* AURIX reference dashboard — design tokens & motion                  */
+/* DEX MADE reference dashboard — design tokens & motion                  */
 /* ------------------------------------------------------------------ */
 .aurix-shell {
   --d-bg: #020b12;

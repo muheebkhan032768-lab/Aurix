@@ -89,9 +89,9 @@ interface LocalMessage {
 
 function greetingWord(date: Date): string {
   const hour = date.getHours();
-  if (hour < 12) return "Good Morning";
-  if (hour < 18) return "Good Afternoon";
-  return "Good Evening";
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 function clockTime(date: Date): string {
@@ -107,8 +107,8 @@ function useClock() {
   return now;
 }
 
-function spokenGreeting(firstName: string): string {
-  return `${greetingWord(new Date())}, ${firstName}. ${BRAND.name} systems are online. How may I assist you today?`;
+function spokenGreeting(): string {
+  return `${greetingWord(new Date())}, Sir. ${BRAND.name} is online and ready. All systems are operational. How may I assist you today?`;
 }
 
 export function DeskMateDashboard({
@@ -149,7 +149,7 @@ export function DeskMateDashboard({
     if (!welcomeTriggerSignal || welcomeTriggerSignal === handledWelcomeRef.current) return;
     handledWelcomeRef.current = welcomeTriggerSignal;
     if (!settings.voiceEnabled || settings.doNotDisturb) return;
-    const text = spokenGreeting(firstName);
+    const text = spokenGreeting();
     void (async () => {
       const spoken = await speakWithCompanionVoice(text, { speed: settings.voiceSpeed });
       if (!spoken) {
@@ -311,7 +311,7 @@ export function DeskMateDashboard({
                     <span className="aurix-dot h-1.5 w-1.5 rounded-full bg-[var(--d-cyan)]" />
                     <span className="aurix-dot h-1.5 w-1.5 rounded-full bg-[var(--d-cyan)]" style={{ animationDelay: "120ms" }} />
                     <span className="aurix-dot h-1.5 w-1.5 rounded-full bg-[var(--d-cyan)]" style={{ animationDelay: "240ms" }} />
-                    <span className="ml-1">Desk Mate is thinking…</span>
+                    <span className="ml-1">DEX MADE is thinking…</span>
                   </div>
                 )}
               </div>
@@ -334,8 +334,8 @@ export function DeskMateDashboard({
                 <input
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder="Ask Desk Mate anything, Sir..."
-                  aria-label="Ask Desk Mate"
+                  placeholder="Ask DEX MADE anything, Sir..."
+                  aria-label="Ask DEX MADE"
                   className="min-w-0 flex-1 bg-transparent text-[12px] text-[var(--d-text)] placeholder:text-[var(--d-dim)] outline-none"
                 />
                 <button

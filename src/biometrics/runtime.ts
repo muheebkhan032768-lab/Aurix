@@ -1,5 +1,5 @@
 /**
- * Live sensor/session state shared by the AURIX status rail.
+ * Live sensor/session state shared by the DEX MADE status rail.
  *
  * Only facts that actually happened are set here: camera/mic tracks are
  * opened and closed by the engine code, and session state comes from the

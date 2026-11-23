@@ -1,5 +1,5 @@
 /**
- * AURIX biometric, training-memory and activation API.
+ * DEX MADE biometric, training-memory and activation API.
  *
  * Mounted from server.ts. Personal training memory is refused while the owner
  * session is locked, so an unknown user cannot read it even if they reach the
@@ -61,7 +61,7 @@ function sessionOpen(): boolean {
 
 function refuseLocked(res: Response): boolean {
   if (sessionOpen()) return false;
-  res.status(423).json({ error: "AURIX session is locked. Verify the owner before accessing personal training memory." });
+  res.status(423).json({ error: "DEX MADE session is locked. Verify the owner before accessing personal training memory." });
   return true;
 }
 
@@ -162,7 +162,7 @@ export function registerBiometricRoutes(app: Express): void {
     }
     const outcome = verifySecurityPin(String(req.body?.pin ?? ""));
     if (!outcome.ok) {
-      addAuditLog("BIOMETRIC_GATE_PIN_FAILED", "Security Gate", "PIN fallback rejected at the AURIX identity gate.", "security");
+      addAuditLog("BIOMETRIC_GATE_PIN_FAILED", "Security Gate", "PIN fallback rejected at the DEX MADE identity gate.", "security");
       res.status(401).json({ ok: false, error: outcome.message, security: outcome.status });
       return;
     }
@@ -171,12 +171,12 @@ export function registerBiometricRoutes(app: Express): void {
   });
 
   app.post("/api/biometrics/session/lock", (req, res) => {
-    const reason = typeof req.body?.reason === "string" ? req.body.reason : "Owner locked the AURIX session.";
+    const reason = typeof req.body?.reason === "string" ? req.body.reason : "Owner locked the DEX MADE session.";
     res.json({ ok: true, session: lockSession(reason) });
   });
 
   app.post("/api/biometrics/session/logout", (_req, res) => {
-    const session = lockSession("Owner logged out of AURIX.");
+    const session = lockSession("Owner logged out of DEX MADE.");
     clearPendingActivation();
     addAuditLog("SESSION_LOGGED_OUT", "Abdul Muheeb", "Owner logged out; personal session data closed.", "security");
     res.json({ ok: true, session });

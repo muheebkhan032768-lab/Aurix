@@ -47,6 +47,7 @@ import {
 import {
   analyzeFileOrImage,
   chatWithAurix,
+  chatWithAurixStream,
   diagnoseAndRepairCode,
   draftBusinessDocument,
   generateFreeCreativeAsset,
@@ -379,7 +380,98 @@ async function startServer() {
     }
   });
 
-  // Voice Synthesis (Male AURIX Voice via Gemini 3.8 TTS)
+  // Streaming chat: tokens arrive as server-sent events so the reply renders
+  // while it is still being generated instead of after the whole answer.
+  app.post("/api/chat/stream", async (req, res) => {
+    const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode } = req.body || {};
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "Message text is required." });
+    }
+
+    const settings = getAppSettings();
+    const targetLanguage = language || settings.language;
+    const activeConvId = ensureConversation(
+      conversationId,
+      message,
+      mode || "chat",
+      model || settings.activeModel,
+      targetLanguage
+    );
+    const history = getConversationMessages(activeConvId);
+    const userMsg = addMessage({
+      conversationId: activeConvId,
+      role: "user",
+      content: message,
+      language: targetLanguage,
+    });
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+
+    const send = (event: string, data: unknown) => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+
+    send("start", { conversationId: activeConvId, userMessage: userMsg });
+
+    let streamed = "";
+    try {
+      const aiReply = await chatWithAurixStream(
+        {
+          history,
+          userMessage: message,
+          model,
+          language: targetLanguage,
+          thinkingLevel,
+          scopedWebsite,
+        },
+        (delta) => {
+          streamed += delta;
+          send("delta", { text: delta });
+        }
+      );
+      const assistantMsg = addMessage({
+        conversationId: activeConvId,
+        role: "assistant",
+        content: aiReply.text,
+        modelUsed: aiReply.modelUsed,
+        language: targetLanguage,
+        thinkingLevel: aiReply.thinkingLevel,
+      });
+      send("done", {
+        conversationId: activeConvId,
+        assistantMessage: assistantMsg,
+        conversations: listConversations(),
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "AI chat request failed.";
+      if (streamed.trim()) {
+        // Keep the words the user already saw instead of losing the answer.
+        const assistantMsg = addMessage({
+          conversationId: activeConvId,
+          role: "assistant",
+          content: streamed.trim(),
+          modelUsed: model || settings.activeModel,
+          language: targetLanguage,
+          thinkingLevel: thinkingLevel || settings.thinkingLevel,
+        });
+        send("done", {
+          conversationId: activeConvId,
+          assistantMessage: assistantMsg,
+          conversations: listConversations(),
+          interrupted: true,
+        });
+      } else {
+        send("error", { error: msg });
+      }
+    } finally {
+      res.end();
+    }
+  });
+
+  // Voice Synthesis (Male DEX MADE Voice via Gemini 3.8 TTS)
   app.post("/api/voice/tts", async (req, res) => {
     try {
       const settings = getAppSettings();
@@ -421,7 +513,7 @@ async function startServer() {
       const targetLang = language || settings.language || "English";
       const activeConvId = ensureConversation(
         conversationId,
-        "AURIX Live Companion",
+        "DEX MADE Live Companion",
         "companion",
         "gemini-3.1-flash-lite",
         targetLang
@@ -477,7 +569,7 @@ async function startServer() {
   app.post("/api/vision/analyze", async (req, res) => {
     try {
       const result = await analyzeFileOrImage(req.body);
-      addAuditLog("FILE_ANALYZED", "AURIX Vision/File", `Analyzed ${req.body.fileName || "input"} (${req.body.mode})`, "info");
+      addAuditLog("FILE_ANALYZED", "DEX MADE Vision/File", `Analyzed ${req.body.fileName || "input"} (${req.body.mode})`, "info");
       res.json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "File & Vision analysis failed.";
@@ -493,7 +585,7 @@ async function startServer() {
         return res.status(400).json({ error: "Research query is required." });
       }
       const result = await researchWebWithGrounding({ query, language });
-      addAuditLog("WEB_RESEARCH", "AURIX Research", `Executed grounded search: ${String(query).slice(0, 60)}`, "info");
+      addAuditLog("WEB_RESEARCH", "DEX MADE Research", `Executed grounded search: ${String(query).slice(0, 60)}`, "info");
       res.json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Internet research failed.";
@@ -505,7 +597,7 @@ async function startServer() {
   app.post("/api/dev/assist", async (req, res) => {
     try {
       const result = await runDeveloperAssistant(req.body);
-      addAuditLog("DEV_ASSIST", "AURIX Dev", `Developer review for ${req.body.languageTarget} (${req.body.projectScope})`, "info");
+      addAuditLog("DEV_ASSIST", "DEX MADE Dev", `Developer review for ${req.body.languageTarget} (${req.body.projectScope})`, "info");
       res.json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Developer assistant request failed.";
@@ -544,7 +636,7 @@ async function startServer() {
   // Settings
   app.put("/api/settings", (req, res) => {
     const saved = saveAppSettings(req.body);
-    addAuditLog("SETTINGS_UPDATED", "Abdul Muheeb", "Updated AURIX settings.", "info");
+    addAuditLog("SETTINGS_UPDATED", "Abdul Muheeb", "Updated DEX MADE settings.", "info");
     res.json(saved);
   });
 
@@ -700,7 +792,7 @@ async function startServer() {
     res.json({ ok: true, entry });
   });
 
-  // Real laptop control (live only when AURIX runs on the owner's own PC).
+  // Real laptop control (live only when DEX MADE runs on the owner's own PC).
   app.get("/api/laptop/status", (_req, res) => {
     res.json(laptopControlStatus());
   });
@@ -743,7 +835,7 @@ async function startServer() {
       action: active ? "Emergency Stop Triggered" : "Emergency Stop Cleared",
       target: "All Desktop & Proactive Automations",
       status: active ? "stopped" : "approved",
-      executedIn: "AURIX Safety Controller",
+      executedIn: "DEX MADE Safety Controller",
       detail: entry.detail,
     });
     res.json({ emergencyStopActive, entry, actionLog });
@@ -752,7 +844,7 @@ async function startServer() {
   // Backup Export
   app.get("/api/backup/export", (_req, res) => {
     const dump = exportFullBackup();
-    addAuditLog("BACKUP_EXPORTED", "Abdul Muheeb", "Exported full AURIX SQLite knowledge backup JSON.", "info");
+    addAuditLog("BACKUP_EXPORTED", "Abdul Muheeb", "Exported full DEX MADE SQLite knowledge backup JSON.", "info");
     res.setHeader("Content-Disposition", 'attachment; filename="aurix-backup.json"');
     res.json(dump);
   });
@@ -786,7 +878,7 @@ async function startServer() {
       addAuditLog(
         "COMPLETE_PROJECT_EXPORT",
         "Abdul Muheeb",
-        `Downloaded complete AURIX 2.0 ZIP package (${entries.length} files, ${(buffer.length / 1024).toFixed(1)} KB).`,
+        `Downloaded complete DEX MADE 2.0 ZIP package (${entries.length} files, ${(buffer.length / 1024).toFixed(1)} KB).`,
         "info"
       );
       res.setHeader("Content-Type", "application/zip");
@@ -914,7 +1006,7 @@ async function startServer() {
       const targetLang = language || settings.language || "English";
       const q = text.toLowerCase();
       // A spoken laptop command (open YouTube, play music, open a folder, find a
-      // file) runs for real when AURIX is running on the owner's own computer.
+      // file) runs for real when DEX MADE is running on the owner's own computer.
       const laptopPlan = planLaptopCommand(text, listWebsites());
 
       const activeConvId = ensureConversation(
@@ -988,7 +1080,7 @@ async function startServer() {
           action: "Open Website",
           target: "https://www.youtube.com",
           status: emergencyStopActive ? "blocked" : "approved",
-          executedIn: "AURIX Command Router",
+          executedIn: "DEX MADE Command Router",
           detail: emergencyStopActive ? "Blocked by Emergency Stop." : "Prepared YouTube launcher link.",
         });
         replyText = emergencyStopActive
@@ -1037,14 +1129,14 @@ async function startServer() {
           action: "Open Website",
           target: url,
           status: emergencyStopActive ? "blocked" : "approved",
-          executedIn: "AURIX Command Router",
+          executedIn: "DEX MADE Command Router",
           detail: emergencyStopActive ? "Blocked by Emergency Stop." : `Prepared ${siteName} launcher link.`,
         });
         replyText = emergencyStopActive
           ? "Emergency Stop is currently active, Muheeb. Clear it in Computer Control and I will open that for you."
           : `Opening ${siteName} for you, Muheeb.`;
       } else {
-        // Voice conversations pass a fast model so AURIX answers in about a
+        // Voice conversations pass a fast model so DEX MADE answers in about a
         // second instead of waiting on the deep thinking model.
         const voiceFast = requestedModel === "gemini-3.1-flash-lite";
         const aiReply = await chatWithAurix({
@@ -1119,15 +1211,15 @@ async function startServer() {
   await runSelfHealAudit({ deepCodeScan: false, reason: "Boot watchdog" });
 
   app.listen(3000, "0.0.0.0", () => {
-    console.log("AURIX 2.0 Server listening on http://0.0.0.0:3000");
+    console.log("DEX MADE 2.0 Server listening on http://0.0.0.0:3000");
   });
 }
 
 process.on("unhandledRejection", (reason) => {
-  console.error("[AURIX Self-Heal Shield] Unhandled rejection:", reason);
+  console.error("[DEX MADE Self-Heal Shield] Unhandled rejection:", reason);
 });
 process.on("uncaughtException", (err) => {
-  console.error("[AURIX Self-Heal Shield] Uncaught exception:", err);
+  console.error("[DEX MADE Self-Heal Shield] Uncaught exception:", err);
 });
 
 startServer();

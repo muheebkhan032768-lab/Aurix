@@ -92,11 +92,16 @@ export function buildAurixSystemPrompt(options: {
     .map((m) => `- [${m.projectScope} · ${m.category}] ${m.title}: ${m.content}`)
     .join("\n");
 
-  return `You are AURIX (Advanced Unified Responsive Intelligence X), the personal AI assistant of ${owner.name}, created for ${company.name}.
+  return `You are DEX MADE, the personal AI assistant of ${owner.name}, created for ${company.name}.
+
+IDENTITY:
+- Your permanent name is DEX MADE. Always identify yourself as DEX MADE. Never use AURIX, JARVIS, FRIDAY or any other assistant name, and never misspell it.
 
 PERSONALITY & COMMUNICATION RULES:
-- Refined British gentleman AI companion: warm, friendly, deeply respectful, composed, and quietly confident (inspired by JARVIS and FRIDAY, with your own independent AURIX identity).
-- Address ${owner.name} respectfully and professionally.
+- Refined, respectful AI companion: warm, friendly, composed, quietly confident and command-oriented.
+- Address the owner as "Sir". Use it naturally and respectfully, not in every sentence.
+- STRICT LANGUAGE SYSTEM: you understand and speak ONLY English (US), Urdu and Hindi. Never answer in a fourth language, never switch languages at random, and never produce meaningless or unrelated language.
+- Detect the language the owner used and reply in that same language; keep that language for the conversation until the owner changes it. Understand Roman Urdu and Roman Hindi as well as native script.
 - Primary response language preference: ${targetLang}. If the user writes in English, Urdu (including Roman Urdu or Urdu script), or Hindi (Devanagari or Hinglish), understand naturally and respond in the same language unless instructed otherwise.
 - LANGUAGE & ACCENT REQUESTS: when the user asks for a language or accent (for example "speak in British English", "اردو میں بات کرو", "Hindi mein bolo"), switch silently. Never repeat, quote, confirm or announce the instruction, and never begin with phrases such as "Certainly, I will speak in British English". Start directly with the answer in the requested language and accent.
 - Never announce the language, the accent, or the fact that you are about to answer — begin with the answer itself.
@@ -140,8 +145,9 @@ ${options.modeNote ? `ACTIVE MODULE CONTEXT:\n${options.modeNote}` : ""}`.trim()
 function buildVoiceSystemPrompt(language?: AurixLanguage): string {
   const owner = getOwnerProfile();
   const targetLang = language || getAppSettings().language || "English";
-  return `You are AURIX, the personal AI assistant of ${owner.name} at AM VEYRONIX.
-- Answer in ${targetLang}. Understand English, Urdu (script or Roman Urdu) and Hindi, and reply in the language you were spoken to.
+  return `You are DEX MADE, the personal AI assistant of ${owner.name} at AM VEYRONIX. Your permanent name is DEX MADE — never another name.
+- Address the owner as "Sir".
+- Speak ONLY English (US), Urdu or Hindi. Answer in ${targetLang} and in the language the owner actually spoke (including Roman Urdu and Roman Hindi); never use a fourth language.
 - This is a spoken conversation: at most two short sentences, plain speech, no markdown, no lists, no headings.
 - If the user asks for a language or accent (for example "speak in British English"), switch silently and answer in it. Never repeat, quote or confirm the request, and never say you are about to answer — start speaking the answer immediately.
 - Be warm, composed and precise. Never invent facts, credentials or capabilities.`;
@@ -228,7 +234,7 @@ export async function chatWithAurix(params: {
 
     const text = response.text?.trim();
     if (!text) {
-      throw new Error("AURIX received an empty response from the model.");
+      throw new Error("DEX MADE received an empty response from the model.");
     }
     return { text, modelUsed: servedModel, thinkingLevel: depth };
   } catch (error) {
@@ -239,12 +245,100 @@ export async function chatWithAurix(params: {
       return { text: localOllama, modelUsed: "local-ollama-free", thinkingLevel: "LOCAL" };
     }
     if (controller?.signal.aborted) {
-      throw new Error("AURIX could not reach its AI services in time. Please try again shortly.");
+      throw new Error("DEX MADE could not reach its AI services in time. Please try again shortly.");
     }
     if (error instanceof Error && error.message.trim()) throw error;
     throw new Error(ALL_ROUTES_DOWN_MESSAGE);
   } finally {
     if (deadline) clearTimeout(deadline);
+  }
+}
+
+/**
+ * Streaming twin of `chatWithAurix`: tokens are handed to `onDelta` as they
+ * arrive, so the interface renders the reply while it is still being written.
+ * Failover only switches routes before the first token reaches the caller; a
+ * stream that breaks after delivery is ended rather than replayed twice.
+ */
+export async function chatWithAurixStream(
+  params: {
+    history: ChatMessage[];
+    userMessage: string;
+    model?: "gemini-4-hydrogen" | "gemini-3.1-flash-lite";
+    language?: AurixLanguage;
+    thinkingLevel?: ThinkingDepth;
+    scopedWebsite?: string;
+  },
+  onDelta: (chunk: string) => void
+): Promise<{ text: string; modelUsed: string; thinkingLevel: string }> {
+  const settings = getAppSettings();
+  const model = params.model || settings.activeModel || "gemini-4-hydrogen";
+  const depth = params.thinkingLevel || settings.thinkingLevel || "MEDIUM";
+  const systemInstruction = buildAurixSystemPrompt({
+    language: params.language,
+    scopedWebsite: params.scopedWebsite,
+  });
+
+  if (settings.offlineModeForced) {
+    const offline = answerOfflineWithKnowledge(
+      params.userMessage,
+      params.language || settings.language
+    );
+    onDelta(offline);
+    return { text: offline, modelUsed: "offline-knowledge-engine", thinkingLevel: "LOCAL" };
+  }
+
+  const thinkingEnum = mapThinkingLevel(model, depth);
+  const contents = [
+    ...params.history.slice(-14).map((m) => ({
+      role: m.role === "assistant" ? ("model" as const) : ("user" as const),
+      parts: [{ text: m.content }],
+    })),
+    { role: "user" as const, parts: [{ text: params.userMessage }] },
+  ];
+
+  let delivered = "";
+  // The pool re-throws a cancellation without marking the route unhealthy, so
+  // a stream that already reached the caller is never replayed on another key.
+  const alreadyDelivered = new Error("Stream interrupted after delivery began.");
+  alreadyDelivered.name = "AbortError";
+
+  try {
+    const { text, servedModel } = await runWithGeminiFailover(
+      async (ai, _key, candidate) => {
+        const stream = await ai.models.generateContentStream({
+          model: candidate,
+          contents,
+          config: {
+            systemInstruction,
+            ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
+          },
+        });
+        let full = "";
+        try {
+          for await (const chunk of stream) {
+            const piece = chunk.text;
+            if (!piece) continue;
+            full += piece;
+            delivered += piece;
+            onDelta(piece);
+          }
+        } catch (streamError) {
+          if (delivered) throw alreadyDelivered;
+          throw streamError;
+        }
+        if (!full.trim()) throw new Error("DEX MADE received an empty response from the model.");
+        return { text: full.trim(), servedModel: candidate };
+      },
+      { models: buildModelLadder(model) }
+    );
+    return { text, modelUsed: servedModel, thinkingLevel: depth };
+  } catch (error) {
+    // A partially delivered answer is kept; the caller stores what it received.
+    if (error === alreadyDelivered && delivered.trim()) {
+      return { text: delivered.trim(), modelUsed: model, thinkingLevel: depth };
+    }
+    throw error;
   }
 }
 
@@ -318,9 +412,9 @@ export async function synthesizeAurixVoice(params: {
   const describeTtsFailure = (err: unknown) => {
     const raw = err instanceof Error ? err.message : "";
     if (/RESOURCE_EXHAUSTED|quota|429/i.test(raw)) {
-      return "Cloud voice quota is used up, so AURIX is speaking with the device voice.";
+      return "Cloud voice quota is used up, so DEX MADE is speaking with the device voice.";
     }
-    return "Speech synthesis is unavailable, so AURIX is speaking with the device voice.";
+    return "Speech synthesis is unavailable, so DEX MADE is speaking with the device voice.";
   };
 
   try {
@@ -353,7 +447,7 @@ export async function transcribeAudioInput(params: {
     : "Detect the spoken language (English, Urdu or Hindi) and transcribe in that language.";
   const instruction = [
     "Transcribe the speech in this audio clip verbatim.",
-    'The assistant\'s name is "AURIX", pronounced "AW-ricks". It is never "lyrics", "lyric", "aurora" or "auric"; write "Hello AURIX" when that wake phrase is spoken.',
+    'The assistant\'s name is "DEX MADE", pronounced "AW-ricks". It is never "lyrics", "lyric", "aurora" or "auric"; write "Hello DEX MADE" when that wake phrase is spoken.',
     "Write only the words that were actually spoken, in the language they were spoken.",
     "Never translate, summarise, add words, or invent a word when the audio is unclear.",
     languageRule,
@@ -530,7 +624,7 @@ export async function runDeveloperAssistant(params: {
   const settings = getAppSettings();
   const systemInstruction = buildAurixSystemPrompt({
     scopedWebsite: params.projectScope === "Global" ? undefined : params.projectScope,
-    modeNote: `You are operating inside the AURIX Developer Workspace.
+    modeNote: `You are operating inside the DEX MADE Developer Workspace.
 Target Technology: ${params.languageTarget}
 Task Type: ${params.taskType}
 Project Scope: ${params.projectScope}
@@ -628,7 +722,7 @@ export async function generateProactiveCompanionTurn(params: {
     const ai = getClient();
     const recentSnippet = params.recentMessages
       .slice(-8)
-      .map((m) => `${m.role === "assistant" ? "AURIX" : "Muheeb"}: ${m.content}`)
+      .map((m) => `${m.role === "assistant" ? "DEX MADE" : "Muheeb"}: ${m.content}`)
       .join("\n");
 
     const systemInstruction = buildAurixSystemPrompt({
@@ -648,7 +742,7 @@ ${params.focusTopic ? `Suggested focus area: ${params.focusTopic}` : ""}
 Recent conversation:
 ${recentSnippet || "(Fresh start)"}
 
-Generate AURIX's next natural proactive spoken turn for Abdul Muheeb.`;
+Generate DEX MADE's next natural proactive spoken turn for Abdul Muheeb.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-lite",
@@ -787,7 +881,7 @@ Include Navbar, Hero, Features Grid, About Section, Contact Section, and Footer.
   </header>
   <section class="hero">
     <div>
-      <div class="tag">Generated by AURIX 2.0 Website Studio</div>
+      <div class="tag">Generated by DEX MADE 2.0 Website Studio</div>
       <h1>${safeTitle}</h1>
       <p class="lead">Designed with crisp bright architecture, responsive layout, clean typography, and zero external paid dependencies.</p>
       <a href="#contact" class="btn">Get Started</a>
@@ -802,7 +896,7 @@ Include Navbar, Hero, Features Grid, About Section, Contact Section, and Footer.
     <div class="card"><h4>Mobile Ready</h4><p style="color:#64748B;font-size:14px;margin-top:6px;">Fluid CSS Grid adapting seamlessly across desktop, tablet, and phone viewports.</p></div>
     <div class="card"><h4>AM VEYRONIX Standard</h4><p style="color:#64748B;font-size:14px;margin-top:6px;">Prepared for Abdul Muheeb's freelance and digital company deployments.</p></div>
   </section>
-  <footer id="contact">Crafted with AURIX 2.0 Website Studio · Powered by AM VEYRONIX</footer>
+  <footer id="contact">Crafted with DEX MADE 2.0 Website Studio · Powered by AM VEYRONIX</footer>
 </body>
 </html>`;
     return {
@@ -951,7 +1045,7 @@ Return ONLY valid raw <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/s
       { caption: cleanPrompt.slice(0, 40), accentColor: "#10B981", bgTop: "#F8FAFC", bgBottom: "#EEF2F7", motion: "orbit" },
       { caption: "AM VEYRONIX Visual Synthesis", accentColor: "#06B6D4", bgTop: "#EEF2F7", bgBottom: "#E2E8F0", motion: "pulse" },
       { caption: "Precision Architecture Frame", accentColor: "#D6AD60", bgTop: "#F8FAFC", bgBottom: "#EEF2F7", motion: "grid" },
-      { caption: "AURIX 2.0 Motion Sequence", accentColor: "#10B981", bgTop: "#EEF2F7", bgBottom: "#F8FAFC", motion: "wave" },
+      { caption: "DEX MADE 2.0 Motion Sequence", accentColor: "#10B981", bgTop: "#EEF2F7", bgBottom: "#F8FAFC", motion: "wave" },
     ],
     source: "offline-engine",
   };
@@ -973,7 +1067,7 @@ export async function diagnoseAndRepairCode(params: {
       const ai = getClient();
       const res = await ai.models.generateContent({
         model: "gemini-4-hydrogen",
-        contents: `You are AURIX's 12-Step Self-Healing Code Diagnostics Engine. Analyze this error carefully.`,
+        contents: `You are DEX MADE's 12-Step Self-Healing Code Diagnostics Engine. Analyze this error carefully.`,
         config: {
           responseMimeType: "application/json",
           responseSchema: {
@@ -1014,7 +1108,7 @@ export async function diagnoseAndRepairCode(params: {
     patchExplanation:
       "Wrap external I/O in try/catch boundaries, validate input schemas before parsing, and provide explicit safe defaults.",
     repairedCode: params.codeContext
-      ? `// Hardened Guard Wrapper\ntry {\n${params.codeContext}\n} catch (err) {\n  console.error("[AURIX Guard]", err);\n}`
+      ? `// Hardened Guard Wrapper\ntry {\n${params.codeContext}\n} catch (err) {\n  console.error("[DEX MADE Guard]", err);\n}`
       : "// Supply a snippet above to generate an exact defensive patch.",
     securityNote: "Never expose raw stack traces or environment secrets to untrusted client responses.",
     source: "offline-engine",

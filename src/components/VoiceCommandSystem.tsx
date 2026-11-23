@@ -61,7 +61,7 @@ interface VoiceCommandSystemProps {
   suppressCompanion?: boolean;
 }
 
-type VoiceStatus = "idle" | "listening" | "processing" | "success" | "error";
+type VoiceStatus = "idle" | "listening" | "processing" | "thinking" | "success" | "error";
 type CommandSource = "voice" | "typed" | "wake";
 
 interface CommandLogEntry {
@@ -109,21 +109,20 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
 function localeFor(language: AppSettings["language"]): string {
   if (language === "Urdu") return "ur-PK";
   if (language === "Hindi") return "hi-IN";
-  return "en-GB";
+  return "en-US";
 }
 
-/** Ways the wake phrase is commonly heard, including "Hello X". */
+/** Ways the wake phrase "Hello Dex Made" is commonly heard by a recogniser. */
 const WAKE_ALIASES = [
-  "hello aurix",
-  "hey aurix",
-  "hello x",
-  "hey x",
-  "hello orix",
-  "hello aurex",
-  "hello auriks",
-  "hello aarox",
-  "hello auric",
-  "hello aurox",
+  "hello dex made",
+  "hey dex made",
+  "hello dexmade",
+  "hello dex maid",
+  "hello dax made",
+  "hello deks made",
+  "hello deck made",
+  "hello dex",
+  "hey dex",
 ];
 
 function splitWakePhrase(raw: string, wakePhrase: string): { heard: boolean; remainder: string } {
@@ -145,9 +144,9 @@ function splitWakePhrase(raw: string, wakePhrase: string): { heard: boolean; rem
 }
 
 function wakeAcknowledgement(language: AppSettings["language"]): string {
-  if (language === "Urdu") return "اورکس آن لائن ہے، میں سن رہا ہوں۔";
-  if (language === "Hindi") return "ऑरिक्स ऑनलाइन है, मैं सुन रहा हूँ।";
-  return "AURIX online. I'm listening.";
+  if (language === "Urdu") return "جی ہاں، سر۔ ڈیکس میڈ آن لائن ہے، میں سن رہا ہوں۔";
+  if (language === "Hindi") return "जी हाँ, सर। डेक्स मेड ऑनलाइन है, मैं सुन रहा हूँ।";
+  return "Yes, Sir. DEX MADE is online and listening. How may I assist you?";
 }
 
 /** Space starts and stops the microphone everywhere except inside a text field. */
@@ -159,7 +158,7 @@ function isTextEntryTarget(target: EventTarget | null): boolean {
 }
 
 /**
- * Global voice command layer for AURIX.
+ * Global voice command layer for DEX MADE.
  * Works on every screen: push-to-talk, hands-free wake phrase, typed commands,
  * a live transcript, a spoken confirmation and a searchable command reference.
  */
@@ -178,7 +177,7 @@ export function VoiceCommandSystem({
   suppressCompanion = false,
 }: VoiceCommandSystemProps) {
   const [open, setOpen] = useState(false);
-  // Set while AURIX waits for the user to pick an account (e.g. Facebook).
+  // Set while DEX MADE waits for the user to pick an account (e.g. Facebook).
   const pendingSiteRef = useRef<{ entry: WebsiteEntry } | null>(null);
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [statusMessage, setStatusMessage] = useState("Ready for a command.");
@@ -211,8 +210,6 @@ export function VoiceCommandSystem({
   const focusInputOnOpenRef = useRef(false);
   const runCommandRef = useRef<(raw: string, source?: CommandSource) => Promise<void>>(async () => {});
   const handleSpokenInputRef = useRef<(raw: string, source?: CommandSource) => void>(() => {});
-  const spaceHeldRef = useRef(false);
-  const spaceReleasePendingRef = useRef(false);
   const wakeListeningRef = useRef(false);
   const alwaysOnListeningRef = useRef(false);
   const resumeAlwaysOnRef = useRef(false);
@@ -269,14 +266,14 @@ export function VoiceCommandSystem({
     ]
   );
 
-  // "Hello AURIX" (or "Hello X") wakes the assistant, opens its interface and
+  // "Hello DEX MADE" (or "Hello X") wakes the assistant, opens its interface and
   // runs whatever follows the phrase as the command.
   const handleSpokenInput = useCallback(
     (raw: string, source: CommandSource = "voice") => {
       const spoken = raw.trim();
       if (!spoken) return;
       const current = settingsRef.current;
-      const { heard, remainder } = splitWakePhrase(spoken, current.wakePhrase || "Hello AURIX");
+      const { heard, remainder } = splitWakePhrase(spoken, current.wakePhrase || "Hello DEX MADE");
       if (!heard) {
         void runCommandRef.current(spoken, source);
         return;
@@ -285,7 +282,7 @@ export function VoiceCommandSystem({
       setOpen(true);
       setStatus("idle");
       setTranscript(spoken);
-      setStatusMessage("AURIX online — I am listening.");
+      setStatusMessage("DEX MADE online — I am listening.");
       if (remainder) {
         void runCommandRef.current(remainder, "wake");
         return;
@@ -344,7 +341,7 @@ export function VoiceCommandSystem({
   }, [stopLiveCaption]);
 
   // Push-to-talk capture: one recording session through the shared voice
-  // engine, transcribed by the server so AURIX hears the real words.
+  // engine, transcribed by the server so DEX MADE hears the real words.
   const stopListening = useCallback(() => {
     const current = settingsRef.current;
     stopLiveCaption();
@@ -405,12 +402,8 @@ export function VoiceCommandSystem({
     }
     setListening(true);
     setStatus("listening");
-    setStatusMessage("Listening — release Space to send.");
+    setStatusMessage("Listening — press Space again to send.");
     startLiveCaption();
-    if (spaceReleasePendingRef.current) {
-      spaceReleasePendingRef.current = false;
-      stopListening();
-    }
   }, [stopListening, cancelSpeech, startLiveCaption]);
 
 
@@ -466,7 +459,7 @@ export function VoiceCommandSystem({
           }
 
           // Armed hands-free mode only reacts once the wake phrase is heard.
-          if (!splitWakePhrase(said, settings.wakePhrase || "Hello AURIX").heard) continue;
+          if (!splitWakePhrase(said, settings.wakePhrase || "Hello DEX MADE").heard) continue;
           handleSpokenInputRef.current(said, "wake");
         }
       };
@@ -642,7 +635,7 @@ export function VoiceCommandSystem({
     startAlwaysOnListening,
   ]);
 
-  // The microphone is independent of the speaker: muting AURIX's voice, or
+  // The microphone is independent of the speaker: muting DEX MADE's voice, or
   // turning Do Not Disturb on, must never disable push-to-talk. Only the
   // microphone switch or an Emergency Stop closes the input.
   useEffect(() => {
@@ -716,7 +709,7 @@ export function VoiceCommandSystem({
                 priority: intent.priority,
                 status: "todo",
                 dueDate: "",
-                notes: "Added by the AURIX voice command system.",
+                notes: "Added by the DEX MADE voice command system.",
               });
               response = `Added "${intent.title}" to your ${intent.category} tasks.`;
               break;
@@ -790,7 +783,7 @@ export function VoiceCommandSystem({
                 }
                 case "emergency_stop_off": {
                   await onEmergencyStop(false);
-                  response = "Emergency Stop cleared. AURIX operations resumed.";
+                  response = "Emergency Stop cleared. DEX MADE operations resumed.";
                   break;
                 }
                 case "set_theme": {
@@ -812,7 +805,7 @@ export function VoiceCommandSystem({
                   break;
                 }
                 case "lock_session": {
-                  response = "Locking the AURIX session.";
+                  response = "Locking the DEX MADE session.";
                   window.setTimeout(() => onLock(), 1200);
                   break;
                 }
@@ -859,6 +852,8 @@ export function VoiceCommandSystem({
               }
               // The spoken answer is synthesized in the same request, so audio
               // starts as soon as the reply text arrives.
+              setStatus("thinking");
+              setStatusMessage("Thinking…");
               const wantsVoice =
                 settings.voiceEnabled &&
                 !settings.doNotDisturb &&
@@ -875,7 +870,7 @@ export function VoiceCommandSystem({
                 }),
               });
               const data = await res.json();
-              if (!res.ok) throw new Error(data.error || "AURIX could not process that command.");
+              if (!res.ok) throw new Error(data.error || "DEX MADE could not process that command.");
               if (wantsVoice && data.audioBase64) {
                 prefetchedAudio = { audioBase64: data.audioBase64, mimeType: data.mimeType };
               }
@@ -1066,37 +1061,27 @@ export function VoiceCommandSystem({
           field.blur();
         }
         event.preventDefault();
-        if (event.repeat || spaceHeldRef.current) return;
-        spaceHeldRef.current = true;
+        if (event.repeat) return;
         // A focused button would otherwise be "clicked" by the spacebar.
         const focused = document.activeElement as HTMLElement | null;
         if (focused && focused !== document.body && !isTextEntryTarget(focused)) focused.blur();
         focusInputOnOpenRef.current = false;
         setOpen(true);
-        void startListeningRef.current();
+        // One press starts listening, the next press stops and sends it.
+        if (listeningRef.current || isCapturing()) stopListeningRef.current();
+        else void startListeningRef.current();
       }
-    };
-
-    const onKeyUp = (event: KeyboardEvent) => {
-      if (!spaceHeldRef.current || !matchesShortcut(event, shortcutsRef.current.pushToTalk)) return;
-      spaceHeldRef.current = false;
-      if (listeningRef.current) stopListeningRef.current();
-      else spaceReleasePendingRef.current = true;
     };
 
     // Losing focus mid-recording must release the microphone.
     const onBlur = () => {
-      if (!spaceHeldRef.current) return;
-      spaceHeldRef.current = false;
-      stopListeningRef.current();
+      if (listeningRef.current) stopListeningRef.current();
     };
 
     window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
     window.addEventListener("blur", onBlur);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
     };
   }, [cancelSpeech, stopContinuousListening]);
@@ -1133,7 +1118,9 @@ export function VoiceCommandSystem({
   useEffect(() => {
     publishVoice({
       state: processing
-        ? "processing"
+        ? status === "thinking"
+          ? "thinking"
+          : "processing"
         : speaking
           ? "speaking"
           : micActive
@@ -1162,7 +1149,9 @@ export function VoiceCommandSystem({
   ]);
 
   const displayStatus: VoiceStatus = processing
-    ? "processing"
+    ? status === "thinking"
+      ? "thinking"
+      : "processing"
     : speaking
       ? "success"
       : micActive
@@ -1170,7 +1159,9 @@ export function VoiceCommandSystem({
         : status;
 
   const companionState = processing
-    ? "processing"
+    ? status === "thinking"
+      ? "thinking"
+      : "processing"
     : speaking
       ? "speaking"
       : micActive
@@ -1180,7 +1171,9 @@ export function VoiceCommandSystem({
           : "idle";
 
   const companionCaption = processing
-    ? "Working on that…"
+    ? status === "thinking"
+      ? "Thinking it through…"
+      : "Working on that…"
     : lastResult?.text
       ? lastResult.text
       : micActive
@@ -1190,7 +1183,9 @@ export function VoiceCommandSystem({
           : statusMessage;
 
   const statusLabel = processing
-    ? "Working"
+    ? status === "thinking"
+      ? "Thinking"
+      : "Working"
     : speaking
       ? "Speaking"
       : micActive
@@ -1204,8 +1199,10 @@ export function VoiceCommandSystem({
   const dotClass =
     displayStatus === "listening"
       ? "bg-[#06B6D4]"
-      : displayStatus === "processing"
-        ? "bg-[#D6AD60]"
+      : displayStatus === "thinking"
+        ? "bg-[#147DFF]"
+        : displayStatus === "processing"
+          ? "bg-[#D6AD60]"
         : displayStatus === "error"
           ? "bg-rose-500"
           : displayStatus === "success"
@@ -1226,7 +1223,7 @@ export function VoiceCommandSystem({
       {open && (
         <section
           data-testid="voice-command-panel"
-          aria-label="AURIX voice command system"
+          aria-label="DEX MADE voice command system"
           className="fixed bottom-28 right-3 sm:right-5 z-40 w-[calc(100vw-1.5rem)] sm:w-[430px] max-h-[70vh] overflow-y-auto rounded-2xl border border-emerald-500/35 bg-white/95 dark:bg-[#0F1724]/95 backdrop-blur-md shadow-2xl"
         >
           <div className="sticky top-0 z-10 flex items-start justify-between gap-3 px-4 pt-4 pb-3 bg-white/95 dark:bg-[#0F1724]/95 border-b border-slate-200/80 dark:border-slate-800/80">
@@ -1239,7 +1236,7 @@ export function VoiceCommandSystem({
                   Voice Command System
                 </h2>
                 <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#64748B] dark:text-slate-400">
-                  AURIX · Alt+V
+                  DEX MADE · Alt+V
                 </p>
               </div>
             </div>
@@ -1366,7 +1363,7 @@ export function VoiceCommandSystem({
                   ) : (
                     <Activity className="w-3 h-3 text-amber-600" />
                   )}
-                  <span>AURIX</span>
+                  <span>DEX MADE</span>
                   {speaking && <Volume2 className="w-3 h-3 text-[#10B981]" />}
                 </div>
                 <p className="text-xs text-[#202938] dark:text-slate-200 mt-1 leading-relaxed">
@@ -1468,7 +1465,7 @@ export function VoiceCommandSystem({
           <div className="px-4 py-2.5 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 text-[9px] text-[#64748B] dark:text-slate-500">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span>
-                Hold {formatShortcut(shortcuts.pushToTalk)} to talk · {formatShortcut(shortcuts.cancel)} cancels
+                Press {formatShortcut(shortcuts.pushToTalk)} to talk · press again to send · {formatShortcut(shortcuts.cancel)} cancels
               </span>
               <button
                 type="button"

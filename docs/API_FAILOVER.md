@@ -1,6 +1,6 @@
-# AURIX Gemini API Failover
+# DEX MADE Gemini API Failover
 
-AURIX routes every Gemini request through one pool (`server/geminiPool.ts`).
+DEX MADE routes every Gemini request through one pool (`server/geminiPool.ts`).
 All existing chat, voice, vision, research and creative features use it unchanged —
 `getClient()` in `server/gemini.ts` returns the pooled client.
 
@@ -56,7 +56,7 @@ for TTS, 8s for the spoken-reply path).
 
 If every route fails, the chat endpoint returns HTTP 503 with the message:
 
-> AURIX is temporarily unable to connect to its AI services. All configured API routes
+> DEX MADE is temporarily unable to connect to its AI services. All configured API routes
 > are currently unavailable. Please try again shortly.
 
 No offline or templated text is substituted for a cloud answer, so the chat never

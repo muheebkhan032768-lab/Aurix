@@ -70,8 +70,10 @@ export function ChatView({
     setMessages((prev) => [...prev, optimisticUser]);
     setInput("");
 
+    const streamId = `stream_${Date.now()}`;
     try {
-      const res = await fetch("/api/chat", {
+      // Server-sent events: the answer is rendered while it is generated.
+      const res = await fetch("/api/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -84,20 +86,70 @@ export function ChatView({
           mode: "chat",
         }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to reach AURIX core.");
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to reach DEX MADE core.");
       }
-      setActiveConvId(data.conversationId);
+
       setMessages((prev) => [
-        ...prev.filter((m) => m.id !== optimisticUser.id),
-        data.userMessage,
-        data.assistantMessage,
+        ...prev,
+        {
+          id: streamId,
+          conversationId: activeConvId || "new",
+          role: "assistant",
+          content: "",
+          createdAt: new Date().toISOString(),
+        },
       ]);
-      if (Array.isArray(data.conversations)) {
-        onConversationsUpdated(data.conversations);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullText = "";
+
+      const handleEvent = (raw: string) => {
+        let event = "message";
+        let dataText = "";
+        for (const line of raw.split("\n")) {
+          if (line.startsWith("event:")) event = line.slice(6).trim();
+          else if (line.startsWith("data:")) dataText += line.slice(5).trim();
+        }
+        if (!dataText) return;
+        const data = JSON.parse(dataText);
+        if (event === "start") {
+          setActiveConvId(data.conversationId);
+          setMessages((prev) =>
+            prev.map((m) => {
+              if (m.id === optimisticUser.id) return data.userMessage as ChatMessage;
+              if (m.id === streamId) return { ...m, conversationId: data.conversationId };
+              return m;
+            })
+          );
+        } else if (event === "delta") {
+          fullText += data.text;
+          setMessages((prev) => prev.map((m) => (m.id === streamId ? { ...m, content: fullText } : m)));
+        } else if (event === "done") {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === streamId ? (data.assistantMessage as ChatMessage) : m))
+          );
+          if (Array.isArray(data.conversations)) onConversationsUpdated(data.conversations);
+        } else if (event === "error") {
+          throw new Error(data.error || "Conversation error.");
+        }
+      };
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+        for (const part of parts) handleEvent(part);
       }
+      if (buffer.trim()) handleEvent(buffer);
     } catch (err) {
+      // Drop the empty placeholder so a failed request leaves no ghost bubble.
+      setMessages((prev) => prev.filter((m) => !(m.id === streamId && !m.content.trim())));
       setError(err instanceof Error ? err.message : "Conversation error.");
     } finally {
       setLoading(false);
@@ -135,7 +187,7 @@ export function ChatView({
       await audio.play();
     } catch (err) {
       setSpeakingId(null);
-      setError(err instanceof Error ? err.message : "Could not play AURIX voice.");
+      setError(err instanceof Error ? err.message : "Could not play DEX MADE voice.");
     }
   };
 
@@ -243,7 +295,7 @@ export function ChatView({
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                AURIX Intelligence Ready
+                DEX MADE Intelligence Ready
               </h3>
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                 Ask about architecture, code debugging, AM VEYRONIX strategy, website planning, mathematics, or documents in English, Urdu, or Hindi.
@@ -256,7 +308,7 @@ export function ChatView({
                 className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
               >
                 <div className="flex items-center gap-2 mb-1 text-[11px] text-slate-400">
-                  <span>{m.role === "user" ? "Abdul Muheeb" : "AURIX"}</span>
+                  <span>{m.role === "user" ? "Abdul Muheeb" : "DEX MADE"}</span>
                   {m.modelUsed && (
                     <>
                       <span aria-hidden="true">·</span>
@@ -291,7 +343,7 @@ export function ChatView({
           )}
           {loading && (
             <div className="text-xs text-cyan-600 dark:text-cyan-400 font-mono">
-              AURIX is reasoning ({thinkingLevel})...
+              DEX MADE is reasoning ({thinkingLevel})...
             </div>
           )}
           {error && (
@@ -314,7 +366,7 @@ export function ChatView({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={`Message AURIX in ${language}...`}
+            placeholder={`Message DEX MADE in ${language}...`}
             className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
           <button

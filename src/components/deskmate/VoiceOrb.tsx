@@ -131,39 +131,17 @@ export function VoiceOrb({ settings, onExchange }: VoiceOrbProps) {
       return;
     }
     if (result.silent || !result.transcript.trim()) {
-      setError("I didn't catch that. Hold the orb and speak again.");
+      setError("I didn't catch that. Press the orb and speak again.");
       return;
     }
     await submit(result.transcript);
   }, [listening, settings.language, settings.autoDetectLanguage, submit, teardownMeter]);
 
-  // Hold Spacebar to talk (ignored while typing in a field).
-  useEffect(() => {
-    const isTyping = (target: EventTarget | null) => {
-      const el = target as HTMLElement | null;
-      if (!el) return false;
-      const tag = el.tagName;
-      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
-    };
-    const down = (event: KeyboardEvent) => {
-      if (event.code !== "Space" || event.repeat || isTyping(event.target)) return;
-      event.preventDefault();
-      void startListening();
-    };
-    const up = (event: KeyboardEvent) => {
-      if (event.code !== "Space" || isTyping(event.target)) return;
-      void stopListening();
-    };
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
-    return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
-    };
-  }, [startListening, stopListening]);
-
+  // The Spacebar toggle lives in the global voice command layer so the two
+  // listeners can never fight over the microphone; the orb follows the shared
+  // voice state and still supports a direct tap.
   const active = listening || snapshot.state === "listening";
-  const thinking = busy || snapshot.state === "processing";
+  const thinking = busy || snapshot.state === "processing" || snapshot.state === "thinking";
   const speaking = snapshot.state === "speaking";
   const live = active || speaking;
   const statusLabel = active
@@ -172,14 +150,14 @@ export function VoiceOrb({ settings, onExchange }: VoiceOrbProps) {
       ? "Thinking…"
       : speaking
         ? "Speaking…"
-        : "Press and hold Spacebar to speak";
+        : "Press Spacebar to speak";
   const subLabel = active
-    ? "Release to send · Desk Mate is hearing you"
+    ? "Press Space again to send · DEX MADE is hearing you"
     : thinking
       ? "Routing your request through the AI pool"
       : speaking
-        ? "Desk Mate is answering aloud"
-        : "Tap the orb or hold Spacebar";
+        ? "DEX MADE is answering aloud"
+        : "Tap the orb or press Spacebar";
 
   return (
     <div className="flex flex-col items-center">
@@ -188,7 +166,7 @@ export function VoiceOrb({ settings, onExchange }: VoiceOrbProps) {
         onPointerDown={() => void startListening()}
         onPointerUp={() => void stopListening()}
         onPointerLeave={() => void stopListening()}
-        aria-label="Hold to speak to Desk Mate"
+        aria-label="Speak to DEX MADE"
         className="relative grid h-[190px] w-[190px] place-items-center rounded-full outline-none transition-transform duration-200 active:scale-[0.98] sm:h-[210px] sm:w-[210px]"
       >
         <span className="aurix-orb-halo" aria-hidden="true" />

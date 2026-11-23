@@ -440,7 +440,7 @@ export interface DesktopActionLog {
 }
 
 /* ------------------------------------------------------------------ */
-/* AURIX owner identity, training memory & activation                  */
+/* DEX MADE owner identity, training memory & activation                  */
 /* ------------------------------------------------------------------ */
 
 export interface BiometricSettings {

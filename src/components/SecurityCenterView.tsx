@@ -61,7 +61,7 @@ export function SecurityCenterView({
             <span>Cryptographic PIN KDF · 5-Attempt Lockout · Least-Privilege Controls</span>
           </div>
           <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
-            AURIX Security Center
+            DEX MADE Security Center
           </h2>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Biometric Status: {security.windowsHelloStatus}
@@ -160,7 +160,7 @@ export function SecurityCenterView({
               onChange={(e) => setRequireBoot(e.target.checked)}
               className="accent-cyan-500"
             />
-            <span>Require PIN verification immediately on AURIX startup</span>
+            <span>Require PIN verification immediately on DEX MADE startup</span>
           </label>
 
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">

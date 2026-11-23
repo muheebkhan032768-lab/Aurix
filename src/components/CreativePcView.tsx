@@ -39,7 +39,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
   const [files, setFiles] = useState<WorkspaceFileItem[]>([]);
   const [activeFileName, setActiveFileName] = useState("notes_muheeb.txt");
   const [fileContent, setFileContent] = useState(
-    "AURIX 2.0 Workspace File\nOwner: Abdul Muheeb (AM VEYRONIX)\nStatus: Ready for editing offline or online."
+    "DEX MADE 2.0 Workspace File\nOwner: Abdul Muheeb (AM VEYRONIX)\nStatus: Ready for editing offline or online."
   );
   const [savingFile, setSavingFile] = useState(false);
   const [fileFeedback, setFileFeedback] = useState<string | null>(null);
@@ -299,7 +299,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
 
       ctx.fillStyle = "#10B981";
       ctx.font = "bold 13px monospace";
-      ctx.fillText(`AURIX 2.0 · SCENE ${sceneIdx + 1}/${scenes.length} · ${asset.title.toUpperCase()}`, 72, 426);
+      ctx.fillText(`DEX MADE 2.0 · SCENE ${sceneIdx + 1}/${scenes.length} · ${asset.title.toUpperCase()}`, 72, 426);
 
       ctx.fillStyle = "#202938";
       ctx.font = "600 22px sans-serif";
@@ -347,7 +347,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* 1. Complete AURIX Download + Quick Web Launchers */}
+      {/* 1. Complete DEX MADE Download + Quick Web Launchers */}
       <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F1724] p-5 sm:p-6 space-y-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -365,7 +365,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs whitespace-nowrap"
             >
               <Package className="w-4 h-4" />
-              <span>Download Complete AURIX 2.0 Project (.zip)</span>
+              <span>Download Complete DEX MADE 2.0 Project (.zip)</span>
             </a>
             <a
               href="/api/deliverables/download.zip"
@@ -465,7 +465,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                   type="text"
                   value={codeInstruction}
                   onChange={(e) => setCodeInstruction(e.target.value)}
-                  placeholder="What should AURIX build, fix, or refactor?"
+                  placeholder="What should DEX MADE build, fix, or refactor?"
                   className="rounded-lg bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs text-[#202938] dark:text-white"
                 />
               </div>
@@ -653,7 +653,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                   {asset.kind === "website" && (
                     <div className="grid grid-cols-1 gap-3">
                       <iframe
-                        title="AURIX Website Preview"
+                        title="DEX MADE Website Preview"
                         sandbox="allow-scripts"
                         srcDoc={editableWebsiteHtml}
                         className="w-full h-72 rounded-xl border border-slate-300 dark:border-slate-700 bg-white"

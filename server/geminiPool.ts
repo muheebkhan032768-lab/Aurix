@@ -1,7 +1,7 @@
 import { GoogleGenAI, type GenerateContentParameters, type GenerateContentResponse } from "@google/genai";
 
 /**
- * AURIX Gemini failover pool.
+ * DEX MADE Gemini failover pool.
  *
  * Every Gemini request in the app goes through `getPooledGeminiClient()`.
  * Two independent axes are protected:
@@ -125,7 +125,7 @@ const DEFAULT_TIMEOUT_MS = 45_000;
 const TTS_TIMEOUT_MS = 90_000;
 
 export const ALL_ROUTES_DOWN_MESSAGE =
-  "AURIX is temporarily unable to connect to its AI services. All configured API routes are currently unavailable. Please try again shortly.";
+  "DEX MADE is temporarily unable to connect to its AI services. All configured API routes are currently unavailable. Please try again shortly.";
 
 /** Recent quota failures, used to detect keys sharing one Google quota pool. */
 const recentQuotaFailures: Array<{ slot: number; at: number }> = [];
@@ -431,7 +431,7 @@ function friendlyExhaustedMessage(keys: GeminiKeyState[], ladder: string[]): str
     `Tried ${ladder.join(" → ")} on ${keys.length} key${keys.length === 1 ? "" : "s"} — ${reasons.join(", ")}.`,
     isSharedQuotaSuspected()
       ? "The keys appear to share one Google project quota, so switching keys cannot add capacity until that quota resets."
-      : "AURIX will retry automatically once a route recovers.",
+      : "DEX MADE will retry automatically once a route recovers.",
   ];
   return `${ALL_ROUTES_DOWN_MESSAGE} ${details.join(" ")}`;
 }
@@ -678,7 +678,7 @@ export function getGeminiPoolStatus(preferredModel?: string) {
     quota: {
       officialQuotaApiAvailable: false,
       note:
-        "Google does not expose remaining Gemini quota through the API, so AURIX shows locally counted requests and detected rate limits only.",
+        "Google does not expose remaining Gemini quota through the API, so DEX MADE shows locally counted requests and detected rate limits only.",
       sharedPoolSuspected: isSharedQuotaSuspected(),
     },
     checkedAt: new Date().toISOString(),

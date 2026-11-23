@@ -10,14 +10,14 @@ interface StartupSplashProps {
   onComplete: () => void;
 }
 
-const NAME_LETTERS = ["D", "E", "S", "K", " ", "M", "A", "T", "E"];
+const NAME_LETTERS = ["D", "E", "X", " ", "M", "A", "D", "E"];
 const VERSION_CHARS = ["v", "2", ".", "0"];
 
 const BOOT_STEPS = [
-  { label: "Voice engine", value: "online", at: 0.2 },
-  { label: "Neural core", value: "synced", at: 0.38 },
-  { label: "Memory lattice", value: "loaded", at: 0.56 },
-  { label: "Desk Mate link", value: "ready", at: 0.74 },
+  { label: "System", value: "initializing…", at: 0.2 },
+  { label: "Voice system", value: "ready", at: 0.4 },
+  { label: "AI core", value: "online", at: 0.62 },
+  { label: "All systems", value: "operational", at: 0.82 },
 ];
 
 export function StartupSplash({
@@ -92,7 +92,7 @@ export function StartupSplash({
     };
   }, [soundEnabled, soundVolume, durationSeconds]);
 
-  // Polished Futuristic Startup Backdrop matching bright silver/cyan/emerald AURIX 2.0 identity
+  // Polished Futuristic Startup Backdrop matching bright silver/cyan/emerald DEX MADE 2.0 identity
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -232,11 +232,11 @@ export function StartupSplash({
         exiting ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       role="dialog"
-      aria-label="Desk Mate Startup Sequence"
+      aria-label="DEX MADE Startup Sequence"
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
-      {/* Center Stage: Metallic Silver AURIX + Cyan & Emerald 2.0 */}
+      {/* Center Stage: Metallic Silver DEX MADE + Cyan & Emerald 2.0 */}
       <div className="relative z-10 flex flex-col items-center justify-center px-6 text-center">
         <div
           className="mb-7 transition-transform duration-300"
@@ -353,7 +353,7 @@ export function StartupSplash({
             textShadow: "0 0 20px rgba(0, 217, 255, 0.75)",
           }}
         >
-          POWERED BY AM VEYRONIX
+          PERSONAL AI ASSISTANT
         </p>
 
         <div className="mt-8 w-64 sm:w-80">
@@ -367,7 +367,7 @@ export function StartupSplash({
             />
           </div>
           <div className="mt-2.5 text-[11px] font-mono tracking-[0.22em] text-slate-300 uppercase tabular-nums">
-            Initializing Desk Mate Intelligence · {Math.round(progress * 100)}%
+            Initializing DEX MADE Intelligence · {Math.round(progress * 100)}%
           </div>
         </div>
 
@@ -392,7 +392,7 @@ export function StartupSplash({
           style={{ opacity: Math.max(0, Math.min(1, (progress - 0.72) / 0.16)) }}
         >
           <span className="h-1.5 w-1.5 rounded-full bg-[#2FE9C6] animate-pulse" aria-hidden="true" />
-          Say “Hello AURIX” to activate
+          Say “Hello Dex Made” to activate
         </div>
       </div>
 

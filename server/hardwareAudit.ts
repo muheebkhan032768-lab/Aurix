@@ -3,7 +3,7 @@ import os from "node:os";
 import { execFileSync } from "node:child_process";
 
 /**
- * AURIX 2.0 — Phase 1 Hardware & Environment Audit.
+ * DEX MADE 2.0 — Phase 1 Hardware & Environment Audit.
  *
  * Reads the REAL machine it is running on (no invented figures):
  *  - Node `os` module for CPU model, cores, RAM, platform.

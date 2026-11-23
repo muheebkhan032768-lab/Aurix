@@ -220,7 +220,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                 </pre>
               ) : (
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  AURIX will outline planned changes before proposing code modifications.
+                  DEX MADE will outline planned changes before proposing code modifications.
                 </p>
               )}
             </div>
