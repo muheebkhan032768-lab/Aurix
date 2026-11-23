@@ -21,6 +21,7 @@ export type AurixSectionId =
   | "teach"
   | "training"
   | "activation"
+  | "help"
   | "settings";
 
 export type AurixLanguage = "English" | "Urdu" | "Hindi";
