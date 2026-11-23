@@ -510,7 +510,7 @@ export function CommandHubView({
           }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "AURIX command failed.");
+        if (!res.ok) throw new Error(data.error || "DEX MADE command failed.");
 
         if (data.action) {
           setOrbState("executing");
@@ -541,7 +541,7 @@ export function CommandHubView({
           setStatusLabel(settings.proactiveTalkEnabled ? "British companion active" : "Ready for command");
         }
       } catch (err) {
-        setNotice(err instanceof Error ? err.message : "Failed to reach AURIX.");
+        setNotice(err instanceof Error ? err.message : "Failed to reach DEX MADE.");
         setOrbState("error");
         setStatusLabel("Command error");
         setTimeout(() => {
@@ -1119,7 +1119,7 @@ export function CommandHubView({
                   if (!voiceMuted) stopAllAudio();
                   setVoiceMuted((v) => !v);
                 }}
-                aria-label={voiceMuted ? "Unmute AURIX voice" : "Mute AURIX voice"}
+                aria-label={voiceMuted ? "Unmute DEX MADE voice" : "Mute DEX MADE voice"}
                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#10B981] text-[#202938] dark:text-slate-200 cursor-pointer"
               >
                 {voiceMuted ? (
@@ -1146,12 +1146,12 @@ export function CommandHubView({
               <button
                 type="button"
                 onClick={toggleMicTalk}
-                title="Click orb to speak with AURIX"
+                title="Click orb to speak with DEX MADE"
                 className="relative group cursor-pointer focus:outline-none"
               >
                 <canvas ref={orbCanvasRef} className="w-[260px] h-[260px] sm:w-[290px] sm:h-[290px] block" />
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] font-mono tracking-[0.22em] text-white/95 uppercase">AURIX 2.0</span>
+                  <span className="text-[10px] font-mono tracking-[0.22em] text-white/95 uppercase">DEX MADE 2.0</span>
                   <span className="text-sm font-display font-bold tracking-[0.16em] text-white mt-0.5 drop-shadow">
                     {orbState.toUpperCase()}
                   </span>
@@ -1408,7 +1408,7 @@ export function CommandHubView({
 
                       {!isUser && (
                         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-[#64748B] dark:text-slate-400">
-                          <span>AURIX · British Male · {m.language || settings.language}</span>
+                          <span>DEX MADE · British Male · {m.language || settings.language}</span>
                           <button
                             type="button"
                             onClick={() => speakTextWithAurix(m.content)}
@@ -1442,7 +1442,7 @@ export function CommandHubView({
               <button
                 type="button"
                 onClick={toggleMicTalk}
-                title={recording ? "Stop listening" : "Speak to AURIX"}
+                title={recording ? "Stop listening" : "Speak to DEX MADE"}
                 className={`p-2.5 rounded-lg border transition-colors cursor-pointer shrink-0 ${
                   recording
                     ? "bg-rose-600 border-rose-500 text-white"
@@ -1459,7 +1459,7 @@ export function CommandHubView({
                   setInputText(e.target.value);
                   lastActivityRef.current = Date.now();
                 }}
-                placeholder="Ask AURIX, open YouTube/site, run self-heal, or create..."
+                placeholder="Ask DEX MADE, open YouTube/site, run self-heal, or create..."
                 className="flex-1 bg-transparent px-2 py-1.5 text-sm text-[#202938] dark:text-white placeholder:text-[#64748B] focus:outline-none min-w-0"
               />
 

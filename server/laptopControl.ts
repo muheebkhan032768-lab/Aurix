@@ -4,9 +4,9 @@ import os from "node:os";
 import path from "node:path";
 
 /**
- * AURIX laptop control.
+ * DEX MADE laptop control.
  *
- * When the AURIX server runs on the owner's own PC (the Windows portable
+ * When the DEX MADE server runs on the owner's own PC (the Windows portable
  * launcher or `npm run dev`), a spoken command can open websites, play music,
  * open folders, search files and open documents for editing. Inside the hosted
  * preview there is no owner desktop, so every plan is reported as unavailable
@@ -27,7 +27,7 @@ export interface LaptopPlan {
   label: string;
   /** URL, absolute path or search query, depending on the kind. */
   target: string;
-  /** What AURIX says once the action really ran. */
+  /** What DEX MADE says once the action really ran. */
   spoken: string;
   /** Browser link the UI can offer when this machine cannot run the action. */
   fallbackUrl?: string;
@@ -105,8 +105,8 @@ export function laptopControlStatus(): LaptopStatus {
     available: hasDesktop,
     home: os.homedir(),
     reason: hasDesktop
-      ? "AURIX is running on this computer, so voice commands can open apps, folders and files here."
-      : "This preview runs on a server, not on your PC. Start AURIX on your own computer (AURIX_Portable_Start.bat) to control it.",
+      ? "DEX MADE is running on this computer, so voice commands can open apps, folders and files here."
+      : "This preview runs on a server, not on your PC. Start DEX MADE on your own computer (AURIX_Portable_Start.bat) to control it.",
   };
 }
 
@@ -335,7 +335,7 @@ function searchLaptop(query: string, root = os.homedir(), limit = 8): string[] {
 
 export async function runLaptopPlan(plan: LaptopPlan): Promise<LaptopRunResult> {
   if (plan.kind === "navigate") {
-    return { ok: true, detail: `Opened ${plan.target} inside AURIX.` };
+    return { ok: true, detail: `Opened ${plan.target} inside DEX MADE.` };
   }
   const status = laptopControlStatus();
   if (!status.available) {

@@ -1,8 +1,8 @@
-# AURIX Owner Identity, Visual Learning & Activation — implementation notes
+# DEX MADE Owner Identity, Visual Learning & Activation — implementation notes
 
 This document describes the upgrade that adds owner authentication, the
-TEACH AURIX visual learning mode, training memory, and Chrome/Gmail activation
-to AURIX 2.0. It records what is real, how it was tested, and what is **not**
+TEACH DEX MADE visual learning mode, training memory, and Chrome/Gmail activation
+to DEX MADE 2.0. It records what is real, how it was tested, and what is **not**
 verified.
 
 ## 1. Module map
@@ -20,14 +20,14 @@ verified.
 | Live status store + rail | — | `src/biometrics/runtime.ts`, `components/biometrics/AurixStatusRail.tsx` |
 | Identity gate (lock screen) | — | `components/biometrics/AuthGate.tsx` |
 | Enrollment / policy / event log | — | `components/biometrics/IdentityCenterView.tsx` |
-| TEACH AURIX mode | — | `components/learning/TeachAurixView.tsx` |
+| TEACH DEX MADE mode | — | `components/learning/TeachAurixView.tsx` |
 | Floating camera preview | — | `components/learning/CameraPreviewDock.tsx` |
-| AURIX Memory Center | — | `components/learning/TrainingMemoryCenterView.tsx` |
+| DEX MADE Memory Center | — | `components/learning/TrainingMemoryCenterView.tsx` |
 | Chrome/Gmail + Windows autostart | — | `components/integration/ActivationView.tsx` |
 | Chrome extension | `desktop/chrome-extension/` | — |
 | Windows startup script | `desktop/windows/aurix-autostart.ps1` | — |
 
-New UI sections: **Personal Authentication**, **Teach AURIX**, **Training Memory**
+New UI sections: **Personal Authentication**, **Teach DEX MADE**, **Training Memory**
 (primary nav) and **Chrome & Gmail Activation** (More modules).
 
 ## 2. Authentication
@@ -60,7 +60,7 @@ New UI sections: **Personal Authentication**, **Teach AURIX**, **Training Memory
 - **PIN fallback** works only when a PIN actually exists; with no PIN configured
   the API refuses PIN unlock instead of accepting anything.
 - **Session**: unlock / lock / logout, configurable inactivity auto-lock (the
-  existing AURIX timeout), and a status rail that only shows activity that is
+  existing DEX MADE timeout), and a status rail that only shows activity that is
   really happening.
 
 ### Calibration (why the voice score looks the way it does)
@@ -80,9 +80,9 @@ threshold is **0.78**. Real voices vary more than synthesized ones: enroll three
 recordings, then tune the threshold in Personal Authentication. Rejected
 attempts record their score in the verification event log.
 
-## 3. TEACH AURIX — visual learning
+## 3. TEACH DEX MADE — visual learning
 
-- Start with the **Enter training mode** button or by saying “Hello AURIX, enter
+- Start with the **Enter training mode** button or by saying “Hello DEX MADE, enter
   training mode” (voice command routing) or “enter training mode”.
 - The floating camera preview is ~1/8 of the viewport, sits on the **right** by
   default, moves **left**, keeps the camera aspect ratio (letterboxed, never
@@ -95,7 +95,7 @@ attempts record their score in the verification event log.
   default) the frame is also sent to Gemini for a suggested label; the UI marks
   that suggestion as cloud-derived.
 - **Teach this object** captures a frame into a review card. Nothing is written
-  until **Save example** is pressed; **Discard** drops the capture. AURIX never
+  until **Save example** is pressed; **Discard** drops the capture. DEX MADE never
   saves frames on its own.
 - **Gestures**: MediaPipe hand landmarks classify open palm / fist / thumb /
   victory shapes (shape only, no meaning). Teaching captures 2–3 samples, names
@@ -124,20 +124,20 @@ attempts record their score in the verification event log.
 - The Chrome extension (`desktop/chrome-extension`, downloadable from the
   Activation page) reports only “Chrome started” and “Gmail opened” to
   `http://127.0.0.1:3000/api/activation/event`. It reads no page content, and
-  opening Gmail never counts as identity proof: AURIX still requires face or
+  opening Gmail never counts as identity proof: DEX MADE still requires face or
   voice, and only asks when the session is locked.
 - The Windows startup script starts the server hidden, waits for it to answer,
-  and opens AURIX in a Chrome app window. AURIX boots locked.
+  and opens DEX MADE in a Chrome app window. DEX MADE boots locked.
 
 ## 6. Setup
 
 1. Dependencies: `@mediapipe/tasks-vision` is in `package.json`; `bun install`
    (or `npm install`) installs it.
 2. The four task models (face detector, face landmarker, hand landmarker,
-   MobileNet-V3 embedder, ~16 MB total) are downloaded once by the AURIX server
+   MobileNet-V3 embedder, ~16 MB total) are downloaded once by the DEX MADE server
    into `data/models` and served from `/api/vision/models/*`; the MediaPipe WASM
    runtime is served from `/mediapipe/wasm`. No CDN is used at inference time.
-3. Grant camera/microphone permission to the AURIX window, then enroll in
+3. Grant camera/microphone permission to the DEX MADE window, then enroll in
    Personal Authentication.
 4. Windows autostart and the Chrome bridge: see `desktop/README.md`.
 
@@ -173,14 +173,14 @@ The original score failed; the shipped score separates within/between cleanly.
 
 ### Browser checks (preview)
 
-- Home, Personal Authentication, Teach AURIX, Training Memory and Chrome/Gmail
+- Home, Personal Authentication, Teach DEX MADE, Training Memory and Chrome/Gmail
   Activation all render with no console errors; status rail present.
 - Identity gate: with a test template enrolled, the dashboard is not rendered,
   the face method is offered with the liveness note, and the PIN tab refuses with
   “No owner PIN is configured”.
 - Activation test signal with no credentials returns the `setup_required`
   message in the UI.
-- Camera: the sandbox preview iframe blocks `getUserMedia`; TEACH AURIX reports
+- Camera: the sandbox preview iframe blocks `getUserMedia`; TEACH DEX MADE reports
   “The camera could not start…” and does not pretend training started. Camera
   and microphone flows therefore were **not** exercised end-to-end here.
 

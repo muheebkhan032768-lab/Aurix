@@ -204,7 +204,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
               rows={3}
               value={draftBrief}
               onChange={(e) => setDraftBrief(e.target.value)}
-              placeholder="Describe client requirements or campaign goal for AURIX to draft..."
+              placeholder="Describe client requirements or campaign goal for DEX MADE to draft..."
               className="w-full bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100"
             />
             <button

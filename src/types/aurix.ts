@@ -21,6 +21,7 @@ export type AurixSectionId =
   | "teach"
   | "training"
   | "activation"
+  | "help"
   | "settings";
 
 export type AurixLanguage = "English" | "Urdu" | "Hindi";
@@ -208,7 +209,7 @@ export interface AppSettings {
   voiceName: "Charon" | "Fenrir" | "Puck";
   voiceSpeed: number;
   voicePitch: number;
-  /** Playback volume for the device voice, 0..1. */
+  /** Playback volume, 0.5..3 (above 1 is amplified through Web Audio gain). */
   voiceVolume: number;
   /** Device voice picked in settings (SpeechSynthesis voiceURI). */
   voiceId?: string;
@@ -439,7 +440,7 @@ export interface DesktopActionLog {
 }
 
 /* ------------------------------------------------------------------ */
-/* AURIX owner identity, training memory & activation                  */
+/* DEX MADE owner identity, training memory & activation                  */
 /* ------------------------------------------------------------------ */
 
 export interface BiometricSettings {

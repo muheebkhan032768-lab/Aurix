@@ -102,7 +102,7 @@ export function TrainingMemoryCenterView() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#00D9FF]">
-              <BrainCircuit className="h-3.5 w-3.5" /> AURIX memory center
+              <BrainCircuit className="h-3.5 w-3.5" /> DEX MADE memory center
             </div>
             <h1 className="mt-1 font-display text-lg font-bold tracking-wide text-white">Training Memory</h1>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#94A8B8]">
@@ -179,7 +179,7 @@ export function TrainingMemoryCenterView() {
         <p className="rounded-2xl border border-dashed border-white/10 px-4 py-10 text-center text-[11px] text-[#5B7185]">Loading approved training memory…</p>
       ) : filtered.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-[#00D9FF]/15 px-4 py-10 text-center text-[11px] text-[#5B7185]">
-          {examples.length === 0 ? "No training examples yet. Teach AURIX something in Visual Learning Mode." : "No example matches that search."}
+          {examples.length === 0 ? "No training examples yet. Teach DEX MADE something in Visual Learning Mode." : "No example matches that search."}
         </p>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

@@ -63,7 +63,7 @@ export function MemoryCenterView({ memories, onSaveMemory, onDeleteMemory }: Mem
           </span>
         </div>
         <p className="mt-1 text-[11px] text-[#94A8B8]">
-          Only what you approve here is remembered. Delete any entry to remove it from AURIX context permanently.
+          Only what you approve here is remembered. Delete any entry to remove it from DEX MADE context permanently.
         </p>
       </div>
 
@@ -136,7 +136,7 @@ export function MemoryCenterView({ memories, onSaveMemory, onDeleteMemory }: Mem
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={4}
-            placeholder="What should AURIX remember?"
+            placeholder="What should DEX MADE remember?"
             className="w-full rounded-xl border border-[#00D9FF]/15 bg-[#05080D]/70 px-3 py-2 text-xs text-white placeholder:text-[#5B7185] outline-none focus:border-[#00D9FF]/50"
           />
           {error && <p className="text-[11px] text-rose-300">{error}</p>}

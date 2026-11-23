@@ -1,5 +1,5 @@
 /**
- * AURIX training memory: owner-approved examples only.
+ * DEX MADE training memory: owner-approved examples only.
  *
  * Saving an example stores an image + metadata + an embedding for retrieval.
  * It does NOT retrain a model — retrieval matching happens locally against the

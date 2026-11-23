@@ -1,24 +1,24 @@
 <#
-  AURIX automatic startup (Windows 10/11)
+  DEX MADE automatic startup (Windows 10/11)
 
   What this does
   --------------
-  1. Starts the local AURIX server if it is not already listening on port 3000.
-  2. Opens AURIX in its own Chrome app window.
-  3. AURIX always boots LOCKED. No personal memory, configuration or training
+  1. Starts the local DEX MADE server if it is not already listening on port 3000.
+  2. Opens DEX MADE in its own Chrome app window.
+  3. DEX MADE always boots LOCKED. No personal memory, configuration or training
      data is shown until the owner passes face, voice or PIN verification.
 
   Install
   -------
   Create a shortcut to this file in:
       shell:startup        (Win+R -> type: shell:startup)
-  and set the shortcut's "Start in" folder to the AURIX project root.
+  and set the shortcut's "Start in" folder to the DEX MADE project root.
 
   Edit $AurixRoot below if the project lives somewhere else.
 #>
 
 param(
-  [string]$AurixRoot = "C:\AURIX",
+  [string]$AurixRoot = "C:\DEX MADE",
   [int]$Port = 3000
 )
 
@@ -35,7 +35,7 @@ function Test-AurixPort {
 
 if (-not (Test-AurixPort -PortNumber $Port)) {
   if (-not (Test-Path (Join-Path $AurixRoot "package.json"))) {
-    Write-Error "AURIX project not found at $AurixRoot. Edit `$AurixRoot in this script."
+    Write-Error "DEX MADE project not found at $AurixRoot. Edit `$AurixRoot in this script."
     exit 1
   }
   # Hidden console keeps the server running without a stray terminal window.
@@ -55,7 +55,7 @@ if (-not (Test-AurixPort -PortNumber $Port)) {
     }
   }
   if (-not $ready) {
-    Write-Error "AURIX server did not answer on port $Port. Check the server logs."
+    Write-Error "DEX MADE server did not answer on port $Port. Check the server logs."
     exit 1
   }
 }

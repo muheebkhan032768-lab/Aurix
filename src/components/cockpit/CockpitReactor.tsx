@@ -47,7 +47,7 @@ export function CockpitReactor({
 
   return (
     <div className="relative mx-auto" style={{ width: "100%", maxWidth: size }}>
-      <svg viewBox="0 0 520 520" className="w-full h-auto" role="img" aria-label={`AURIX reactor ${theme.label}`}>
+      <svg viewBox="0 0 520 520" className="w-full h-auto" role="img" aria-label={`DEX MADE reactor ${theme.label}`}>
         <defs>
           <radialGradient id="reactor-core" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor={theme.accent} stopOpacity="0.95" />
@@ -200,7 +200,7 @@ export function CockpitReactor({
           strokeWidth="1.8"
         />
 
-        {/* AURIX emblem star — shivers while the assistant speaks */}
+        {/* DEX MADE emblem star — shivers while the assistant speaks */}
         <g
           className={`nexus-star ${state === "speaking" ? "is-live" : ""}`}
           style={{ transformOrigin: "260px 204px" }}
@@ -246,7 +246,7 @@ export function CockpitReactor({
           fontWeight="700"
           letterSpacing="6"
         >
-          AURIX
+          DEX MADE
         </text>
         <text
           x="260"

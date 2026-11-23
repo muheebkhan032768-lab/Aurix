@@ -8,6 +8,7 @@ interface SecurityCenterViewProps {
   onSetPin: (pin: string) => Promise<void>;
   onUpdatePrefs: (inactivityMinutes: number, requirePinOnBoot: boolean) => Promise<void>;
   onLockNow: () => void;
+  onResetSecurity: () => Promise<void>;
 }
 
 export function SecurityCenterView({
@@ -16,8 +17,11 @@ export function SecurityCenterView({
   onSetPin,
   onUpdatePrefs,
   onLockNow,
+  onResetSecurity,
 }: SecurityCenterViewProps) {
   const [newPin, setNewPin] = useState("");
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [confirmPin, setConfirmPin] = useState("");
   const [inactivity, setInactivity] = useState(security.inactivityMinutes);
   const [requireBoot, setRequireBoot] = useState(security.requirePinOnBoot);
@@ -57,7 +61,7 @@ export function SecurityCenterView({
             <span>Cryptographic PIN KDF · 5-Attempt Lockout · Least-Privilege Controls</span>
           </div>
           <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
-            AURIX Security Center
+            DEX MADE Security Center
           </h2>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Biometric Status: {security.windowsHelloStatus}
@@ -156,7 +160,7 @@ export function SecurityCenterView({
               onChange={(e) => setRequireBoot(e.target.checked)}
               className="accent-cyan-500"
             />
-            <span>Require PIN verification immediately on AURIX startup</span>
+            <span>Require PIN verification immediately on DEX MADE startup</span>
           </label>
 
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -171,6 +175,55 @@ export function SecurityCenterView({
           </button>
         </form>
       </div>
+
+      {/* Security reset — recovery path when the enrolled voice/face no longer matches */}
+      <section className="bg-white dark:bg-[#0D1420] border border-rose-300/60 dark:border-rose-500/30 rounded-xl p-6 space-y-3">
+        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          Reset Security System
+        </h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Deletes the enrolled face template, voice template and PIN, and clears every lockout and
+          authentication record. Use this when your enrolled voice or face no longer matches, then
+          enroll again from the Identity Center. Projects, notes and memories are not touched.
+        </p>
+        {!confirmReset ? (
+          <button
+            type="button"
+            onClick={() => setConfirmReset(true)}
+            className="px-4 py-2 rounded-lg border border-rose-400/60 text-rose-500 hover:bg-rose-500/10 text-xs font-medium cursor-pointer"
+          >
+            Reset Security System
+          </button>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={resetting}
+              onClick={async () => {
+                setResetting(true);
+                setErr(null);
+                try {
+                  await onResetSecurity();
+                  setMsg("Security system reset. Face and voice enrollment is now empty — enroll again in the Identity Center.");
+                } finally {
+                  setResetting(false);
+                  setConfirmReset(false);
+                }
+              }}
+              className="px-4 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer"
+            >
+              {resetting ? "Resetting…" : "Yes, reset everything"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmReset(false)}
+              className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </section>
 
       {/* Audit Log */}
       <section className="bg-white dark:bg-[#0D1420] border border-slate-200 dark:border-slate-800/80 rounded-xl p-6">

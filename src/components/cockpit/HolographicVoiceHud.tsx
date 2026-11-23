@@ -9,7 +9,8 @@ const STATUS_LABEL: Record<VoiceSessionState, string> = {
   idle: "SYSTEM READY",
   listening: "LIVE LISTENING",
   processing: "PROCESSING COMMAND",
-  speaking: "AURIX SPEAKING",
+  thinking: "THINKING",
+  speaking: "DEX MADE SPEAKING",
   error: "MICROPHONE ATTENTION",
 };
 
@@ -17,6 +18,7 @@ const STATUS_COLOR: Record<VoiceSessionState, string> = {
   idle: "text-[#5B7185]",
   listening: "text-[#00D9FF]",
   processing: "text-[#147DFF]",
+  thinking: "text-[#00D9FF]",
   speaking: "text-[#2FE9C6]",
   error: "text-rose-300",
 };
@@ -45,14 +47,14 @@ export function HolographicVoiceHud({ pushToTalkLabel, onToggleMute }: Holograph
   const caption =
     voice.state === "speaking"
       ? voice.reply || voice.detail
-      : (listening || voice.state === "processing") && voice.transcript
+      : (listening || voice.state === "processing" || voice.state === "thinking") && voice.transcript
         ? voice.transcript
         : voice.detail;
 
   return (
     <section
       className="nexus-panel rounded-2xl px-4 py-4 sm:px-5"
-      aria-label="AURIX holographic microphone"
+      aria-label="DEX MADE holographic microphone"
       data-testid="holographic-mic"
       data-voice-state={voice.state}
     >
@@ -76,7 +78,7 @@ export function HolographicVoiceHud({ pushToTalkLabel, onToggleMute }: Holograph
             type="button"
             onClick={onToggleMute}
             aria-pressed={voice.muted}
-            aria-label={voice.muted ? "Unmute AURIX voice" : "Mute AURIX voice"}
+            aria-label={voice.muted ? "Unmute DEX MADE voice" : "Mute DEX MADE voice"}
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold cursor-pointer ${
               voice.muted
                 ? "border-rose-400/50 bg-rose-500/10 text-rose-200"
@@ -129,7 +131,7 @@ export function HolographicVoiceHud({ pushToTalkLabel, onToggleMute }: Holograph
           <div className="flex items-center gap-2">
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                listening || voice.state === "processing" || voice.state === "speaking"
+                listening || voice.state === "processing" || voice.state === "thinking" || voice.state === "speaking"
                   ? "bg-[#00D9FF] animate-pulse"
                   : voice.state === "error"
                     ? "bg-rose-400"

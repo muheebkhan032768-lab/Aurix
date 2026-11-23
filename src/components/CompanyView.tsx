@@ -192,7 +192,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
               Company Documents & Briefs
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Upload text/markdown briefs or add verified company records. AURIX never invents external metrics.
+              Upload text/markdown briefs or add verified company records. DEX MADE never invents external metrics.
             </p>
           </div>
           <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-cyan-500/60 cursor-pointer">

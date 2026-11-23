@@ -1,5 +1,5 @@
 /**
- * AURIX biometric, training-memory and activation API.
+ * DEX MADE biometric, training-memory and activation API.
  *
  * Mounted from server.ts. Personal training memory is refused while the owner
  * session is locked, so an unknown user cannot read it even if they reach the
@@ -29,7 +29,7 @@ import {
   verifyFace,
   verifyVoice,
 } from "./biometricStore";
-import { verifySecurityPin, getSecurityStatus, addAuditLog } from "./db";
+import { verifySecurityPin, getSecurityStatus, addAuditLog, resetSecurityState } from "./db";
 import {
   clearTrainingMemory,
   deleteTrainingExample,
@@ -43,6 +43,7 @@ import {
 } from "./trainingStore";
 import { MODEL_SOURCES, modelStatus, serveModel } from "./visionAssets";
 import { analyzeFileOrImage } from "./gemini";
+import { hasAnyGeminiKey } from "./geminiPool";
 
 const ASSET_DIR = path.resolve(process.cwd(), "data", "training");
 const EXTENSION_DIR = path.resolve(process.cwd(), "desktop", "chrome-extension");
@@ -60,7 +61,7 @@ function sessionOpen(): boolean {
 
 function refuseLocked(res: Response): boolean {
   if (sessionOpen()) return false;
-  res.status(423).json({ error: "AURIX session is locked. Verify the owner before accessing personal training memory." });
+  res.status(423).json({ error: "DEX MADE session is locked. Verify the owner before accessing personal training memory." });
   return true;
 }
 
@@ -118,6 +119,14 @@ export function registerBiometricRoutes(app: Express): void {
     res.json({ ok: true, enrollment: deleteProfile(kind) });
   });
 
+  // Owner recovery: wipe every enrolled credential (face, voice, PIN, lockouts)
+  // so the owner can enroll again. Deliberately available while the session is
+  // locked — a forgotten voice or face template must never lock the owner out.
+  app.post("/api/security/reset", (_req, res) => {
+    const security = resetSecurityState();
+    res.json({ ok: true, security, snapshot: getBiometricSnapshot() });
+  });
+
   app.get("/api/biometrics/challenge", (_req, res) => {
     res.json(issueVoiceChallenge());
   });
@@ -153,7 +162,7 @@ export function registerBiometricRoutes(app: Express): void {
     }
     const outcome = verifySecurityPin(String(req.body?.pin ?? ""));
     if (!outcome.ok) {
-      addAuditLog("BIOMETRIC_GATE_PIN_FAILED", "Security Gate", "PIN fallback rejected at the AURIX identity gate.", "security");
+      addAuditLog("BIOMETRIC_GATE_PIN_FAILED", "Security Gate", "PIN fallback rejected at the DEX MADE identity gate.", "security");
       res.status(401).json({ ok: false, error: outcome.message, security: outcome.status });
       return;
     }
@@ -162,12 +171,12 @@ export function registerBiometricRoutes(app: Express): void {
   });
 
   app.post("/api/biometrics/session/lock", (req, res) => {
-    const reason = typeof req.body?.reason === "string" ? req.body.reason : "Owner locked the AURIX session.";
+    const reason = typeof req.body?.reason === "string" ? req.body.reason : "Owner locked the DEX MADE session.";
     res.json({ ok: true, session: lockSession(reason) });
   });
 
   app.post("/api/biometrics/session/logout", (_req, res) => {
-    const session = lockSession("Owner logged out of AURIX.");
+    const session = lockSession("Owner logged out of DEX MADE.");
     clearPendingActivation();
     addAuditLog("SESSION_LOGGED_OUT", "Abdul Muheeb", "Owner logged out; personal session data closed.", "security");
     res.json({ ok: true, session });
@@ -288,7 +297,7 @@ export function registerBiometricRoutes(app: Express): void {
 
     let cloudLabel: string | null = null;
     let cloudError: string | null = null;
-    if (settings.sendImagesToCloud && imageDataUrl && process.env.GEMINI_API_KEY) {
+    if (settings.sendImagesToCloud && imageDataUrl && hasAnyGeminiKey()) {
       const commaIndex = imageDataUrl.indexOf(",");
       const meta = imageDataUrl.slice(5, commaIndex);
       try {
@@ -312,7 +321,7 @@ export function registerBiometricRoutes(app: Express): void {
       cloudLabel,
       cloudError,
       cloudConsent: settings.sendImagesToCloud,
-      cloudAvailable: Boolean(process.env.GEMINI_API_KEY),
+      cloudAvailable: hasAnyGeminiKey(),
     });
   });
 

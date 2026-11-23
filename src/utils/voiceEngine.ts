@@ -8,7 +8,7 @@ import {
 import { publishVoice } from "./voiceBus";
 
 /**
- * AURIX audio state machine.
+ * DEX MADE audio state machine.
  *
  * Every part of the app that records or speaks goes through this single
  * service, so the microphone is opened once, recordings never overlap and
@@ -96,7 +96,7 @@ function setState(next: VoiceState, patch: Partial<VoiceEngineSnapshot> = {}) {
   const allowed = ALLOWED[from] || [];
   if (from !== next && !allowed.includes(next)) {
     // Never block a recovery: log the invalid edge, then take it anyway.
-    console.warn(`[AURIX voice] invalid transition ${from} → ${next}`);
+    console.warn(`[DEX MADE voice] invalid transition ${from} → ${next}`);
   }
   snapshot = {
     ...snapshot,
@@ -105,7 +105,7 @@ function setState(next: VoiceState, patch: Partial<VoiceEngineSnapshot> = {}) {
     lastTransition: from === next ? snapshot.lastTransition : { from, to: next, at: Date.now() },
   };
   if (from !== next) {
-    console.debug(`[AURIX voice] ${from} → ${next}${patch.error ? ` (${patch.error})` : ""}`);
+    console.debug(`[DEX MADE voice] ${from} → ${next}${patch.error ? ` (${patch.error})` : ""}`);
   }
   emit();
 }
@@ -171,7 +171,7 @@ function startMeter() {
 function describeMicError(err: unknown): string {
   const name = err instanceof Error ? err.name : "";
   if (name === "NotAllowedError" || name === "SecurityError") {
-    return "Microphone access is blocked. Allow the microphone for AURIX, then press Space again.";
+    return "Microphone access is blocked. Allow the microphone for DEX MADE, then press Space again.";
   }
   if (name === "NotFoundError" || name === "OverconstrainedError") {
     return "No microphone was found. Connect a microphone and press Space again.";

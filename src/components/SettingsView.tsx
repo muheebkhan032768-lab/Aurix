@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Database, Download, Moon, Package, Play, Plus, Save, Sun, Trash2, User } from "lucide-react";
 import { VoiceDiagnosticsPanel } from "./VoiceDiagnosticsPanel";
+import { ApiKeysPanel } from "./ApiKeysPanel";
 import type {
   AppSettings,
   AurixLanguage,
@@ -123,7 +124,7 @@ export function SettingsView({
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold"
             >
               <Package className="w-4 h-4" />
-              <span>Download Complete AURIX 2.0 ZIP</span>
+              <span>Download Complete DEX MADE 2.0 ZIP</span>
             </a>
           </div>
         </div>
@@ -153,6 +154,7 @@ export function SettingsView({
               onChange={(e) => onUpdateSettings({ ...settings, wakePhrase: e.target.value })}
               className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
             />
+            <span className="mt-1 block text-[10px] text-[#94A3B8]">Default: Hello Dex Made</span>
           </label>
 
           <label className="block text-xs text-[#64748B]">
@@ -220,7 +222,10 @@ export function SettingsView({
       {/* 2. Voice engine, microphone and audio diagnostics */}
       <VoiceDiagnosticsPanel settings={settings} onUpdateSettings={onUpdateSettings} />
 
-      {/* 3. Startup Animation, Voice Greeting, DND & Quiet Hours */}
+      {/* 3. Gemini API key failover pool */}
+      <ApiKeysPanel />
+
+      {/* 4. Startup Animation, Voice Greeting, DND & Quiet Hours */}
       <section className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
@@ -358,7 +363,7 @@ export function SettingsView({
         </div>
 
         {/* Proactive Companion + Do Not Disturb + Quiet Hours */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-center">
           <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
@@ -410,7 +415,7 @@ export function SettingsView({
               />
               <span>Quiet Hours Schedule</span>
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 type="time"
                 aria-label="Quiet hours start"

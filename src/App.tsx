@@ -35,9 +35,10 @@ import { ModelsView } from "./components/ModelsView";
 import { SettingsView } from "./components/SettingsView";
 import { SelfHealView } from "./components/SelfHealView";
 import { CreativePcView } from "./components/CreativePcView";
-import { NexusSidebar } from "./components/cockpit/NexusSidebar";
-import { NexusTopBar } from "./components/cockpit/NexusTopBar";
-import { CommandCenterView } from "./components/cockpit/CommandCenterView";
+import { DeskMateSidebar } from "./components/deskmate/DeskMateSidebar";
+import { DeskMateTopBar } from "./components/deskmate/DeskMateTopBar";
+import { DeskMateDashboard } from "./components/deskmate/DeskMateDashboard";
+import { DeskMateHelpView } from "./components/deskmate/DeskMateHelpView";
 import { MemoryCenterView } from "./components/MemoryCenterView";
 import { AutomationCenterView } from "./components/AutomationCenterView";
 import { AuthGate } from "./components/biometrics/AuthGate";
@@ -67,7 +68,7 @@ class SelfHealingErrorBoundary extends React.Component<
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ deepCodeScan: false }),
     }).catch(() => {});
-    console.error("[AURIX Self-Heal UI Shield]", error);
+    console.error("[DEX MADE Self-Heal UI Shield]", error);
   }
 
   render() {
@@ -76,11 +77,11 @@ class SelfHealingErrorBoundary extends React.Component<
         <div className="min-h-screen bg-[#F8FAFC] text-[#202938] flex items-center justify-center p-6">
           <div className="max-w-md w-full rounded-2xl border border-emerald-500/40 bg-white shadow-xl p-6 space-y-4">
             <div className="text-xs font-mono uppercase tracking-[0.2em] text-[#10B981]">
-              AURIX Self-Healing Recovery
+              DEX MADE Self-Healing Recovery
             </div>
             <h1 className="text-lg font-semibold">Runtime Anomaly Contained</h1>
             <p className="text-xs text-[#64748B] leading-relaxed">
-              AURIX intercepted a render anomaly before crash:{" "}
+              DEX MADE intercepted a render anomaly before crash:{" "}
               <span className="font-mono text-rose-600">{this.state.errorMsg}</span>
             </p>
             <button
@@ -117,6 +118,13 @@ export default function App() {
 function AurixShell() {
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [activeSection, setActiveSection] = useState<AurixSectionId>("home");
+  const [deskTheme, setDeskTheme] = useState<"dark" | "light">(() => {
+    try {
+      return localStorage.getItem("deskmate_theme") === "light" ? "light" : "dark";
+    } catch {
+      return "dark";
+    }
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
@@ -304,7 +312,7 @@ function AurixShell() {
   }, [data, startupPhase, locked, mediaConsentChoice]);
 
   if (!data || startupPhase === "loading") {
-    return <div className="min-h-screen bg-[#F8FAFC]" aria-label="Launching AURIX 2.0" />;
+    return <div className="min-h-screen bg-[#F8FAFC]" aria-label="Launching DEX MADE" />;
   }
 
   if (startupPhase === "animating") {
@@ -534,8 +542,7 @@ function AurixShell() {
     greetingAttemptedRef.current = false;
     const hour = new Date().getHours();
     const partOfDay = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-    const firstName = (data?.owner.name || "Muheeb").split(" ")[0];
-    setUnlockGreeting(`${partOfDay}, ${firstName}. AURIX systems are online — verified by ${method}. How may I assist you today?`);
+    setUnlockGreeting(`${partOfDay}, Sir. DEX MADE is online and ready. All systems are operational. How may I assist you today?`);
     setWelcomeTriggerCount((count) => count + 1);
   };
 
@@ -578,6 +585,16 @@ function AurixShell() {
     setData((prev) => (prev ? { ...prev, security } : prev));
   };
 
+  // Owner recovery: wipe enrolled credentials so the owner can enroll again.
+  const handleResetSecurity = async () => {
+    await fetch("/api/security/reset", { method: "POST" });
+    setLocked(false);
+    patchRuntime({ session: "unlocked", sessionMethod: null });
+    const res = await fetch("/api/bootstrap");
+    setData((await res.json()) as BootstrapPayload);
+    await refreshBiometrics();
+  };
+
   // Identity gate: no personal dashboard is rendered until the owner verifies.
   if (locked && biometrics) {
     return (
@@ -595,7 +612,11 @@ function AurixShell() {
   }
 
   return (
-    <div className="min-h-screen bg-[#05080D] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,217,255,0.10),transparent_62%)] text-slate-100 flex flex-col">
+    <div
+      className={`aurix-shell min-h-screen bg-[var(--d-bg)] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,229,245,0.10),transparent_62%)] text-slate-100 flex flex-col ${
+        deskTheme === "light" ? "is-light" : ""
+      }`}
+    >
       {/* PIN Lock Gate */}
       {locked && (
         <div className="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-md flex items-center justify-center p-4">
@@ -605,12 +626,12 @@ function AurixShell() {
           >
             <img
               src="/src/assets/images/aurix_core_emblem_1795088206132.jpg"
-              alt="AURIX Security Core"
+              alt="DEX MADE Security Core"
               referrerPolicy="no-referrer"
               className="w-20 h-20 rounded-full mx-auto object-cover border-2 border-[#10B981]"
             />
             <div>
-              <h2 className="text-xl font-semibold text-[#202938] dark:text-white">AURIX Session Locked</h2>
+              <h2 className="text-xl font-semibold text-[#202938] dark:text-white">DEX MADE Session Locked</h2>
               <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
                 Enter Abdul Muheeb&apos;s personal PIN to unlock workspace.
               </p>
@@ -628,53 +649,54 @@ function AurixShell() {
               type="submit"
               className="w-full py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-sm font-semibold cursor-pointer"
             >
-              Unlock AURIX
+              Unlock DEX MADE
             </button>
           </form>
         </div>
       )}
 
       <div className="flex flex-1 min-h-0">
-        <NexusSidebar
+        <DeskMateSidebar
           activeSection={activeSection}
-          onNavigate={(item) => {
-            if (item.fileMode) setFileMode(item.fileMode);
-            setActiveSection(item.id);
-          }}
-          collapsed={sidebarCollapsed}
-          onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+          onNavigate={setActiveSection}
           mobileOpen={mobileMenuOpen}
           onCloseMobile={() => setMobileMenuOpen(false)}
-          moreOpen={moreOpen}
-          onToggleMore={() => setMoreOpen((v) => !v)}
-          onNavigateSecondary={setActiveSection}
-          fileMode={fileMode}
         />
         <div className="flex-1 min-w-0 flex flex-col">
-          <NexusTopBar
+          <DeskMateTopBar
             owner={data.owner}
             settings={data.settings}
             isOnline={effectiveOnline}
             tasks={data.tasks}
-            activity={data.auditLogs.map((entry) => ({
-              id: entry.id,
-              label: `${entry.eventType} · ${entry.detail}`,
-              at: entry.createdAt,
-            }))}
-            emergencyStopActive={data.telemetry.emergencyStopActive}
-            onToggleEmergencyStop={toggleEmergencyStop}
+            theme={deskTheme}
+            onToggleTheme={() => {
+              const next = deskTheme === "dark" ? "light" : "dark";
+              setDeskTheme(next);
+              try {
+                localStorage.setItem("deskmate_theme", next);
+              } catch {
+                // Ignore storage errors
+              }
+            }}
             onNavigate={setActiveSection}
+            onUpdateSettings={updateSettings}
             onOpenMobileNav={() => setMobileMenuOpen(true)}
           />
           <main className="flex-1 w-full px-3 sm:px-5 py-4 pb-28 max-w-[1600px] mx-auto">
         {activeSection === "home" && (
-          <CommandCenterView
+          <DeskMateDashboard
             owner={data.owner}
             settings={data.settings}
             telemetry={data.telemetry}
             tasks={data.tasks}
             projects={data.projects}
             conversations={data.conversations}
+            memories={data.memories}
+            activity={data.auditLogs.map((entry) => ({
+              id: entry.id,
+              label: `${entry.eventType} · ${entry.detail}`,
+              at: entry.createdAt,
+            }))}
             isOnline={effectiveOnline}
             welcomeTriggerSignal={welcomeTriggerCount}
             onNavigate={setActiveSection}
@@ -770,7 +792,8 @@ function AurixShell() {
             auditLogs={data.auditLogs}
             onSetPin={handleSetPin}
             onUpdatePrefs={handleSecurityPrefs}
-            onLockNow={() => void lockAurixNow("Owner locked AURIX from the Security Center.")}
+            onLockNow={() => void lockAurixNow("Owner locked DEX MADE from the Security Center.")}
+            onResetSecurity={handleResetSecurity}
           />
         )}
 
@@ -781,7 +804,7 @@ function AurixShell() {
             onRefresh={async () => {
               await refreshBiometrics();
             }}
-            onLockNow={() => void lockAurixNow("Owner locked AURIX from Personal Authentication.")}
+            onLockNow={() => void lockAurixNow("Owner locked DEX MADE from Personal Authentication.")}
             onLogout={() => void logoutAurix()}
             onNavigate={setActiveSection}
           />
@@ -836,6 +859,8 @@ function AurixShell() {
             }}
           />
         )}
+
+        {activeSection === "help" && <DeskMateHelpView onNavigate={setActiveSection} />}
           </main>
         </div>
       </div>
@@ -860,7 +885,7 @@ function AurixShell() {
                 <h2 id="aurix-media-consent-title" className="text-base font-semibold text-white">
                   Allow Microphone &amp; Camera Access?
                 </h2>
-                <p className="text-xs text-[#94A8B8]">AURIX will welcome you aloud immediately after</p>
+                <p className="text-xs text-[#94A8B8]">DEX MADE will welcome you aloud immediately after</p>
               </div>
             </div>
 
@@ -911,7 +936,7 @@ function AurixShell() {
                     setWelcomeTriggerCount((c) => c + 1);
                   } catch {
                     setMediaConsentMsg(
-                      "Live Mic/Camera is blocked by the browser or preview frame. Click 'Continue & Speak' — AURIX will welcome you aloud immediately."
+                      "Live Mic/Camera is blocked by the browser or preview frame. Click 'Continue & Speak' — DEX MADE will welcome you aloud immediately."
                     );
                   }
                 }}
@@ -945,6 +970,7 @@ function AurixShell() {
           onEmergencyStop={toggleEmergencyStop}
           onLock={() => setLocked(true)}
           onRefreshSystem={refreshTelemetry}
+          suppressCompanion={activeSection === "home"}
         />
       )}
     </div>

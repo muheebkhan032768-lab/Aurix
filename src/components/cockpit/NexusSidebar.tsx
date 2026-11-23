@@ -43,7 +43,7 @@ export const COCKPIT_NAV: CockpitNavItem[] = [
   { id: "files", label: "Vision System", icon: ScanEye, hint: "Screen & OCR", fileMode: "vision" },
   { id: "memory", label: "Memory Center", icon: BrainCircuit, hint: "Saved context" },
   { id: "identity", label: "Personal Authentication", icon: Fingerprint, hint: "Face & voice" },
-  { id: "teach", label: "Teach AURIX", icon: GraduationCap, hint: "Visual learning" },
+  { id: "teach", label: "Teach DEX MADE", icon: GraduationCap, hint: "Visual learning" },
   { id: "training", label: "Training Memory", icon: Database, hint: "Approved examples" },
   { id: "security", label: "Security Center", icon: ShieldCheck, hint: "Permissions" },
   { id: "automation", label: "Automation Center", icon: Bot, hint: "Approved actions" },

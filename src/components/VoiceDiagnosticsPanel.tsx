@@ -18,7 +18,7 @@ interface VoiceDiagnosticsPanelProps {
   onUpdateSettings: (next: AppSettings) => Promise<void>;
 }
 
-const SAMPLE = "Hello, I am AURIX. I am ready when you are.";
+const SAMPLE = "Hello, I am DEX MADE. I am ready when you are.";
 
 /**
  * Voice settings and audio diagnostics. Everything here talks to the same
@@ -105,7 +105,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
         <div>
           <h2 className="text-base font-bold text-[#202938] dark:text-white">Voice Engine &amp; Audio</h2>
           <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
-            Microphone, speech recognition, AURIX voice and diagnostics. Muting AURIX never disables the microphone.
+            Microphone, speech recognition, DEX MADE voice and diagnostics. Muting DEX MADE never disables the microphone.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -153,7 +153,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
             onChange={(e) => onUpdateSettings({ ...settings, voiceEnabled: e.target.checked })}
             className="accent-[#10B981]"
           />
-          <span>AURIX voice output</span>
+          <span>DEX MADE voice output</span>
         </label>
         <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
           <input
@@ -193,7 +193,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
         </label>
 
         <label className="block text-xs text-[#64748B]">
-          <span>AURIX cloud voice (Gemini)</span>
+          <span>DEX MADE cloud voice (Gemini)</span>
           <select
             value={settings.voiceName}
             onChange={(e) =>
@@ -242,13 +242,13 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
           />
         </label>
         <label className="block text-xs text-[#64748B]">
-          <span>Voice volume · {Math.round((settings.voiceVolume ?? 1) * 100)}%</span>
+          <span>Voice volume · {Math.round((settings.voiceVolume ?? 2) * 100)}% (50–300%)</span>
           <input
             type="range"
-            min={0.2}
-            max={1}
+            min={0.5}
+            max={3}
             step={0.05}
-            value={settings.voiceVolume ?? 1}
+            value={settings.voiceVolume ?? 2}
             onChange={(e) => onUpdateSettings({ ...settings, voiceVolume: Number(e.target.value) })}
             className="mt-2 w-full accent-[#10B981]"
           />

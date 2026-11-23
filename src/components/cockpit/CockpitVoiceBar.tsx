@@ -22,7 +22,7 @@ interface CockpitVoiceBarProps {
 const BAR_COUNT = 36;
 
 /**
- * Bottom voice command centre. It records through the shared AURIX voice
+ * Bottom voice command centre. It records through the shared DEX MADE voice
  * engine, so the microphone is opened once for the whole app, and it speaks
  * with the same companion voice used everywhere else.
  */
@@ -79,7 +79,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
       setError(null);
       setReply("");
       try {
-        // Spoken commands use the fast router so AURIX replies in about a
+        // Spoken commands use the fast router so DEX MADE replies in about a
         // second instead of waiting on the deep thinking model.
         const res = await fetch("/api/command/execute", {
           method: "POST",
@@ -202,8 +202,8 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
   const statusText: Record<VoiceStatus, string> = {
     idle: "Ready — hold Space to talk, or press the mic",
     listening: "Listening… speak now",
-    thinking: "AURIX is reasoning",
-    speaking: "AURIX is responding",
+    thinking: "DEX MADE is reasoning",
+    speaking: "DEX MADE is responding",
     error: "Attention required",
   };
 
@@ -275,7 +275,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a command or question for AURIX…"
+            placeholder="Type a command or question for DEX MADE…"
             className="flex-1 min-w-0 rounded-xl border border-[#00D9FF]/20 bg-[#05080D]/70 px-3.5 py-2.5 text-xs text-white placeholder:text-[#5B7185] outline-none focus:border-[#00D9FF]/60"
           />
           <button
@@ -309,7 +309,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
         <div className="mt-3 rounded-xl border border-[#2FE9C6]/25 bg-[#2FE9C6]/5 px-3.5 py-2.5">
           <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-[#2FE9C6]">
             <Volume2 className="w-3 h-3" />
-            AURIX
+            DEX MADE
           </div>
           <p className="mt-1 text-xs leading-relaxed text-[#D6E6EE] whitespace-pre-wrap">{reply}</p>
         </div>

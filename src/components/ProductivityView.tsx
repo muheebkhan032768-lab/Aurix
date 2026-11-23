@@ -116,7 +116,7 @@ export function ProductivityView({
       {briefing && (
         <div className="bg-white dark:bg-[#0D1420] border border-cyan-500/40 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
-            AURIX Daily Focus Briefing
+            DEX MADE Daily Focus Briefing
           </h3>
           <div className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
             {briefing}

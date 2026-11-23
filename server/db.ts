@@ -290,7 +290,7 @@ function seedInitialData(): void {
         "Deliver high-craft websites and custom digital solutions while building internal AI tooling and directory products under AM VEYRONIX.",
       marketingPlan: "Document verified client case studies, showcase AM NEXORA, and offer clear service packages.",
       hiringPlan: "To be defined by founder Abdul Muheeb as verified client demand grows.",
-      futureProducts: ["AURIX 2.0 Desktop AI Suite", "AM VEYRONIX Official Platform", "AM VEYRONIX TEAM CONNECT"],
+      futureProducts: ["DEX MADE 2.0 Desktop AI Suite", "AM VEYRONIX Official Platform", "AM VEYRONIX TEAM CONNECT"],
       documents: [],
       updatedAt: ts,
     };
@@ -305,10 +305,10 @@ function seedInitialData(): void {
     voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS },
     voiceSpeed: 1.0,
     voicePitch: 1.0,
-    voiceVolume: 1.0,
+    voiceVolume: 2.0,
     language: "English",
     autoDetectLanguage: false,
-    wakePhrase: "Hello AURIX",
+    wakePhrase: "Hello Dex Made",
     voiceEnabled: true,
     micEnabled: true,
     pushToTalk: true,
@@ -523,7 +523,7 @@ function seedInitialData(): void {
     const projects: ProjectRecord[] = [
       {
         id: "prj_aurix_ecosystem",
-        name: "AURIX 2.0 Command Ecosystem",
+        name: "DEX MADE 2.0 Command Ecosystem",
         category: "AI Desktop & Web Platform",
         description:
           "Personal AI command center for Abdul Muheeb integrating Gemini 4 intelligence, voice synthesis, memory isolation, and native Windows 10/11 Python/C# WPF architecture.",
@@ -611,7 +611,7 @@ function seedInitialData(): void {
         category: "Owner Profile",
         title: "Primary Owner Identity — Abdul Muheeb",
         content:
-          "Abdul Muheeb is the creator of AURIX and founder of AM VEYRONIX. Expertise spans web development, HTML/CSS/JS, Python interests, WordPress, graphic design, website optimization, AI integration, freelancing, and business development.",
+          "Abdul Muheeb is the creator of DEX MADE and founder of AM VEYRONIX. Expertise spans web development, HTML/CSS/JS, Python interests, WordPress, graphic design, website optimization, AI integration, freelancing, and business development.",
         source: "Owner Initialization",
         projectScope: "Global",
         approved: true,
@@ -687,7 +687,7 @@ function seedInitialData(): void {
       },
       {
         id: "tsk_python_ai",
-        title: "Review Python AI Router & SQLite schema in AURIX Native Deliverables",
+        title: "Review Python AI Router & SQLite schema in DEX MADE Native Deliverables",
         category: "study",
         priority: "medium",
         status: "todo",
@@ -748,7 +748,16 @@ function seedInitialData(): void {
 
   const auditCount = db.prepare(`SELECT COUNT(*) as cnt FROM audit_logs`).get() as { cnt: number };
   if (auditCount.cnt === 0) {
-    addAuditLog("SYSTEM_INIT", "AURIX Core", "Initialized local SQLite knowledge store and AM VEYRONIX registry.", "info");
+    addAuditLog("SYSTEM_INIT", "DEX MADE Core", "Initialized local SQLite knowledge store and AM VEYRONIX registry.", "info");
+  }
+
+  // Historical system labels and auto-generated conversation titles follow the
+  // permanent identity. Chat message bodies are never rewritten.
+  for (const legacy of ["AURIX", "Desk Mate"]) {
+    db.prepare(`UPDATE audit_logs SET actor = REPLACE(actor, ?, 'DEX MADE') WHERE actor LIKE ?`).run(legacy, `%${legacy}%`);
+    db.prepare(`UPDATE audit_logs SET detail = REPLACE(detail, ?, 'DEX MADE') WHERE detail LIKE ?`).run(legacy, `%${legacy}%`);
+    db.prepare(`UPDATE conversations SET title = REPLACE(title, ?, 'DEX MADE') WHERE title LIKE ?`).run(legacy, `%${legacy}%`);
+    db.prepare(`UPDATE tasks SET title = REPLACE(title, ?, 'DEX MADE') WHERE title LIKE ?`).run(legacy, `%${legacy}%`);
   }
 }
 
@@ -791,10 +800,10 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS },
   voiceSpeed: 1.0,
   voicePitch: 1.0,
-  voiceVolume: 1.0,
+  voiceVolume: 2.0,
   language: "English",
   autoDetectLanguage: false,
-  wakePhrase: "Hello AURIX",
+  wakePhrase: "Hello Dex Made",
   voiceEnabled: true,
   micEnabled: true,
   pushToTalk: true,
@@ -831,11 +840,41 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 export function getAppSettings(): AppSettings {
   const row = db.prepare(`SELECT value FROM kv_store WHERE key = 'app_settings'`).get() as { value: string };
   const stored = JSON.parse(row.value) as Partial<AppSettings>;
-  return {
+  const merged: AppSettings = {
     ...DEFAULT_APP_SETTINGS,
     ...stored,
     voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS, ...(stored.voiceShortcuts || {}) },
   };
+
+  // One-time upgrade for installs that still hold the old identity defaults.
+  const migrated = db.prepare(`SELECT value FROM kv_store WHERE key = 'dex_identity_migration'`).get();
+  if (!migrated) {
+    const storedWake = (stored.wakePhrase || "").trim();
+    if (!storedWake || /^hello\s+(aurix|desk\s*mate)$/i.test(storedWake)) {
+      merged.wakePhrase = DEFAULT_APP_SETTINGS.wakePhrase;
+    }
+    if (!stored.voiceVolume || stored.voiceVolume <= 1) {
+      merged.voiceVolume = DEFAULT_APP_SETTINGS.voiceVolume;
+    }
+    db.prepare(
+      `INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('dex_identity_migration', '1', ?)`
+    ).run(nowIso());
+    saveAppSettings(merged);
+  }
+
+  // One-time louder default: earlier builds capped playback at 150%, which was
+  // too quiet for the device fallback voice.
+  const volumeBoost = db.prepare(`SELECT value FROM kv_store WHERE key = 'dex_voice_volume_boost'`).get();
+  if (!volumeBoost) {
+    if (!merged.voiceVolume || merged.voiceVolume < 2) {
+      merged.voiceVolume = DEFAULT_APP_SETTINGS.voiceVolume;
+    }
+    db.prepare(
+      `INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('dex_voice_volume_boost', '1', ?)`
+    ).run(nowIso());
+    saveAppSettings(merged);
+  }
+  return merged;
 }
 
 export function saveAppSettings(settings: AppSettings): AppSettings {
@@ -1046,7 +1085,7 @@ export function ensureConversation(id: string | undefined, title: string, mode: 
   const newId = id || uid("conv");
   db.prepare(
     `INSERT INTO conversations (id, title, mode, model, language, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).run(newId, title.slice(0, 80) || "New AURIX Session", mode, model, language, ts, ts);
+  ).run(newId, title.slice(0, 80) || "New DEX MADE Session", mode, model, language, ts, ts);
   return newId;
 }
 
@@ -1273,6 +1312,33 @@ export function updateSecurityPreferences(inactivityMinutes: number, requirePinO
   return getSecurityStatus();
 }
 
+/**
+ * Owner-initiated full security reset: wipes face/voice templates, the PIN and
+ * every lockout/attempt counter so the owner can enroll again from scratch.
+ * Personal app data (projects, notes, memories) is left untouched.
+ */
+export function resetSecurityState(): SecurityStatus {
+  const ts = nowIso();
+  db.prepare(`DELETE FROM biometric_profiles`).run();
+  db.prepare(`DELETE FROM auth_events`).run();
+  db.prepare(
+    `UPDATE biometric_session SET status = 'locked', method = NULL, verified_at = NULL, locked_at = ?, last_seen = ? WHERE id = 1`
+  ).run(ts, ts);
+  db.prepare(
+    `UPDATE biometric_settings SET require_biometric_on_boot = 0, auth_phrase = 'DEX MADE authorize my voice', updated_at = ? WHERE id = 1`
+  ).run(ts);
+  db.prepare(
+    `UPDATE security_config SET pin_hash = NULL, pin_salt = NULL, failed_attempts = 0, locked_until = NULL, require_pin_on_boot = 0, updated_at = ? WHERE id = 1`
+  ).run(ts);
+  addAuditLog(
+    "SECURITY_RESET",
+    "Abdul Muheeb",
+    "Security system reset: face and voice templates, PIN, lockout state and authentication history cleared for fresh enrollment.",
+    "security"
+  );
+  return getSecurityStatus();
+}
+
 export function listAuditLogs(): AuditLogEntry[] {
   const rows = db.prepare(`SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 60`).all() as Record<string, unknown>[];
   return rows.map((r) => ({
@@ -1356,7 +1422,7 @@ export function listSelfHealHistory(): SelfHealHistoryEntry[] {
 export function exportFullBackup() {
   return {
     exportedAt: nowIso(),
-    system: "AURIX 2.0 — AM VEYRONIX",
+    system: "DEX MADE 2.0 — AM VEYRONIX",
     owner: getOwnerProfile(),
     company: getCompanyProfile(),
     websites: listWebsites(),

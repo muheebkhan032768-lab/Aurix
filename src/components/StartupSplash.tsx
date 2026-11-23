@@ -10,14 +10,14 @@ interface StartupSplashProps {
   onComplete: () => void;
 }
 
-const AURIX_LETTERS = ["A", "U", "R", "I", "X"];
-const VERSION_CHARS = ["2", ".", "0"];
+const NAME_LETTERS = ["D", "E", "X", " ", "M", "A", "D", "E"];
+const VERSION_CHARS = ["v", "2", ".", "0"];
 
 const BOOT_STEPS = [
-  { label: "Voice engine", value: "online", at: 0.2 },
-  { label: "Neural core", value: "synced", at: 0.38 },
-  { label: "Memory lattice", value: "loaded", at: 0.56 },
-  { label: "Nexus link", value: "ready", at: 0.74 },
+  { label: "System", value: "initializing…", at: 0.2 },
+  { label: "Voice system", value: "ready", at: 0.4 },
+  { label: "AI core", value: "online", at: 0.62 },
+  { label: "All systems", value: "operational", at: 0.82 },
 ];
 
 export function StartupSplash({
@@ -92,7 +92,7 @@ export function StartupSplash({
     };
   }, [soundEnabled, soundVolume, durationSeconds]);
 
-  // Polished Futuristic Startup Backdrop matching bright silver/cyan/emerald AURIX 2.0 identity
+  // Polished Futuristic Startup Backdrop matching bright silver/cyan/emerald DEX MADE 2.0 identity
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -232,11 +232,11 @@ export function StartupSplash({
         exiting ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       role="dialog"
-      aria-label="AURIX 2.0 Startup Sequence"
+      aria-label="DEX MADE Startup Sequence"
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
-      {/* Center Stage: Metallic Silver AURIX + Cyan & Emerald 2.0 */}
+      {/* Center Stage: Metallic Silver DEX MADE + Cyan & Emerald 2.0 */}
       <div className="relative z-10 flex flex-col items-center justify-center px-6 text-center">
         <div
           className="mb-7 transition-transform duration-300"
@@ -258,9 +258,13 @@ export function StartupSplash({
               <circle cx="56" cy="56" r="41" stroke="#00D9FF" strokeWidth="2.2" strokeDasharray="135 90" />
             </g>
             <path
-              d="M56 23L80 79H69.5L64 65.5H48L42.5 79H32L56 23ZM51.2 57.5H60.8L56 45.2L51.2 57.5Z"
-              fill="url(#aurixSilverCyan)"
+              d="M56 26L81 41V69L56 84L31 69V41L56 26Z"
+              fill="none"
+              stroke="url(#aurixSilverCyan)"
+              strokeWidth="3.4"
+              strokeLinejoin="round"
             />
+            <circle cx="56" cy="55" r="7" fill="url(#aurixSilverCyan)" />
             <g className={`nexus-star ${showSweep ? "is-live" : ""}`}>
               <path d="M92 12 L94 20 L102 22 L94 24 L92 32 L90 24 L82 22 L90 20 Z" fill="#EAFBFF" fillOpacity="0.95" />
             </g>
@@ -275,9 +279,10 @@ export function StartupSplash({
         </div>
 
         <div className="relative">
-          <h1 className="font-display font-bold tracking-[0.2em] text-6xl sm:text-8xl md:text-[7.5rem] leading-none flex items-baseline justify-center">
+          <h1 className="font-display font-bold tracking-[0.06em] sm:tracking-[0.14em] text-4xl sm:text-6xl md:text-7xl leading-none flex items-baseline justify-center">
             <span className="inline-flex items-center">
-              {AURIX_LETTERS.map((ch, idx) => {
+              {NAME_LETTERS.map((ch, idx) => {
+                if (ch === " ") return <span key={`sp_${idx}`} className="inline-block w-3 sm:w-5" />;
                 const charStart = 0.34 + idx * 0.024;
                 const p = Math.max(0, Math.min(1, (progress - charStart) / 0.11));
                 const easeOut = 1 - Math.pow(1 - p, 3);
@@ -348,7 +353,7 @@ export function StartupSplash({
             textShadow: "0 0 20px rgba(0, 217, 255, 0.75)",
           }}
         >
-          ADVANCED UNIFIED INTELLIGENCE X
+          PERSONAL AI ASSISTANT
         </p>
 
         <div className="mt-8 w-64 sm:w-80">
@@ -362,7 +367,7 @@ export function StartupSplash({
             />
           </div>
           <div className="mt-2.5 text-[11px] font-mono tracking-[0.22em] text-slate-300 uppercase tabular-nums">
-            Initializing AURIX Intelligence · {Math.round(progress * 100)}%
+            Initializing DEX MADE Intelligence · {Math.round(progress * 100)}%
           </div>
         </div>
 
@@ -387,7 +392,7 @@ export function StartupSplash({
           style={{ opacity: Math.max(0, Math.min(1, (progress - 0.72) / 0.16)) }}
         >
           <span className="h-1.5 w-1.5 rounded-full bg-[#2FE9C6] animate-pulse" aria-hidden="true" />
-          Say “Hello AURIX” to activate
+          Say “Hello Dex Made” to activate
         </div>
       </div>
 
