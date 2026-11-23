@@ -2,6 +2,7 @@ import { GoogleGenAI, ThinkingLevel, Type, type GenerateContentResponse } from "
 import {
   ALL_ROUTES_DOWN_MESSAGE,
   buildModelLadder,
+  GeminiKeysExhaustedError,
   getPooledGeminiClient,
   runWithGeminiFailover,
 } from "./geminiPool";
@@ -26,7 +27,7 @@ import {
 } from "./offlineBrain";
 
 function getClient(): GoogleGenAI {
-  // Every Gemini request is routed through the four-key failover pool, which
+  // Every Gemini request is routed through the five-key failover pool, which
   // starts at the primary key and switches automatically when a key is rate
   // limited, out of quota, revoked or temporarily unavailable.
   return getPooledGeminiClient();
@@ -368,6 +369,11 @@ export async function transcribeAudioInput(params: {
       },
     });
   } catch (err) {
+    if (err instanceof GeminiKeysExhaustedError) {
+      // Every key and audio-capable model is cooling down; the pool message
+      // already explains which routes failed, so do not blame the recording.
+      throw err;
+    }
     // Surface a readable sentence instead of the raw API JSON payload.
     const raw = err instanceof Error ? err.message : "";
     const detail = raw.match(/"message"\s*:\s*"([^"]+)"/)?.[1];

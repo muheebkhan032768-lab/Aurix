@@ -145,7 +145,7 @@ export function ApiKeysPanel() {
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
           <p className="text-[11px] uppercase tracking-wide text-[#64748B]">Keys configured</p>
           <p className="text-lg font-bold text-[#202938] dark:text-white">
-            {status ? `${status.configuredKeys} / 4` : "—"}
+            {status ? `${status.configuredKeys} / 5` : "—"}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">

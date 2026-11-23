@@ -89,8 +89,9 @@ const MODEL_LADDERS: Record<string, string[]> = {
   "gemini-3.1-flash-lite": ["gemini-3.5-flash"],
   "gemini-3.8-flash-tts": ["gemini-3.8-flash-lite-tts", "gemini-3.1-flash-tts-preview"],
   "gemini-3.8-flash-lite-tts": ["gemini-3.1-flash-tts-preview"],
-  // Transcription has a single compatible model; a 404 is reported, never faked.
-  "gemini-3.5-transcribe": [],
+  // The dedicated transcriber is tried first; the flash models accept inline
+  // audio too, so they take over when the transcriber's quota is spent.
+  "gemini-3.5-transcribe": ["gemini-3.5-flash", "gemini-3.1-flash-lite"],
 };
 
 /** The full ladder for a requested model, starting with the model itself. */

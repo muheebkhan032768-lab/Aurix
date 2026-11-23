@@ -362,7 +362,7 @@ export function SettingsView({
         </div>
 
         {/* Proactive Companion + Do Not Disturb + Quiet Hours */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-center">
           <label className="flex items-center gap-2 text-xs text-[#202938] dark:text-slate-200 cursor-pointer">
             <input
               type="checkbox"
@@ -414,7 +414,7 @@ export function SettingsView({
               />
               <span>Quiet Hours Schedule</span>
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 type="time"
                 aria-label="Quiet hours start"
