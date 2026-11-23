@@ -1273,6 +1273,33 @@ export function updateSecurityPreferences(inactivityMinutes: number, requirePinO
   return getSecurityStatus();
 }
 
+/**
+ * Owner-initiated full security reset: wipes face/voice templates, the PIN and
+ * every lockout/attempt counter so the owner can enroll again from scratch.
+ * Personal app data (projects, notes, memories) is left untouched.
+ */
+export function resetSecurityState(): SecurityStatus {
+  const ts = nowIso();
+  db.prepare(`DELETE FROM biometric_profiles`).run();
+  db.prepare(`DELETE FROM auth_events`).run();
+  db.prepare(
+    `UPDATE biometric_session SET status = 'locked', method = NULL, verified_at = NULL, locked_at = ?, last_seen = ? WHERE id = 1`
+  ).run(ts, ts);
+  db.prepare(
+    `UPDATE biometric_settings SET require_biometric_on_boot = 0, auth_phrase = 'Desk Mate authorize my voice', updated_at = ? WHERE id = 1`
+  ).run(ts);
+  db.prepare(
+    `UPDATE security_config SET pin_hash = NULL, pin_salt = NULL, failed_attempts = 0, locked_until = NULL, require_pin_on_boot = 0, updated_at = ? WHERE id = 1`
+  ).run(ts);
+  addAuditLog(
+    "SECURITY_RESET",
+    "Abdul Muheeb",
+    "Security system reset: face and voice templates, PIN, lockout state and authentication history cleared for fresh enrollment.",
+    "security"
+  );
+  return getSecurityStatus();
+}
+
 export function listAuditLogs(): AuditLogEntry[] {
   const rows = db.prepare(`SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 60`).all() as Record<string, unknown>[];
   return rows.map((r) => ({

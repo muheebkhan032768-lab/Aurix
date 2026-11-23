@@ -57,6 +57,8 @@ interface VoiceCommandSystemProps {
   onEmergencyStop: (active: boolean) => Promise<void>;
   onLock: () => void;
   onRefreshSystem: () => Promise<void>;
+  /** Hide the floating companion orb (the dashboard has its own voice orb). */
+  suppressCompanion?: boolean;
 }
 
 type VoiceStatus = "idle" | "listening" | "processing" | "success" | "error";
@@ -173,6 +175,7 @@ export function VoiceCommandSystem({
   onEmergencyStop,
   onLock,
   onRefreshSystem,
+  suppressCompanion = false,
 }: VoiceCommandSystemProps) {
   const [open, setOpen] = useState(false);
   // Set while AURIX waits for the user to pick an account (e.g. Facebook).
@@ -1211,12 +1214,14 @@ export function VoiceCommandSystem({
 
   return (
     <>
-      <VoiceCompanionFigure
-        state={companionState}
-        caption={companionCaption}
-        open={open}
-        onToggle={() => setOpen((value) => !value)}
-      />
+      {!suppressCompanion && (
+        <VoiceCompanionFigure
+          state={companionState}
+          caption={companionCaption}
+          open={open}
+          onToggle={() => setOpen((value) => !value)}
+        />
+      )}
 
       {open && (
         <section

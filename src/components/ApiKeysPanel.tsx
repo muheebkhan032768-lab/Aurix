@@ -122,7 +122,7 @@ export function ApiKeysPanel() {
               Gemini API Key Failover
             </h2>
             <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
-              Four-key priority routing. Requests start on the primary key and switch automatically on quota, rate limits or provider errors.
+              Five-key priority routing. Requests start on the primary key and switch automatically on quota, rate limits or provider errors.
             </p>
           </div>
         </div>

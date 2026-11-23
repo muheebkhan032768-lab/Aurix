@@ -6,6 +6,7 @@ import express from "express";
 import JSZip from "jszip";
 import { createServer as createViteServer } from "vite";
 import type { AurixLanguage, SystemTelemetry, ThinkingDepth } from "./src/types/aurix";
+import { matchWebsiteCommand } from "./src/utils/websiteRegistry";
 import {
   addAuditLog,
   addDesktopActionLog,
@@ -240,7 +241,7 @@ async function startServer() {
     });
   });
 
-  // Gemini four-key failover pool — masked identifiers only, never a full key.
+  // Gemini multi-key failover pool — masked identifiers only, never a full key.
   app.get("/api/ai/keys", (_req, res) =>
     res.json(getGeminiPoolStatus(getAppSettings().activeModel || "gemini-4-hydrogen"))
   );
@@ -1023,6 +1024,23 @@ async function startServer() {
         const todayLogs = listAuditLogs().filter((entry) => entry.createdAt.startsWith(today));
         const latest = todayLogs[0]?.detail ? ` Latest entry: ${todayLogs[0].detail}.` : "";
         replyText = `Here is today's picture for AM VEYRONIX, Muheeb: ${projects.length} projects tracked, ${business.length} business records, ${openTasks.length} open tasks, and ${todayLogs.length} logged actions today.${latest}`;
+      } else if (matchWebsiteCommand(text)?.entry.url) {
+        // Any site in the spoken-command registry opens by name: "open GitHub",
+        // "open Instagram", "open Gmail", …
+        const siteMatch = matchWebsiteCommand(text);
+        const url = siteMatch?.account?.url || siteMatch?.entry.url || "";
+        const siteName = siteMatch?.entry.name || "that website";
+        action = { type: "open_url", label: `Open ${siteName}`, url };
+        addDesktopActionLog({
+          action: "Open Website",
+          target: url,
+          status: emergencyStopActive ? "blocked" : "approved",
+          executedIn: "AURIX Command Router",
+          detail: emergencyStopActive ? "Blocked by Emergency Stop." : `Prepared ${siteName} launcher link.`,
+        });
+        replyText = emergencyStopActive
+          ? "Emergency Stop is currently active, Muheeb. Clear it in Computer Control and I will open that for you."
+          : `Opening ${siteName} for you, Muheeb.`;
       } else {
         // Voice conversations pass a fast model so AURIX answers in about a
         // second instead of waiting on the deep thinking model.

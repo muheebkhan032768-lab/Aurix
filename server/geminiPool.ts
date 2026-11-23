@@ -21,7 +21,7 @@ import { GoogleGenAI, type GenerateContentParameters, type GenerateContentRespon
  * exposes a masked identifier.
  */
 
-export type KeyRole = "Primary" | "Secondary" | "Third Backup" | "Final Backup";
+export type KeyRole = "Primary" | "Secondary" | "Third Backup" | "Fourth Backup" | "Final Backup";
 
 export type FailureKind =
   | "quota"
@@ -68,7 +68,8 @@ const SLOT_ENV_NAMES: Array<{ slot: number; names: string[]; role: KeyRole }> = 
   { slot: 1, names: ["GEMINI_API_KEY_1", "GEMINI_API_KEY"], role: "Primary" },
   { slot: 2, names: ["GEMINI_API_KEY_2"], role: "Secondary" },
   { slot: 3, names: ["GEMINI_API_KEY_3"], role: "Third Backup" },
-  { slot: 4, names: ["GEMINI_API_KEY_4"], role: "Final Backup" },
+  { slot: 4, names: ["GEMINI_API_KEY_4"], role: "Fourth Backup" },
+  { slot: 5, names: ["GEMINI_API_KEY_5"], role: "Final Backup" },
 ];
 
 /**
@@ -401,7 +402,7 @@ export class GeminiKeysExhaustedError extends Error {
 export class GeminiNotConfiguredError extends Error {
   constructor() {
     super(
-      "No Gemini API key is configured on the server. Add GEMINI_API_KEY_1–GEMINI_API_KEY_4 in Settings > Secrets."
+      "No Gemini API key is configured on the server. Add GEMINI_API_KEY_1–GEMINI_API_KEY_5 in Settings > Secrets."
     );
     this.name = "GeminiNotConfiguredError";
   }

@@ -29,7 +29,7 @@ import {
   verifyFace,
   verifyVoice,
 } from "./biometricStore";
-import { verifySecurityPin, getSecurityStatus, addAuditLog } from "./db";
+import { verifySecurityPin, getSecurityStatus, addAuditLog, resetSecurityState } from "./db";
 import {
   clearTrainingMemory,
   deleteTrainingExample,
@@ -117,6 +117,14 @@ export function registerBiometricRoutes(app: Express): void {
       return;
     }
     res.json({ ok: true, enrollment: deleteProfile(kind) });
+  });
+
+  // Owner recovery: wipe every enrolled credential (face, voice, PIN, lockouts)
+  // so the owner can enroll again. Deliberately available while the session is
+  // locked — a forgotten voice or face template must never lock the owner out.
+  app.post("/api/security/reset", (_req, res) => {
+    const security = resetSecurityState();
+    res.json({ ok: true, security, snapshot: getBiometricSnapshot() });
   });
 
   app.get("/api/biometrics/challenge", (_req, res) => {
