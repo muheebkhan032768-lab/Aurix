@@ -78,7 +78,7 @@ export function HolographicFace({ state, level, reply, spokenChars, calm = false
       data-spoken-chars={spokenChars}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[9px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Presence</span>
+        <span className="text-[9px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">Presence</span>
         <span
           className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[8px] font-mono uppercase tracking-[0.14em]"
           style={{ borderColor: `${accent}55`, color: accent }}
@@ -204,7 +204,7 @@ export function HolographicFace({ state, level, reply, spokenChars, calm = false
       </div>
 
       <div className="mt-1 flex items-center justify-between gap-2">
-        <span className="text-[8px] font-mono uppercase tracking-[0.16em] text-[#5B7185]">
+        <span className="text-[8px] font-mono uppercase tracking-[0.16em] text-muted-ink">
           lip-sync · {speaking ? "live" : "armed"}
         </span>
         <span className="flex h-3 items-end gap-[2px]" aria-hidden="true">

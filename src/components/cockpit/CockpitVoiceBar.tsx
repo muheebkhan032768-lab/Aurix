@@ -211,8 +211,8 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
     <div className="nexus-panel rounded-2xl p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Waves className="w-4 h-4 text-[#00D9FF]" />
-          <h3 className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Voice Command</h3>
+          <Waves className="w-4 h-4 text-accent" />
+          <h3 className="text-[11px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">Voice Command</h3>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em]">
           <span
@@ -223,10 +223,10 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
                   ? "bg-[#00D9FF] animate-pulse"
                   : status === "idle"
                     ? "bg-emerald-400"
-                    : "bg-[#147DFF] animate-pulse"
+                    : "bg-[#0B63D6] animate-pulse"
             }`}
           />
-          <span className="text-[#94A8B8]">{statusText[status]}</span>
+          <span className="text-slate-600 dark:text-[#94A8B8]">{statusText[status]}</span>
         </div>
       </div>
 
@@ -255,7 +255,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
             listening
               ? "bg-[#00D9FF] text-[#05080D]"
-              : "border border-[#00D9FF]/45 text-[#00D9FF] hover:bg-[#00D9FF]/10"
+              : "border border-[#00D9FF]/45 text-accent hover:bg-[#00D9FF]/10"
           }`}
         >
           {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -281,7 +281,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
           <button
             type="submit"
             disabled={status === "thinking" || !input.trim()}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#147DFF] px-3.5 py-2.5 text-xs font-semibold text-white disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B63D6] px-3.5 py-2.5 text-xs font-semibold text-white disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Send</span>
@@ -291,7 +291,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
         <button
           type="button"
           onClick={stopSpeaking}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-[#A9C8D5]/25 px-3.5 py-2.5 text-xs font-medium text-[#A9C8D5] hover:border-[#A9C8D5]/60 cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-[#A9C8D5]/25 px-3.5 py-2.5 text-xs font-medium text-slate-600 dark:text-[#A9C8D5] hover:border-[#A9C8D5]/60 cursor-pointer"
         >
           <Square className="w-3.5 h-3.5" />
           <span>Stop voice</span>
@@ -300,8 +300,8 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
 
       {transcript && (
         <div className="mt-3 rounded-xl border border-[#00D9FF]/15 bg-[#05080D]/60 px-3.5 py-2.5">
-          <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-[#5B7185]">Transcript</div>
-          <p className="mt-1 text-xs text-[#D6E6EE]">{transcript}</p>
+          <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-ink">Transcript</div>
+          <p className="mt-1 text-xs text-slate-700 dark:text-[#D6E6EE]">{transcript}</p>
         </div>
       )}
 
@@ -311,7 +311,7 @@ export function CockpitVoiceBar({ settings, onSignal, onReply }: CockpitVoiceBar
             <Volume2 className="w-3 h-3" />
             DEX MADE
           </div>
-          <p className="mt-1 text-xs leading-relaxed text-[#D6E6EE] whitespace-pre-wrap">{reply}</p>
+          <p className="mt-1 text-xs leading-relaxed text-slate-700 dark:text-[#D6E6EE] whitespace-pre-wrap">{reply}</p>
         </div>
       )}
 

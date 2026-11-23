@@ -106,7 +106,7 @@ export function ModuleTable({
   return (
     <section className="nexus-panel-soft min-w-0 rounded-2xl px-3.5 py-3" aria-label="Module registry">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Module Registry</h3>
+        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">Module Registry</h3>
         <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">{rows.length} modules</span>
       </div>
 
@@ -124,13 +124,13 @@ export function ModuleTable({
             className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1.5fr)_auto_auto] items-center gap-x-3 py-1.5"
           >
             <span className="truncate text-[9px] font-mono uppercase tracking-[0.1em] text-white">{row.module}</span>
-            <span className="hidden truncate text-[9px] text-[#5B7185] sm:block">{row.description}</span>
+            <span className="hidden truncate text-[9px] text-muted-ink sm:block">{row.description}</span>
             <span
               className={`hidden rounded border px-1.5 py-0.5 text-[7px] font-mono uppercase tracking-[0.16em] sm:inline-block ${typeTone[row.type]}`}
             >
               {row.type}
             </span>
-            <span className="flex items-center justify-end gap-1.5 text-right text-[8px] font-mono uppercase tracking-[0.12em] text-[#94A8B8] sm:justify-start sm:text-left">
+            <span className="flex items-center justify-end gap-1.5 text-right text-[8px] font-mono uppercase tracking-[0.12em] text-slate-600 dark:text-[#94A8B8] sm:justify-start sm:text-left">
               <span className={`h-1 w-1 shrink-0 rounded-full ${statusTone[row.tone]}`} aria-hidden="true" />
               <span className="truncate">{row.status}</span>
             </span>

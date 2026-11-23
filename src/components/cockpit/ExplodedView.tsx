@@ -49,7 +49,7 @@ export function ExplodedView({ state }: ExplodedViewProps) {
   return (
     <section className="nexus-panel-soft min-w-0 rounded-2xl px-3.5 py-3" aria-label="Exploded view">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Exploded View</h3>
+        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">Exploded View</h3>
         <span className="hidden text-[8px] font-mono uppercase tracking-[0.18em] text-[#3F5567] sm:block">
           Core architecture
         </span>

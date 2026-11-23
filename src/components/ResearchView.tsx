@@ -59,7 +59,7 @@ export function ResearchView({ language }: ResearchViewProps) {
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm font-medium cursor-pointer whitespace-nowrap shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white text-sm font-medium cursor-pointer whitespace-nowrap shrink-0"
           >
             <Search className="w-4 h-4" />
             <span>{loading ? "Researching..." : "Search & Synthesize"}</span>
@@ -105,7 +105,7 @@ export function ResearchView({ language }: ResearchViewProps) {
                     href={s.uri}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-start gap-2 text-xs text-cyan-600 dark:text-cyan-400 hover:underline"
+                    className="inline-flex items-start gap-2 text-xs text-accent hover:underline"
                   >
                     <ExternalLink className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                     <span className="break-all">{s.title}</span>

@@ -15,10 +15,10 @@ const STATUS_LABEL: Record<VoiceSessionState, string> = {
 };
 
 const STATUS_COLOR: Record<VoiceSessionState, string> = {
-  idle: "text-[#5B7185]",
-  listening: "text-[#00D9FF]",
+  idle: "text-muted-ink",
+  listening: "text-accent",
   processing: "text-[#147DFF]",
-  thinking: "text-[#00D9FF]",
+  thinking: "text-accent",
   speaking: "text-[#2FE9C6]",
   error: "text-rose-300",
 };
@@ -60,14 +60,14 @@ export function HolographicVoiceHud({ pushToTalkLabel, onToggleMute }: Holograph
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Mic className="w-4 h-4 text-[#00D9FF]" />
-          <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Microphone</h2>
+          <Mic className="w-4 h-4 text-accent" />
+          <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">Microphone</h2>
         </div>
         <div className="flex items-center gap-2">
           <span
             className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.14em] ${
               permission.ok
-                ? "border-emerald-400/40 text-emerald-300"
+                ? "border-emerald-400/40 text-emerald-800 dark:text-emerald-300"
                 : "border-[#D6AD60]/40 text-[#D6AD60]"
             }`}
           >
@@ -82,7 +82,7 @@ export function HolographicVoiceHud({ pushToTalkLabel, onToggleMute }: Holograph
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold cursor-pointer ${
               voice.muted
                 ? "border-rose-400/50 bg-rose-500/10 text-rose-200"
-                : "border-[#00D9FF]/35 text-[#00D9FF] hover:bg-[#00D9FF]/10"
+                : "border-[#00D9FF]/35 text-accent hover:bg-[#00D9FF]/10"
             }`}
           >
             {voice.muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
@@ -145,7 +145,7 @@ export function HolographicVoiceHud({ pushToTalkLabel, onToggleMute }: Holograph
             >
               {STATUS_LABEL[voice.state]}
             </span>
-            <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
+            <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-muted-ink">
               hold {pushToTalkLabel}
             </span>
           </div>
@@ -166,7 +166,7 @@ export function HolographicVoiceHud({ pushToTalkLabel, onToggleMute }: Holograph
             ))}
           </div>
 
-          <p className="mt-1.5 truncate text-[11px] text-[#94A8B8]" data-testid="holographic-mic-caption">
+          <p className="mt-1.5 truncate text-[11px] text-slate-600 dark:text-[#94A8B8]" data-testid="holographic-mic-caption">
             {caption || "Hold the spacebar and speak, or press the mic in the voice panel."}
           </p>
         </div>

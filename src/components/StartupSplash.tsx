@@ -380,7 +380,7 @@ export function StartupSplash({
                 className="flex items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.16em] transition-opacity duration-500"
                 style={{ opacity: done ? 1 : 0.22 }}
               >
-                <span className="text-[#5B7185]">{step.label}</span>
+                <span className="text-muted-ink">{step.label}</span>
                 <span style={{ color: done ? "#2FE9C6" : "#3F5567" }}>{done ? step.value : "····"}</span>
               </div>
             );
@@ -403,7 +403,7 @@ export function StartupSplash({
             const ok = await audioRef.current?.resume();
             if (ok) setAudioBlocked(false);
           }}
-          className="fixed bottom-9 left-8 z-20 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/60 text-xs font-medium text-cyan-200 transition-colors cursor-pointer"
+          className="fixed bottom-9 left-8 z-20 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-600/25 border border-cyan-400/60 text-xs font-medium text-cyan-200 transition-colors cursor-pointer"
         >
           <Volume2 className="w-3.5 h-3.5 text-cyan-300" />
           <span>Enable Startup Audio</span>

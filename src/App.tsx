@@ -78,13 +78,13 @@ class SelfHealingErrorBoundary extends React.Component<
       return (
         <div className="min-h-screen bg-[#F8FAFC] text-[#202938] flex items-center justify-center p-6">
           <div className="max-w-md w-full rounded-2xl border border-emerald-500/40 bg-white shadow-xl p-6 space-y-4">
-            <div className="text-xs font-mono uppercase tracking-[0.2em] text-[#10B981]">
+            <div className="text-xs font-mono uppercase tracking-[0.2em] text-positive">
               DEX MADE Self-Healing Recovery
             </div>
             <h1 className="text-lg font-semibold">Runtime Anomaly Contained</h1>
-            <p className="text-xs text-[#64748B] leading-relaxed">
+            <p className="text-xs text-muted-ink leading-relaxed">
               DEX MADE intercepted a render anomaly before crash:{" "}
-              <span className="font-mono text-rose-600">{this.state.errorMsg}</span>
+              <span className="font-mono text-rose-700 dark:text-rose-400">{this.state.errorMsg}</span>
             </p>
             <button
               type="button"
@@ -97,7 +97,7 @@ class SelfHealingErrorBoundary extends React.Component<
                 }).catch(() => {});
                 this.setState({ hasError: false, errorMsg: "", repairing: false });
               }}
-              className="w-full py-2.5 rounded-xl bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#047857] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
             >
               {this.state.repairing ? "Running 12-Step Self-Heal..." : "Auto-Recover & Restore Dashboard"}
             </button>
@@ -211,15 +211,28 @@ function AurixShell() {
     loadBootstrap();
   }, [loadBootstrap]);
 
-  // Sync Bright Light (Default) / Dark theme class on <html>
+  // Keep the <html> dark class in sync with the active dashboard theme so the
+  // shell tokens and every component's `dark:` styles always agree.
   useEffect(() => {
-    const theme = data?.settings.theme || "light";
     const root = document.documentElement;
-    if (theme === "dark") {
+    if (deskTheme === "dark") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
+  }, [deskTheme]);
+
+  // Adopt the saved workspace theme until the owner picks one on this device.
+  useEffect(() => {
+    const saved = data?.settings.theme;
+    if (saved !== "light" && saved !== "dark") return;
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem("deskmate_theme");
+    } catch {
+      stored = null;
+    }
+    if (stored !== "light" && stored !== "dark") setDeskTheme(saved);
   }, [data?.settings.theme]);
 
   useEffect(() => {
@@ -622,7 +635,7 @@ function AurixShell() {
 
   return (
     <div
-      className={`aurix-shell min-h-screen bg-[var(--d-bg)] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,229,245,0.10),transparent_62%)] text-slate-100 flex flex-col ${
+      className={`aurix-shell min-h-screen bg-[var(--d-bg)] bg-[radial-gradient(1200px_620px_at_50%_-10%,rgba(0,229,245,0.10),transparent_62%)] text-[var(--d-text)] flex flex-col ${
         deskTheme === "light" ? "is-light" : ""
       }`}
     >
@@ -641,7 +654,7 @@ function AurixShell() {
             />
             <div>
               <h2 className="text-xl font-semibold text-[#202938] dark:text-white">DEX MADE Session Locked</h2>
-              <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">
+              <p className="text-xs text-muted-ink dark:text-slate-400 mt-1">
                 Enter Abdul Muheeb&apos;s personal PIN to unlock workspace.
               </p>
             </div>
@@ -653,10 +666,10 @@ function AurixShell() {
               placeholder="Enter PIN..."
               className="w-full text-center tracking-widest bg-[#EEF2F7] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm text-[#202938] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#10B981]"
             />
-            {pinError && <p className="text-xs text-rose-600">{pinError}</p>}
+            {pinError && <p className="text-xs text-rose-700 dark:text-rose-400">{pinError}</p>}
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-sm font-semibold cursor-pointer"
+              className="w-full py-2.5 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white text-sm font-semibold cursor-pointer"
             >
               Unlock DEX MADE
             </button>
@@ -888,20 +901,20 @@ function AurixShell() {
           <div className="nexus-panel w-full max-w-md space-y-4 rounded-2xl p-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#00D9FF]/35 bg-[#00D9FF]/10">
-                <Volume2 className="h-5 w-5 text-[#00D9FF]" />
+                <Volume2 className="h-5 w-5 text-accent" />
               </div>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#147DFF]/35 bg-[#147DFF]/10">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#147DFF]/35 bg-[#0B63D6]/10">
                 <Video className="h-5 w-5 text-[#147DFF]" />
               </div>
               <div>
                 <h2 id="aurix-media-consent-title" className="text-base font-semibold text-white">
                   Allow Microphone &amp; Camera Access?
                 </h2>
-                <p className="text-xs text-[#94A8B8]">DEX MADE will welcome you aloud immediately after</p>
+                <p className="text-xs text-slate-600 dark:text-[#94A8B8]">DEX MADE will welcome you aloud immediately after</p>
               </div>
             </div>
 
-            <p className="text-xs leading-relaxed text-[#94A8B8] sm:text-sm">
+            <p className="text-xs leading-relaxed text-slate-600 dark:text-[#94A8B8] sm:text-sm">
               Grant Microphone &amp; Camera access for live voice conversation and vision snapshots, or select
               &quot;Continue &amp; Speak&quot; to proceed with voice greeting and text/upload control.
             </p>
@@ -924,7 +937,7 @@ function AurixShell() {
                   setMediaConsentChoice("declined");
                   setWelcomeTriggerCount((c) => c + 1);
                 }}
-                className="whitespace-nowrap rounded-lg border border-[#A9C8D5]/30 px-4 py-2 text-xs font-medium text-[#D6E6EE] hover:bg-white/5 cursor-pointer"
+                className="whitespace-nowrap rounded-lg border border-[#A9C8D5]/30 px-4 py-2 text-xs font-medium text-slate-700 dark:text-[#D6E6EE] hover:bg-white/5 cursor-pointer"
               >
                 Continue &amp; Speak
               </button>

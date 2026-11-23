@@ -95,22 +95,22 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
     <div className="space-y-4">
       <div className="nexus-panel rounded-2xl px-4 py-3.5 sm:px-5">
         <div className="flex flex-wrap items-center gap-2">
-          <Bot className="w-4 h-4 text-[#00D9FF]" />
-          <h1 className="font-display text-base font-bold tracking-wide text-white">Automation Center</h1>
+          <Bot className="w-4 h-4 text-accent" />
+          <h1 className="font-display text-base font-bold tracking-wide text-slate-900 dark:text-white">Automation Center</h1>
           <button
             type="button"
             onClick={() => void onToggleEmergencyStop(!emergencyStopActive)}
             className={`ml-auto inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] cursor-pointer ${
               emergencyStopActive
                 ? "border-rose-400 bg-rose-500 text-white"
-                : "border-rose-400/40 text-rose-300 hover:bg-rose-500/10"
+                : "border-rose-400/40 text-rose-700 dark:text-rose-300 hover:bg-rose-500/10"
             }`}
           >
             <CircleSlash className="w-3.5 h-3.5" />
             {emergencyStopActive ? "Emergency stop active" : "Emergency stop"}
           </button>
         </div>
-        <p className="mt-1 text-[11px] text-[#94A8B8]">
+        <p className="mt-1 text-[11px] text-slate-600 dark:text-[#94A8B8]">
           Sensitive operations require explicit approval. When DEX MADE runs on your own computer these actions execute
           for real; the hosted browser preview only queues them.
         </p>
@@ -118,20 +118,20 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
 
       <div className="nexus-panel rounded-2xl px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Laptop className="w-4 h-4 text-[#00D9FF]" />
-          <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#A9C8D5]">Laptop control</span>
+          <Laptop className="w-4 h-4 text-accent" />
+          <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-slate-600 dark:text-[#A9C8D5]">Laptop control</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.12em] ${
-              laptop?.available ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300"
+              laptop?.available ? "bg-emerald-700/15 text-emerald-800 dark:text-emerald-300" : "bg-amber-500/15 text-amber-800 dark:text-amber-300"
             }`}
           >
             {laptop ? (laptop.available ? `live · ${laptop.platform}` : "not on this machine") : "checking"}
           </span>
         </div>
-        <p className="mt-1 text-[11px] text-[#94A8B8]">
+        <p className="mt-1 text-[11px] text-slate-600 dark:text-[#94A8B8]">
           {laptop?.reason || "Checking whether DEX MADE can reach this computer…"}
         </p>
-        <p className="mt-1 text-[11px] text-[#5B7185]">
+        <p className="mt-1 text-[11px] text-muted-ink">
           Say: “open YouTube”, “play my favourite music”, “open my company website”, “open my Downloads folder”,
           “search my laptop for report”, “edit my file notes”, “what is my company growth today”.
         </p>
@@ -140,11 +140,11 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="nexus-panel rounded-2xl p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#A9C8D5]">Action queue</h2>
+            <h2 className="text-[11px] font-mono uppercase tracking-[0.2em] text-slate-600 dark:text-[#A9C8D5]">Action queue</h2>
             <button
               type="button"
               onClick={() => void load()}
-              className="inline-flex items-center gap-1 rounded-lg border border-[#00D9FF]/20 px-2 py-1 text-[10px] text-[#A9C8D5] hover:border-[#00D9FF]/50 cursor-pointer"
+              className="inline-flex items-center gap-1 rounded-lg border border-[#00D9FF]/20 px-2 py-1 text-[10px] text-slate-600 dark:text-[#A9C8D5] hover:border-[#00D9FF]/50 cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" />
               Refresh
@@ -152,27 +152,27 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
           </div>
           <div className="mt-3 space-y-2">
             {logs.map((log) => (
-              <div key={log.id} className="rounded-xl border border-[#00D9FF]/10 bg-[#0B1520]/70 px-3.5 py-2.5">
+              <div key={log.id} className="rounded-xl border border-slate-200 dark:border-[#00D9FF]/10 bg-slate-50 dark:bg-[#0B1520]/70 px-3.5 py-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-white">{log.action}</span>
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white">{log.action}</span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.12em] ${
                       log.status === "blocked" || log.status === "stopped"
-                        ? "bg-rose-500/15 text-rose-300"
-                        : "bg-emerald-500/15 text-emerald-300"
+                        ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
+                        : "bg-emerald-700/15 text-emerald-800 dark:text-emerald-300"
                     }`}
                   >
                     {log.status}
                   </span>
                 </div>
-                <div className="mt-1 truncate text-[11px] text-[#94A8B8]">{log.target}</div>
-                <div className="mt-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-[#5B7185]">
+                <div className="mt-1 truncate text-[11px] text-slate-600 dark:text-[#94A8B8]">{log.target}</div>
+                <div className="mt-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-muted-ink">
                   {log.executedIn} · {new Date(log.createdAt).toLocaleString()}
                 </div>
               </div>
             ))}
             {logs.length === 0 && (
-              <p className="rounded-xl border border-dashed border-[#00D9FF]/15 px-4 py-8 text-center text-[11px] text-[#5B7185]">
+              <p className="rounded-xl border border-dashed border-slate-200 dark:border-[#00D9FF]/15 px-4 py-8 text-center text-[11px] text-muted-ink">
                 No desktop actions recorded yet.
               </p>
             )}
@@ -181,11 +181,11 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
 
         <div className="space-y-4">
           <form onSubmit={run} className="nexus-panel rounded-2xl p-4 space-y-2.5">
-            <h2 className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#A9C8D5]">New approved action</h2>
+            <h2 className="text-[11px] font-mono uppercase tracking-[0.2em] text-slate-600 dark:text-[#A9C8D5]">New approved action</h2>
             <select
               value={action}
               onChange={(e) => setAction(e.target.value)}
-              className="w-full rounded-xl border border-[#00D9FF]/15 bg-[#05080D]/70 px-3 py-2 text-xs text-white outline-none focus:border-[#00D9FF]/50"
+              className="w-full rounded-xl border border-slate-200 dark:border-[#00D9FF]/15 bg-white dark:bg-[#05080D]/70 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-[#00D9FF]/50"
             >
               {PRESETS.map((preset) => (
                 <option key={preset.action} value={preset.action}>
@@ -197,9 +197,9 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
               value={target}
               onChange={(e) => setTarget(e.target.value)}
               placeholder={PRESETS.find((p) => p.action === action)?.placeholder}
-              className="w-full rounded-xl border border-[#00D9FF]/15 bg-[#05080D]/70 px-3 py-2 text-xs text-white placeholder:text-[#5B7185] outline-none focus:border-[#00D9FF]/50"
+              className="w-full rounded-xl border border-slate-200 dark:border-[#00D9FF]/15 bg-white dark:bg-[#05080D]/70 px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-[#5B7185] outline-none focus:border-[#00D9FF]/50"
             />
-            <label className="flex items-start gap-2 rounded-xl border border-[#00D9FF]/15 px-3 py-2 text-[11px] text-[#94A8B8]">
+            <label className="flex items-start gap-2 rounded-xl border border-slate-200 dark:border-[#00D9FF]/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#94A8B8]">
               <input
                 type="checkbox"
                 checked={confirmed}
@@ -209,18 +209,18 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
               <span>I approve this action on my machine.</span>
             </label>
             {feedback && (
-              <p className={`text-[11px] ${feedback.ok ? "text-emerald-300" : "text-rose-300"}`}>{feedback.text}</p>
+              <p className={`text-[11px] ${feedback.ok ? "text-emerald-800 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>{feedback.text}</p>
             )}
             <button
               type="submit"
               disabled={busy || emergencyStopActive}
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#147DFF] px-3 py-2.5 text-xs font-semibold text-white disabled:opacity-50 cursor-pointer"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#0B63D6] px-3 py-2.5 text-xs font-semibold text-white disabled:opacity-50 cursor-pointer"
             >
               <Play className="w-3.5 h-3.5" />
               {busy ? "Submitting…" : "Queue action"}
             </button>
             {emergencyStopActive && (
-              <p className="flex items-center gap-1.5 text-[10px] text-rose-300">
+              <p className="flex items-center gap-1.5 text-[10px] text-rose-700 dark:text-rose-300">
                 <ShieldAlert className="w-3 h-3" />
                 Emergency stop is active — actions are blocked.
               </p>
@@ -228,20 +228,20 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
           </form>
 
           <div className="nexus-panel rounded-2xl p-4">
-            <h2 className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-[#A9C8D5]">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#00D9FF]" />
+            <h2 className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-[0.2em] text-slate-600 dark:text-[#A9C8D5]">
+              <ShieldCheck className="w-3.5 h-3.5 text-accent" />
               Recent security events
             </h2>
             <div className="mt-2 space-y-1.5">
               {auditLogs.slice(0, 5).map((entry) => (
                 <div key={entry.id} className="rounded-lg bg-white/5 px-2.5 py-1.5">
-                  <div className="truncate text-[10px] text-[#D6E6EE]">{entry.detail}</div>
-                  <div className="text-[9px] font-mono uppercase tracking-[0.1em] text-[#5B7185]">
+                  <div className="truncate text-[10px] text-slate-700 dark:text-[#D6E6EE]">{entry.detail}</div>
+                  <div className="text-[9px] font-mono uppercase tracking-[0.1em] text-muted-ink">
                     {entry.eventType} · {new Date(entry.createdAt).toLocaleTimeString()}
                   </div>
                 </div>
               ))}
-              {auditLogs.length === 0 && <p className="text-[11px] text-[#5B7185]">No events logged yet.</p>}
+              {auditLogs.length === 0 && <p className="text-[11px] text-muted-ink">No events logged yet.</p>}
             </div>
           </div>
         </div>

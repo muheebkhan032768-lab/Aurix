@@ -76,8 +76,8 @@ function Gauge({
           {valueText}
         </text>
       </svg>
-      <span className="text-[8px] font-mono uppercase tracking-[0.14em] text-[#94A8B8]">{label}</span>
-      <span className="w-full truncate text-[7.5px] text-[#5B7185]">{detail}</span>
+      <span className="text-[8px] font-mono uppercase tracking-[0.14em] text-slate-600 dark:text-[#94A8B8]">{label}</span>
+      <span className="w-full truncate text-[7.5px] text-muted-ink">{detail}</span>
     </div>
   );
 }
@@ -97,13 +97,13 @@ function Row({
 }) {
   return (
     <div className="flex items-start justify-between gap-2 border-b border-[#00D9FF]/8 px-0.5 py-2 last:border-b-0">
-      <div className="flex min-w-0 items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.14em] text-[#94A8B8]">
+      <div className="flex min-w-0 items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.14em] text-slate-600 dark:text-[#94A8B8]">
         {icon}
         <span className="truncate">{label}</span>
       </div>
       <div className="min-w-0 text-right">
         <div className={`truncate text-[10px] font-semibold tabular-nums ${tone}`}>{value}</div>
-        {detail && <div className="truncate text-[9px] text-[#5B7185]">{detail}</div>}
+        {detail && <div className="truncate text-[9px] text-muted-ink">{detail}</div>}
       </div>
     </div>
   );
@@ -158,7 +158,7 @@ function MemoryDonut({ usedPct, usedGb, freeGb }: { usedPct: number; usedGb: num
           {Math.round(pct)}%
         </text>
       </svg>
-      <div className="space-y-0.5 text-[8px] font-mono uppercase tracking-[0.12em] text-[#5B7185]">
+      <div className="space-y-0.5 text-[8px] font-mono uppercase tracking-[0.12em] text-muted-ink">
         <div className="flex items-center gap-1">
           <span className="h-1.5 w-1.5 rounded-[1px] bg-[#00F2FF]" />
           used {usedGb} GB
@@ -275,7 +275,7 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
   const diskFreeGb = Number((telemetry.diskFreeBytes / 1024 ** 3).toFixed(1));
   const health =
     ramPct > 88 || diskFreeGb < 3 ? "Stressed" : ramPct > 70 || diskFreeGb < 10 ? "Watch" : "Nominal";
-  const healthTone = health === "Nominal" ? "text-emerald-300" : health === "Watch" ? "text-amber-300" : "text-rose-300";
+  const healthTone = health === "Nominal" ? "text-emerald-800 dark:text-emerald-300" : health === "Watch" ? "text-amber-700 dark:text-amber-300" : "text-rose-300";
   const uptimeH = Math.floor(telemetry.uptimeSeconds / 3600);
   const uptimeM = Math.floor((telemetry.uptimeSeconds % 3600) / 60);
 
@@ -288,8 +288,8 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
   return (
     <aside className="nexus-panel flex flex-col gap-3 rounded-2xl p-3.5" aria-label="System telemetry">
       <div className="flex items-center justify-between">
-        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">System Telemetry</h3>
-        <span className={`flex items-center gap-1.5 text-[9px] font-mono ${isOnline ? "text-emerald-300" : "text-amber-300"}`}>
+        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">System Telemetry</h3>
+        <span className={`flex items-center gap-1.5 text-[9px] font-mono ${isOnline ? "text-emerald-800 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
           {isOnline ? "LINK ACTIVE" : "LOCAL ONLY"}
         </span>
@@ -303,14 +303,14 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
         <div className="mt-1 grid grid-cols-2 gap-2">
           <div>
             <div className="flex items-baseline justify-between text-[8px] font-mono uppercase tracking-[0.14em]">
-              <span className="text-[#5B7185]">CPU</span>
+              <span className="text-muted-ink">CPU</span>
               <span className="tabular-nums text-[#00FF9D]">{Math.round(last?.cpu ?? 0)}%</span>
             </div>
             <Sparkline values={history.map((sample) => sample.cpu)} accent="#00FF9D" />
           </div>
           <div>
             <div className="flex items-baseline justify-between text-[8px] font-mono uppercase tracking-[0.14em]">
-              <span className="text-[#5B7185]">MEM</span>
+              <span className="text-muted-ink">MEM</span>
               <span className="tabular-nums text-[#00F2FF]">{Math.round(last?.ram ?? 0)}%</span>
             </div>
             <Sparkline values={history.map((sample) => sample.ram)} accent="#00F2FF" />
@@ -356,7 +356,7 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
         <div className="mt-1.5 flex items-end justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-baseline justify-between text-[8px] font-mono uppercase tracking-[0.14em]">
-              <span className="text-[#5B7185]">CPU</span>
+              <span className="text-muted-ink">CPU</span>
               <span className="tabular-nums text-[#00F2FF]">{Math.round(cpuPct)}%</span>
             </div>
             <HistoryBars values={history.map((sample) => sample.cpu)} />
@@ -371,42 +371,42 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
 
       <div className="rounded-xl border border-[#00D9FF]/10 px-2.5">
         <Row
-          icon={<Cpu className="h-3 w-3 text-[#00D9FF]" />}
+          icon={<Cpu className="h-3 w-3 text-accent" />}
           label="GPU"
           value={gpuName ?? "Not detected"}
           detail={gpuDetail}
-          tone={gpuName ? "text-white" : "text-[#5B7185]"}
+          tone={gpuName ? "text-white" : "text-muted-ink"}
         />
         <Row
-          icon={<MemoryStick className="h-3 w-3 text-[#00D9FF]" />}
+          icon={<MemoryStick className="h-3 w-3 text-accent" />}
           label="Processor"
           value={`${telemetry.cpuCores} threads`}
           detail={telemetry.cpuModel}
         />
         <Row
-          icon={<HardDrive className="h-3 w-3 text-[#00D9FF]" />}
+          icon={<HardDrive className="h-3 w-3 text-accent" />}
           label="Installed RAM"
           value={`${telemetry.installedRamGb} GB`}
         />
         <Row
-          icon={<BatteryCharging className="h-3 w-3 text-[#00D9FF]" />}
+          icon={<BatteryCharging className="h-3 w-3 text-accent" />}
           label="Power"
           value={battery ? (battery.charging ? "Charging" : "Battery") : batterySupported ? "—" : "No sensor"}
         />
         <Row
-          icon={isOnline ? <Wifi className="h-3 w-3 text-[#00D9FF]" /> : <WifiOff className="h-3 w-3 text-amber-300" />}
+          icon={isOnline ? <Wifi className="h-3 w-3 text-accent" /> : <WifiOff className="h-3 w-3 text-amber-700 dark:text-amber-300" />}
           label="Network"
           value={isOnline ? "Connected" : "Offline"}
-          tone={isOnline ? "text-emerald-300" : "text-amber-300"}
+          tone={isOnline ? "text-emerald-800 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}
         />
         <Row
-          icon={<Radio className="h-3 w-3 text-[#00D9FF]" />}
+          icon={<Radio className="h-3 w-3 text-accent" />}
           label="AI engine"
           value={settings.offlineModeForced ? "Local only" : settings.activeModel}
           detail={telemetry.ollamaReachable ? "Local model online" : "Cloud routing · local model offline"}
         />
         <Row
-          icon={<Activity className="h-3 w-3 text-[#00D9FF]" />}
+          icon={<Activity className="h-3 w-3 text-accent" />}
           label="System health"
           value={health}
           tone={healthTone}
@@ -414,11 +414,11 @@ export function CockpitTelemetry({ telemetry: initial, settings, isOnline }: Coc
       </div>
 
       <div className="rounded-xl border border-[#00D9FF]/10 bg-[#05080D]/40 px-3 py-2">
-        <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-[#5B7185]">Runtime</div>
-        <div className="mt-0.5 text-[10px] leading-relaxed text-[#94A8B8]">
+        <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-muted-ink">Runtime</div>
+        <div className="mt-0.5 text-[10px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
           {telemetry.hostname} · {telemetry.platform} · {telemetry.arch}
         </div>
-        <div className="text-[10px] tabular-nums text-[#5B7185]">
+        <div className="text-[10px] tabular-nums text-muted-ink">
           up {uptimeH}h {uptimeM}m · tier {telemetry.hardwareTier}
         </div>
       </div>

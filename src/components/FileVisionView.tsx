@@ -174,7 +174,7 @@ export function FileVisionView({ onSaveMemory, initialMode = "summarize" }: File
               onClick={() => setMode(id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
                 mode === id
-                  ? "bg-cyan-600 text-white"
+                  ? "bg-cyan-700 text-white"
                   : "bg-slate-100 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300"
               }`}
             >
@@ -221,7 +221,7 @@ export function FileVisionView({ onSaveMemory, initialMode = "summarize" }: File
             <button
               type="button"
               onClick={captureSnapshot}
-              className="w-full py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer"
+              className="w-full py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer"
             >
               Capture Single Frame for Vision Analysis
             </button>
@@ -285,7 +285,7 @@ export function FileVisionView({ onSaveMemory, initialMode = "summarize" }: File
         <button
           type="submit"
           disabled={loading}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-medium cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white text-xs font-medium cursor-pointer"
         >
           <FileSearch className="w-4 h-4" />
           <span>{loading ? "Analyzing with Gemini Vision..." : "Analyze Input"}</span>

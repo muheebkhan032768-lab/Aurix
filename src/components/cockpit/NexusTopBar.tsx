@@ -47,18 +47,18 @@ export function NexusTopBar({
           type="button"
           onClick={onOpenMobileNav}
           aria-label="Open navigation"
-          className="md:hidden rounded-lg border border-[#00D9FF]/20 p-2 text-[#A9C8D5] cursor-pointer"
+          className="md:hidden rounded-lg border border-[#00D9FF]/20 p-2 text-slate-600 dark:text-[#A9C8D5] cursor-pointer"
         >
           <Menu className="w-4 h-4" />
         </button>
 
         <div className="flex items-center gap-2.5 min-w-0">
-          <AurixLogo className="w-8 h-8 text-[#00D9FF] shrink-0" />
+          <AurixLogo className="w-8 h-8 text-accent shrink-0" />
           <div className="min-w-0">
             <div className="font-display text-sm font-bold tracking-[0.14em] text-white whitespace-nowrap">
               DEX MADE 2.0
             </div>
-            <div className="hidden sm:block text-[9px] font-mono uppercase tracking-[0.24em] text-[#00D9FF]/70 whitespace-nowrap">
+            <div className="hidden sm:block text-[9px] font-mono uppercase tracking-[0.24em] text-accent/70 whitespace-nowrap">
               Nexus Cockpit · AM VEYRONIX
             </div>
           </div>
@@ -68,14 +68,14 @@ export function NexusTopBar({
           <span
             className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.14em] ${
               isOnline
-                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300"
+                : "border-amber-400/30 bg-amber-400/10 text-amber-700 dark:text-amber-300"
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
             {isOnline ? "System online" : "Offline mode"}
           </span>
-          <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-[#5B7185]">
+          <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-ink">
             {now.toLocaleDateString(undefined, { weekday: "short", day: "2-digit", month: "short", year: "numeric" })}
           </span>
         </div>
@@ -85,15 +85,15 @@ export function NexusTopBar({
             <div className="font-mono text-sm font-semibold tabular-nums text-white leading-none">
               {now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             </div>
-            <div className="mt-1 hidden sm:flex items-center justify-end gap-1 text-[9px] font-mono uppercase tracking-[0.12em] text-[#5B7185]">
+            <div className="mt-1 hidden sm:flex items-center justify-end gap-1 text-[9px] font-mono uppercase tracking-[0.12em] text-muted-ink">
               {isOnline ? <Wifi className="w-2.5 h-2.5" /> : <WifiOff className="w-2.5 h-2.5" />}
               {isOnline ? "Network" : "No network"}
             </div>
           </div>
 
           <div className="hidden xl:flex items-center gap-1.5 rounded-lg border border-[#00D9FF]/15 px-2.5 py-1.5">
-            <Cpu className="w-3 h-3 text-[#00D9FF]" />
-            <span className="text-[10px] font-mono text-[#A9C8D5]">
+            <Cpu className="w-3 h-3 text-accent" />
+            <span className="text-[10px] font-mono text-slate-600 dark:text-[#A9C8D5]">
               {settings.offlineModeForced ? "local-only" : settings.activeModel}
             </span>
           </div>
@@ -102,7 +102,7 @@ export function NexusTopBar({
             <button
               type="button"
               onClick={() => setNotificationsOpen((v) => !v)}
-              className="relative rounded-lg border border-[#00D9FF]/15 p-2 text-[#A9C8D5] hover:border-[#00D9FF]/45 cursor-pointer"
+              className="relative rounded-lg border border-[#00D9FF]/15 p-2 text-slate-600 dark:text-[#A9C8D5] hover:border-[#00D9FF]/45 cursor-pointer"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -114,28 +114,28 @@ export function NexusTopBar({
             </button>
             {notificationsOpen && (
               <div className="absolute right-0 mt-2 w-72 nexus-panel rounded-xl p-3 z-40">
-                <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-[#5B7185]">Open tasks</div>
+                <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-ink">Open tasks</div>
                 <div className="mt-2 space-y-1.5">
                   {openTasks.slice(0, 4).map((task) => (
                     <div key={task.id} className="rounded-lg bg-white/5 px-2.5 py-1.5">
                       <div className="truncate text-[11px] text-white">{task.title}</div>
-                      <div className="text-[9px] font-mono uppercase tracking-[0.1em] text-[#5B7185]">
+                      <div className="text-[9px] font-mono uppercase tracking-[0.1em] text-muted-ink">
                         {task.priority} · {task.status.replace("_", " ")}
                       </div>
                     </div>
                   ))}
                   {openTasks.length === 0 && (
-                    <div className="text-[11px] text-[#5B7185]">No open tasks.</div>
+                    <div className="text-[11px] text-muted-ink">No open tasks.</div>
                   )}
                 </div>
-                <div className="mt-3 text-[10px] font-mono uppercase tracking-[0.18em] text-[#5B7185]">Recent activity</div>
+                <div className="mt-3 text-[10px] font-mono uppercase tracking-[0.18em] text-muted-ink">Recent activity</div>
                 <div className="mt-2 space-y-1">
                   {activity.slice(0, 3).map((entry) => (
-                    <div key={entry.id} className="truncate text-[10px] text-[#94A8B8]">
+                    <div key={entry.id} className="truncate text-[10px] text-slate-600 dark:text-[#94A8B8]">
                       {entry.label}
                     </div>
                   ))}
-                  {activity.length === 0 && <div className="text-[11px] text-[#5B7185]">Nothing logged yet.</div>}
+                  {activity.length === 0 && <div className="text-[11px] text-muted-ink">Nothing logged yet.</div>}
                 </div>
               </div>
             )}
@@ -159,7 +159,7 @@ export function NexusTopBar({
             type="button"
             onClick={() => onNavigate("settings")}
             aria-label="Settings"
-            className="rounded-lg border border-[#00D9FF]/15 p-2 text-[#A9C8D5] hover:border-[#00D9FF]/45 cursor-pointer"
+            className="rounded-lg border border-[#00D9FF]/15 p-2 text-slate-600 dark:text-[#A9C8D5] hover:border-[#00D9FF]/45 cursor-pointer"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -176,7 +176,7 @@ export function NexusTopBar({
               referrerPolicy="no-referrer"
               className="h-6 w-6 rounded-full object-cover"
             />
-            <span className="hidden sm:inline text-[11px] text-[#A9C8D5] whitespace-nowrap">{owner.name}</span>
+            <span className="hidden sm:inline text-[11px] text-slate-600 dark:text-[#A9C8D5] whitespace-nowrap">{owner.name}</span>
           </button>
         </div>
       </div>

@@ -26,10 +26,10 @@ const LABELS: Record<CompanionVisualState, string> = {
 
 const STATUS_STYLES: Record<CompanionVisualState, string> = {
   idle: "bg-slate-500",
-  listening: "bg-[#06B6D4]",
+  listening: "bg-[#0e7490]",
   processing: "bg-[#D6AD60]",
-  thinking: "bg-[#147DFF]",
-  speaking: "bg-[#10B981]",
+  thinking: "bg-[#0B63D6]",
+  speaking: "bg-[#047857]",
   error: "bg-rose-500",
 };
 

@@ -11,10 +11,10 @@ const STATE_LABEL: Record<VoiceSessionState, string> = {
 };
 
 const STATE_COLOR: Record<VoiceSessionState, string> = {
-  idle: "text-[#5B7185]",
-  listening: "text-[#00D9FF]",
+  idle: "text-muted-ink",
+  listening: "text-accent",
   processing: "text-[#147DFF]",
-  thinking: "text-[#00D9FF]",
+  thinking: "text-accent",
   speaking: "text-[#2FE9C6]",
   error: "text-rose-300",
 };
@@ -64,7 +64,7 @@ export function LiveTranscriptPanel() {
       data-transcript-state={voice.state}
     >
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Live transcript</h2>
+        <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">Live transcript</h2>
         <span className={`text-[9px] font-mono uppercase tracking-[0.16em] ${STATE_COLOR[voice.state]}`}>
           {STATE_LABEL[voice.state]}
         </span>
@@ -75,7 +75,7 @@ export function LiveTranscriptPanel() {
           <p className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">You</p>
           <p
             className={`mt-0.5 line-clamp-2 text-[11px] leading-snug ${
-              voice.state === "listening" ? "text-[#00D9FF]" : "text-[#94A8B8]"
+              voice.state === "listening" ? "text-accent" : "text-slate-600 dark:text-[#94A8B8]"
             }`}
             data-testid="live-transcript-heard"
           >
@@ -91,7 +91,7 @@ export function LiveTranscriptPanel() {
             </span>
           </div>
           <p
-            className="mt-0.5 max-h-24 overflow-y-auto text-[11px] leading-relaxed text-[#5B7185]"
+            className="mt-0.5 max-h-24 overflow-y-auto text-[11px] leading-relaxed text-muted-ink"
             data-testid="live-transcript-reply"
           >
             {words.length === 0 ? (
@@ -104,7 +104,7 @@ export function LiveTranscriptPanel() {
                   <span
                     key={`${span.word}-${index}`}
                     ref={current ? activeRef : undefined}
-                    className={spoken || current ? "text-[#E6F7FF]" : "text-[#5B7185]"}
+                    className={spoken || current ? "text-[#E6F7FF]" : "text-muted-ink"}
                     style={
                       current
                         ? { textShadow: "0 0 10px rgba(0,217,255,0.65)" }

@@ -173,7 +173,7 @@ export function CommandCenterView({
           <h1 className="font-display text-base font-bold tracking-wide text-white sm:text-lg">
             {greetingFor(new Date())}, {firstName}.
           </h1>
-          <p className="mt-0.5 truncate text-[10px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
+          <p className="mt-0.5 truncate text-[10px] font-mono uppercase tracking-[0.14em] text-muted-ink">
             {openTasks.length} open task{openTasks.length === 1 ? "" : "s"} · {activeProjects.length} active project
             {activeProjects.length === 1 ? "" : "s"} · {conversations.length} archived
           </p>
@@ -193,8 +193,8 @@ export function CommandCenterView({
                 aria-pressed={mode === option.key}
                 className={`rounded-md px-2 py-1 text-[9px] font-mono uppercase tracking-[0.12em] transition-colors cursor-pointer ${
                   mode === option.key
-                    ? "bg-[#00D9FF]/15 text-[#00D9FF]"
-                    : "text-[#5B7185] hover:text-[#A9C8D5]"
+                    ? "bg-[#00D9FF]/15 text-accent"
+                    : "text-muted-ink hover:text-slate-600 dark:text-[#A9C8D5]"
                 }`}
               >
                 {option.label}
@@ -202,11 +202,11 @@ export function CommandCenterView({
             ))}
           </div>
 
-          <span className="hidden items-center gap-1.5 rounded-full border border-[#00D9FF]/20 px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] text-[#A9C8D5] sm:flex">
+          <span className="hidden items-center gap-1.5 rounded-full border border-[#00D9FF]/20 px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] text-slate-600 dark:text-[#A9C8D5] sm:flex">
             {engineLabel}
           </span>
 
-          <span className="hidden items-center gap-1.5 rounded-full border border-[#00D9FF]/25 bg-[#00D9FF]/5 px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] text-[#A9C8D5] lg:flex">
+          <span className="hidden items-center gap-1.5 rounded-full border border-[#00D9FF]/25 bg-[#00D9FF]/5 px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] text-slate-600 dark:text-[#A9C8D5] lg:flex">
             <span className="h-1.5 w-1.5 rounded-full bg-[#00D9FF] animate-pulse" aria-hidden="true" />
             Say “{settings.wakePhrase}”
           </span>
@@ -214,8 +214,8 @@ export function CommandCenterView({
           <span
             className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-mono uppercase tracking-[0.12em] ${
               isOnline
-                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300"
+                : "border-amber-400/30 bg-amber-400/10 text-amber-700 dark:text-amber-300"
             }`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
@@ -235,13 +235,13 @@ export function CommandCenterView({
 
           <div className="relative z-10 flex items-center justify-between">
             <div className="min-w-0">
-              <h2 className="text-[11px] font-mono uppercase tracking-[0.24em] text-[#A9C8D5]">Nexus Core</h2>
+              <h2 className="text-[11px] font-mono uppercase tracking-[0.24em] text-slate-600 dark:text-[#A9C8D5]">Nexus Core</h2>
               <p className="mt-0.5 truncate text-[8px] font-mono uppercase tracking-[0.22em] text-[#3F5567]">
                 3D system architecture · live deck
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
+              <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-muted-ink">
                 {pushToTalkLabel} push-to-talk
               </span>
               <button
@@ -250,7 +250,7 @@ export function CommandCenterView({
                 aria-pressed={!settings.voiceEnabled}
                 className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.12em] cursor-pointer ${
                   settings.voiceEnabled
-                    ? "border-[#00D9FF]/35 text-[#00D9FF] hover:bg-[#00D9FF]/10"
+                    ? "border-[#00D9FF]/35 text-accent hover:bg-[#00D9FF]/10"
                     : "border-rose-400/50 bg-rose-500/10 text-rose-200"
                 }`}
               >
@@ -278,8 +278,8 @@ export function CommandCenterView({
                   key={state}
                   className={`rounded-full border px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.14em] ${
                     reactorState === state
-                      ? "border-[#00D9FF]/60 bg-[#00D9FF]/10 text-[#00D9FF]"
-                      : "border-[#00D9FF]/10 text-[#5B7185]"
+                      ? "border-[#00D9FF]/60 bg-[#00D9FF]/10 text-accent"
+                      : "border-[#00D9FF]/10 text-muted-ink"
                   }`}
                 >
                   {state}
@@ -288,7 +288,7 @@ export function CommandCenterView({
             </div>
             <span
               className={`flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.16em] ${
-                voice.state === "error" ? "text-rose-300" : "text-[#94A8B8]"
+                voice.state === "error" ? "text-rose-300" : "text-slate-600 dark:text-[#94A8B8]"
               }`}
             >
               <span
@@ -317,8 +317,8 @@ export function CommandCenterView({
         <div className="grid min-w-0 gap-3">
           <section className="nexus-panel rounded-2xl px-4 py-3" aria-label="DEX MADE core reactor">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Core reactor</h2>
-              <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-[#5B7185]">
+              <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">Core reactor</h2>
+              <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-muted-ink">
                 {stateDetail[reactorState]}
               </span>
             </div>
@@ -354,12 +354,12 @@ export function CommandCenterView({
             onClick={() => onNavigate(action.section)}
             className="nexus-panel-soft group flex items-center gap-2 rounded-xl px-3 py-2.5 text-left hover:border-[#00D9FF]/40 cursor-pointer"
           >
-            <span className="text-[#00D9FF]">{action.icon}</span>
+            <span className="text-accent">{action.icon}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[11px] font-semibold text-white">{action.label}</span>
-              <span className="block truncate text-[9px] text-[#5B7185]">{action.hint}</span>
+              <span className="block truncate text-[9px] text-muted-ink">{action.hint}</span>
             </span>
-            <ArrowUpRight className="w-3 h-3 shrink-0 text-[#5B7185] group-hover:text-[#00D9FF]" />
+            <ArrowUpRight className="w-3 h-3 shrink-0 text-muted-ink group-hover:text-accent" />
           </button>
         ))}
       </div>

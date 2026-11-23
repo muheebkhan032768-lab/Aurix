@@ -91,7 +91,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
 
         <a
           href="/api/deliverables/download.zip"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium transition-colors whitespace-nowrap shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium transition-colors whitespace-nowrap shrink-0"
         >
           <Download className="w-4 h-4" />
           <span>Download Windows Suite (.zip)</span>
@@ -197,7 +197,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-xs font-medium cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white text-xs font-medium cursor-pointer"
             >
               <Play className="w-3.5 h-3.5" />
               <span>{loading ? "Analyzing Architecture..." : "Run Engineering Analysis"}</span>
@@ -266,7 +266,7 @@ export function DeveloperView({ websites }: DeveloperViewProps) {
                       {activeFile.description}
                     </p>
                   </div>
-                  <span className="text-xs font-mono text-cyan-600 dark:text-cyan-400 shrink-0">
+                  <span className="text-xs font-mono text-accent shrink-0">
                     {activeFile.category}
                   </span>
                 </div>

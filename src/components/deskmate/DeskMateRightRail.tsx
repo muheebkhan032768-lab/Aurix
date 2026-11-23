@@ -167,7 +167,7 @@ export function DeskMateRightRail({ tasks, activity, telemetry, isOnline, onNavi
           <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--d-dim)]">Network</span>
           <span
             className={`inline-flex items-center gap-1.5 text-[10.5px] font-semibold ${
-              isOnline ? "text-[var(--d-teal)]" : "text-amber-300"
+              isOnline ? "text-[var(--d-teal)]" : "text-amber-700 dark:text-amber-300"
             }`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-[var(--d-teal)]" : "bg-amber-300"}`} />

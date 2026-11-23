@@ -104,7 +104,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h2 className="text-base font-bold text-[#202938] dark:text-white">Voice Engine &amp; Audio</h2>
-          <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-muted-ink dark:text-slate-400 mt-0.5">
             Microphone, speech recognition, DEX MADE voice and diagnostics. Muting DEX MADE never disables the microphone.
           </p>
         </div>
@@ -176,7 +176,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <label className="block text-xs text-[#64748B]">
+        <label className="block text-xs text-muted-ink">
           <span>Recognition language</span>
           <select
             value={settings.language}
@@ -192,7 +192,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
           </select>
         </label>
 
-        <label className="block text-xs text-[#64748B]">
+        <label className="block text-xs text-muted-ink">
           <span>DEX MADE cloud voice (Gemini)</span>
           <select
             value={settings.voiceName}
@@ -210,7 +210,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
           </select>
         </label>
 
-        <label className="block text-xs text-[#64748B]">
+        <label className="block text-xs text-muted-ink">
           <span>Device voice (offline fallback)</span>
           <select
             value={settings.voiceId || ""}
@@ -229,7 +229,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="block text-xs text-[#64748B]">
+        <label className="block text-xs text-muted-ink">
           <span>Voice speed · {(settings.voiceSpeed ?? 1).toFixed(2)}×</span>
           <input
             type="range"
@@ -241,7 +241,7 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
             className="mt-2 w-full accent-[#10B981]"
           />
         </label>
-        <label className="block text-xs text-[#64748B]">
+        <label className="block text-xs text-muted-ink">
           <span>Voice volume · {Math.round((settings.voiceVolume ?? 2) * 100)}% (50–300%)</span>
           <input
             type="range"
@@ -256,48 +256,48 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
       </div>
 
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#F8FAFC] dark:bg-[#0B111B] p-3 space-y-2">
-        <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-[#64748B] dark:text-slate-400">
+        <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-muted-ink dark:text-slate-400">
           <Activity className="w-3 h-3" />
           Audio diagnostics
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             Mic permission <span className="text-[#202938] dark:text-white font-semibold">{permission}</span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             Microphone{" "}
             <span className="text-[#202938] dark:text-white font-semibold">
               {snapshot.micReady ? "ready" : "not open"}
             </span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             Voice engine <span className="text-[#202938] dark:text-white font-semibold">{engineLabel}</span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             State <span className="text-[#202938] dark:text-white font-semibold">{snapshot.state}</span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             Device voices <span className="text-[#202938] dark:text-white font-semibold">{deviceVoices.length}</span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400 truncate">
+          <div className="text-muted-ink dark:text-slate-400 truncate">
             Active device voice{" "}
             <span className="text-[#202938] dark:text-white font-semibold">
               {activeDeviceVoice ? activeDeviceVoice.name : "none installed"}
             </span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             Natural voice{" "}
             <span className="text-[#202938] dark:text-white font-semibold">
               {hasNaturalDeviceVoice() ? "available" : "basic"}
             </span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             Talk key{" "}
             <span className="text-[#202938] dark:text-white font-semibold">
               {formatShortcut(shortcuts.pushToTalk)}
             </span>
           </div>
-          <div className="text-[#64748B] dark:text-slate-400">
+          <div className="text-muted-ink dark:text-slate-400">
             Interrupt{" "}
             <span className="text-[#202938] dark:text-white font-semibold">
               {formatShortcut(shortcuts.cancel)}
@@ -305,12 +305,12 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
           </div>
         </div>
         {snapshot.error && (
-          <p className="text-[11px] text-rose-600 dark:text-rose-300">{snapshot.error}</p>
+          <p className="text-[11px] text-rose-700 dark:text-rose-300">{snapshot.error}</p>
         )}
-        {message && <p className="text-[11px] text-[#64748B] dark:text-slate-300">{message}</p>}
+        {message && <p className="text-[11px] text-muted-ink dark:text-slate-300">{message}</p>}
         {heard && (
           <p className="text-[11px] text-[#202938] dark:text-slate-100">
-            <Volume2 className="inline w-3 h-3 mr-1 text-[#10B981]" />
+            <Volume2 className="inline w-3 h-3 mr-1 text-positive" />
             Heard: “{heard}”
           </p>
         )}

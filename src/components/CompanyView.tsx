@@ -76,7 +76,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0"
         >
           <Save className="w-4 h-4" />
           <span>{saving ? "Saving..." : savedNotice ? "Saved to SQLite" : "Save Company Profile"}</span>
@@ -104,7 +104,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
                   onClick={() =>
                     setDraft({ ...draft, services: draft.services.filter((_, i) => i !== idx) })
                   }
-                  className="text-xs text-slate-400 hover:text-red-400 cursor-pointer"
+                  className="text-xs text-muted-ink hover:text-red-400 cursor-pointer"
                 >
                   Remove
                 </button>
@@ -223,7 +223,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
           <button
             type="button"
             onClick={addDocument}
-            className="md:col-span-4 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer"
+            className="md:col-span-4 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Store Company Document</span>
@@ -251,7 +251,7 @@ export function CompanyView({ company, onSaveCompany }: CompanyViewProps) {
                     <FileText className="w-3.5 h-3.5 text-cyan-500" />
                     {doc.title}
                   </span>
-                  <span className="text-slate-400 font-mono">
+                  <span className="text-muted-ink font-mono">
                     {doc.category} · {doc.addedAt.slice(0, 10)}
                   </span>
                 </div>

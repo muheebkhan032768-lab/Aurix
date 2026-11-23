@@ -380,7 +380,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           onClick={() => void toggleFavourite(link)}
           aria-label={link.isFavourite ? `Remove ${link.name} from favourites` : `Mark ${link.name} as favourite`}
           aria-pressed={link.isFavourite}
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-amber-500 dark:hover:bg-slate-800 cursor-pointer"
+          className="rounded-lg p-1.5 text-muted-ink hover:bg-slate-100 hover:text-amber-500 dark:hover:bg-slate-800 cursor-pointer"
         >
           <Star className={`h-4 w-4 ${link.isFavourite ? "fill-amber-400 text-amber-500" : ""}`} />
         </button>
@@ -415,7 +415,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
         <button
           type="button"
           onClick={() => openLink(link)}
-          className="inline-flex items-center gap-1 rounded-lg bg-cyan-600 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-cyan-500 cursor-pointer"
+          className="inline-flex items-center gap-1 rounded-lg bg-cyan-700 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-cyan-600 cursor-pointer"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           Open
@@ -425,7 +425,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           onClick={() => void copyLink(link)}
           aria-label={`Copy ${link.name} URL`}
           title="Copy URL"
-          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-cyan-600 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer"
+          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-accent dark:hover:bg-slate-800 cursor-pointer"
         >
           <Copy className="h-3.5 w-3.5" />
         </button>
@@ -434,7 +434,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           onClick={() => startEdit(link)}
           aria-label={`Edit ${link.name}`}
           title="Edit"
-          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-cyan-600 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer"
+          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-accent dark:hover:bg-slate-800 cursor-pointer"
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>
@@ -443,7 +443,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           onClick={() => setModal({ type: "details", link })}
           aria-label={`View details for ${link.name}`}
           title="View details"
-          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-cyan-600 dark:text-slate-400 dark:hover:bg-slate-800 cursor-pointer"
+          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-accent dark:hover:bg-slate-800 cursor-pointer"
         >
           <Info className="h-3.5 w-3.5" />
         </button>
@@ -452,7 +452,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           onClick={() => setModal({ type: "delete", link })}
           aria-label={`Delete ${link.name}`}
           title="Delete"
-          className="ml-auto rounded-lg p-1.5 text-slate-500 hover:bg-rose-500/10 hover:text-rose-500 dark:text-slate-400 cursor-pointer"
+          className="ml-auto rounded-lg p-1.5 text-slate-500 hover:bg-rose-500/10 hover:text-rose-700 dark:text-rose-400 cursor-pointer"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
@@ -466,7 +466,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
       <header className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800/80 dark:bg-[#0D1420]">
         <div className="flex items-start gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-xl border border-cyan-500/35 bg-cyan-500/10">
-            <Bookmark className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+            <Bookmark className="h-5 w-5 text-accent" />
           </span>
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Link Vault</h1>
@@ -484,7 +484,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               setImportPreview(null);
               setModal({ type: "import" });
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:border-cyan-400 hover:text-cyan-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-cyan-300 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:border-cyan-400 hover:text-accent dark:border-slate-700 dark:text-slate-300 dark:hover:text-cyan-300 cursor-pointer"
           >
             <Upload className="h-3.5 w-3.5" />
             Import
@@ -492,7 +492,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           <button
             type="button"
             onClick={() => void exportLinks()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:border-cyan-400 hover:text-cyan-600 dark:border-slate-700 dark:text-slate-300 dark:hover:text-cyan-300 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:border-cyan-400 hover:text-accent dark:border-slate-700 dark:text-slate-300 dark:hover:text-cyan-300 cursor-pointer"
           >
             <Download className="h-3.5 w-3.5" />
             Export
@@ -500,7 +500,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           <button
             type="button"
             onClick={startAdd}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-cyan-500 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-cyan-600 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Add Link
@@ -529,7 +529,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
       {/* Search & filters */}
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800/80 dark:bg-[#0D1420] lg:flex-row lg:items-center">
         <label className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-ink" />
           <input
             type="search"
             value={search}
@@ -628,7 +628,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               <button
                 type="button"
                 onClick={startAdd}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-cyan-500 cursor-pointer"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-cyan-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-cyan-600 cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 Add your first link
@@ -665,7 +665,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 type="button"
                 onClick={() => setModal(null)}
                 aria-label="Close"
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="rounded-lg p-1.5 text-muted-ink hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -782,7 +782,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               </button>
 
               {formError && (
-                <p className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-600 dark:text-rose-300">
+                <p className="rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-700 dark:text-rose-300">
                   {formError}
                 </p>
               )}
@@ -800,7 +800,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 type="button"
                 onClick={() => void saveLink()}
                 disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-500 disabled:opacity-60 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-700 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-600 disabled:opacity-60 cursor-pointer"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                 {busy ? "Saving…" : modal.type === "edit" ? "Save Changes" : "Save Link"}
@@ -824,7 +824,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                   href={modal.link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block truncate font-mono text-[11px] text-cyan-600 hover:underline dark:text-cyan-400"
+                  className="block truncate font-mono text-[11px] text-accent hover:underline"
                 >
                   {modal.link.url}
                 </a>
@@ -833,7 +833,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 type="button"
                 onClick={() => setModal(null)}
                 aria-label="Close"
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="rounded-lg p-1.5 text-muted-ink hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -894,7 +894,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               <button
                 type="button"
                 onClick={() => openLink(modal.link)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-cyan-500 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-cyan-600 cursor-pointer"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 Open
@@ -948,7 +948,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 type="button"
                 onClick={() => setModal(null)}
                 aria-label="Close"
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="rounded-lg p-1.5 text-muted-ink hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -963,7 +963,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               type="file"
               accept="application/json,.json"
               onChange={(event) => void readImportFile(event.target.files?.[0])}
-              className="mt-3 w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-600 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white dark:border-slate-700 dark:text-slate-300 cursor-pointer"
+              className="mt-3 w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-700 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white dark:border-slate-700 dark:text-slate-300 cursor-pointer"
             />
 
             <textarea
@@ -987,12 +987,12 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                   </p>
                 )}
                 {importPreview.duplicates.length > 0 && (
-                  <p className="text-amber-600 dark:text-amber-400">
+                  <p className="text-amber-700 dark:text-amber-400">
                     Already saved: {importPreview.duplicates.map((item) => item.name || item.url).slice(0, 6).join(", ")}
                   </p>
                 )}
                 {importPreview.invalid.length > 0 && (
-                  <p className="text-rose-600 dark:text-rose-400">
+                  <p className="text-rose-700 dark:text-rose-400">
                     Invalid: {importPreview.invalid.slice(0, 4).map((item) => `${item.name || item.url} (${item.error})`).join("; ")}
                   </p>
                 )}
@@ -1020,7 +1020,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 type="button"
                 onClick={() => void runImport(true)}
                 disabled={importBusy || !importPreview || importPreview.valid.length === 0}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-500 disabled:opacity-60 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-700 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-600 disabled:opacity-60 cursor-pointer"
               >
                 <Upload className="h-3.5 w-3.5" />
                 Import {importPreview?.valid.length ? importPreview.valid.length : ""} links
@@ -1036,7 +1036,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           role="status"
           className={`fixed bottom-5 right-5 z-[60] max-w-sm rounded-xl border px-4 py-3 text-xs shadow-xl ${
             notice.kind === "success"
-              ? "border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+              ? "border-emerald-400/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-700/10 dark:text-emerald-300"
               : "border-rose-400/50 bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"
           }`}
         >

@@ -14,11 +14,11 @@ function Pill({
   label: string;
 }) {
   const tones: Record<string, string> = {
-    emerald: active ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-white/10 bg-white/5 text-[#5B7185]",
-    cyan: active ? "border-[#00D9FF]/40 bg-[#00D9FF]/10 text-[#7FE9FF]" : "border-white/10 bg-white/5 text-[#5B7185]",
-    amber: active ? "border-amber-400/40 bg-amber-400/10 text-amber-300" : "border-white/10 bg-white/5 text-[#5B7185]",
-    rose: active ? "border-rose-400/40 bg-rose-400/10 text-rose-300" : "border-white/10 bg-white/5 text-[#5B7185]",
-    slate: active ? "border-white/15 bg-white/5 text-[#A9C8D5]" : "border-white/10 bg-white/5 text-[#5B7185]",
+    emerald: active ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300" : "border-white/10 bg-white/5 text-muted-ink",
+    cyan: active ? "border-[#00D9FF]/40 bg-[#00D9FF]/10 text-[#7FE9FF]" : "border-white/10 bg-white/5 text-muted-ink",
+    amber: active ? "border-amber-400/40 bg-amber-400/10 text-amber-700 dark:text-amber-300" : "border-white/10 bg-white/5 text-muted-ink",
+    rose: active ? "border-rose-400/40 bg-rose-400/10 text-rose-300" : "border-white/10 bg-white/5 text-muted-ink",
+    slate: active ? "border-white/15 bg-white/5 text-slate-600 dark:text-[#A9C8D5]" : "border-white/10 bg-white/5 text-muted-ink",
   };
   return (
     <span

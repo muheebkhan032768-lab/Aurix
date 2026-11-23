@@ -98,8 +98,8 @@ export function SystemMonitorView({
       <div className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <div className="flex items-center gap-2 text-xs text-[#64748B] dark:text-slate-400">
-              <Activity className="w-4 h-4 text-[#06B6D4]" />
+            <div className="flex items-center gap-2 text-xs text-muted-ink dark:text-slate-400">
+              <Activity className="w-4 h-4 text-accent" />
               <span>Live Host Runtime Telemetry · {telemetry.platform} ({telemetry.arch})</span>
             </div>
             <h2 className="mt-1 text-lg font-bold text-[#202938] dark:text-white">
@@ -134,19 +134,19 @@ export function SystemMonitorView({
 
         <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-5">
           <div>
-            <div className="text-xs text-[#64748B]">CPU Cores &amp; Load (1m)</div>
+            <div className="text-xs text-muted-ink">CPU Cores &amp; Load (1m)</div>
             <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#202938] dark:text-white">
               {telemetry.cpuCores} cores · {telemetry.loadAvg1m}
             </div>
           </div>
           <div>
-            <div className="text-xs text-[#64748B]">RAM Usage</div>
+            <div className="text-xs text-muted-ink">RAM Usage</div>
             <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#202938] dark:text-white">
               {formatGb(telemetry.usedMemoryBytes)} / {telemetry.installedRamGb} GB ({ramPct}%)
             </div>
           </div>
           <div>
-            <div className="text-xs text-[#64748B]">Disk Free</div>
+            <div className="text-xs text-muted-ink">Disk Free</div>
             <div className="mt-1 font-mono text-lg font-bold tabular-nums text-[#202938] dark:text-white">
               {telemetry.diskTotalBytes > 0
                 ? `${formatGb(telemetry.diskFreeBytes)} GB free (${100 - diskPct}%)`
@@ -154,14 +154,14 @@ export function SystemMonitorView({
             </div>
           </div>
           <div>
-            <div className="text-xs text-[#64748B]">Recommended Mode</div>
-            <div className="mt-1 font-mono text-lg font-bold text-[#10B981]">
+            <div className="text-xs text-muted-ink">Recommended Mode</div>
+            <div className="mt-1 font-mono text-lg font-bold text-positive">
               {telemetry.recommendedMode} ({telemetry.hardwareTier})
             </div>
           </div>
         </div>
 
-        <p className="mt-4 text-xs text-[#64748B] dark:text-slate-400">
+        <p className="mt-4 text-xs text-muted-ink dark:text-slate-400">
           {telemetry.hardwareSummaryNote}
         </p>
       </div>
@@ -175,16 +175,16 @@ export function SystemMonitorView({
           className="lg:col-span-5 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm"
         >
           <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-[#06B6D4]" />
+            <Terminal className="w-4 h-4 text-accent" />
             <h3 className="text-base font-bold text-[#202938] dark:text-white">
               Windows PC Operations Builder (Permission-Gated)
             </h3>
           </div>
-          <p className="text-xs text-[#64748B] dark:text-slate-400 leading-relaxed">
+          <p className="text-xs text-muted-ink dark:text-slate-400 leading-relaxed">
             In browser preview, commands are logged &amp; validated safely without touching host OS files. When installed on Windows 10/11, <code className="font-mono">pc_controller.py</code> executes whitelisted actions only with explicit owner approval.
           </p>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Operation Preset</span>
             <select
               value={selectedPreset}
@@ -200,7 +200,7 @@ export function SystemMonitorView({
           </label>
 
           {selectedPreset === "Search Project Files" && (
-            <label className="block text-xs text-[#64748B]">
+            <label className="block text-xs text-muted-ink">
               <span>Target Windows Path</span>
               <input
                 type="text"
@@ -212,7 +212,7 @@ export function SystemMonitorView({
           )}
 
           <div className="p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800">
-            <div className="text-[11px] text-[#64748B] mb-1">Command Preview</div>
+            <div className="text-[11px] text-muted-ink mb-1">Command Preview</div>
             <code className="text-xs font-mono text-cyan-700 dark:text-cyan-400 break-all">
               {commandMap[selectedPreset]}
             </code>
@@ -231,13 +231,13 @@ export function SystemMonitorView({
           <button
             type="submit"
             disabled={!confirmed || telemetry.emergencyStopActive}
-            className="w-full py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer"
+            className="w-full py-2.5 rounded-lg bg-[#047857] hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer"
           >
             Approve &amp; Queue Safe Operation
           </button>
 
           {notice && (
-            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 text-xs text-emerald-800 dark:text-emerald-200">
+            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-700/10 border border-emerald-300 text-xs text-emerald-800 dark:text-emerald-200">
               {notice}
             </div>
           )}
@@ -246,7 +246,7 @@ export function SystemMonitorView({
         <section className="lg:col-span-7 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-[#06B6D4]" />
+              <ShieldAlert className="w-4 h-4 text-accent" />
               <h3 className="text-base font-bold text-[#202938] dark:text-white">
                 Execution &amp; Security Audit Trails
               </h3>
@@ -257,7 +257,7 @@ export function SystemMonitorView({
                 type="button"
                 onClick={() => setLogTab("desktop")}
                 className={`px-3 py-1 rounded text-xs font-medium cursor-pointer ${
-                  logTab === "desktop" ? "bg-[#10B981] text-white font-semibold" : "text-[#64748B]"
+                  logTab === "desktop" ? "bg-[#047857] text-white font-semibold" : "text-muted-ink"
                 }`}
               >
                 Desktop Actions ({desktopActions.length})
@@ -266,7 +266,7 @@ export function SystemMonitorView({
                 type="button"
                 onClick={() => setLogTab("security")}
                 className={`px-3 py-1 rounded text-xs font-medium cursor-pointer ${
-                  logTab === "security" ? "bg-[#10B981] text-white font-semibold" : "text-[#64748B]"
+                  logTab === "security" ? "bg-[#047857] text-white font-semibold" : "text-muted-ink"
                 }`}
               >
                 Security Audit ({auditLogs.length})
@@ -277,17 +277,17 @@ export function SystemMonitorView({
           <div className="divide-y divide-slate-200 dark:divide-slate-800 max-h-[380px] overflow-y-auto">
             {logTab === "desktop" ? (
               desktopActions.length === 0 ? (
-                <p className="text-xs text-[#64748B] py-4">No desktop control actions logged yet.</p>
+                <p className="text-xs text-muted-ink py-4">No desktop control actions logged yet.</p>
               ) : (
                 desktopActions.map((act) => (
                   <div key={act.id} className="py-3 flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-xs font-mono font-semibold text-[#10B981]">
+                      <div className="text-xs font-mono font-semibold text-positive">
                         {act.action} · {act.status.toUpperCase()} ({act.executedIn})
                       </div>
                       <div className="text-xs text-[#202938] dark:text-slate-300 mt-0.5">{act.detail}</div>
                     </div>
-                    <span className="text-[11px] font-mono tabular-nums text-[#64748B] shrink-0">
+                    <span className="text-[11px] font-mono tabular-nums text-muted-ink shrink-0">
                       {act.createdAt.slice(0, 19).replace("T", " ")}
                     </span>
                   </div>
@@ -302,7 +302,7 @@ export function SystemMonitorView({
                     </div>
                     <div className="text-xs text-[#202938] dark:text-slate-300 mt-0.5">{log.detail}</div>
                   </div>
-                  <span className="text-[11px] font-mono tabular-nums text-[#64748B] shrink-0">
+                  <span className="text-[11px] font-mono tabular-nums text-muted-ink shrink-0">
                     {log.createdAt.slice(0, 19).replace("T", " ")}
                   </span>
                 </div>

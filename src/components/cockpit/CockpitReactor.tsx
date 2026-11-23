@@ -272,7 +272,7 @@ export function CockpitReactor({
         </text>
       </svg>
 
-      <span className="pointer-events-none absolute inset-x-0 -bottom-1 text-center font-mono text-[10px] tracking-[0.3em] text-[#5B7185]">
+      <span className="pointer-events-none absolute inset-x-0 -bottom-1 text-center font-mono text-[10px] tracking-[0.3em] text-muted-ink">
         {theme.label}
       </span>
     </div>

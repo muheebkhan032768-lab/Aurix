@@ -95,7 +95,7 @@ function NavButton({
       className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors cursor-pointer ${
         active
           ? "bg-[#00D9FF]/12 text-white"
-          : "text-[#94A8B8] hover:bg-white/5 hover:text-white"
+          : "text-slate-600 dark:text-[#94A8B8] hover:bg-white/5 hover:text-white"
       }`}
     >
       <span
@@ -103,11 +103,11 @@ function NavButton({
           active ? "w-[3px] bg-[#00D9FF]" : "w-0 bg-transparent"
         }`}
       />
-      <Icon className={`w-4 h-4 shrink-0 ${active ? "text-[#00D9FF]" : "text-[#5B7185] group-hover:text-[#A9C8D5]"}`} />
+      <Icon className={`w-4 h-4 shrink-0 ${active ? "text-accent" : "text-muted-ink group-hover:text-slate-600 dark:text-[#A9C8D5]"}`} />
       {!collapsed && (
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium">{item.label}</span>
-          <span className="block truncate text-[10px] text-[#5B7185]">{item.hint}</span>
+          <span className="block truncate text-[10px] text-muted-ink">{item.hint}</span>
         </span>
       )}
     </button>
@@ -132,13 +132,13 @@ export function NexusSidebar({
         {!collapsed && (
           <div>
             <div className="font-display text-sm font-bold tracking-[0.2em] text-white">NEXUS</div>
-            <div className="text-[9px] font-mono uppercase tracking-[0.24em] text-[#5B7185]">Cockpit v2.0</div>
+            <div className="text-[9px] font-mono uppercase tracking-[0.24em] text-muted-ink">Cockpit v2.0</div>
           </div>
         )}
         <button
           type="button"
           onClick={isMobile ? onCloseMobile : onToggleCollapsed}
-          className="rounded-lg p-1.5 text-[#5B7185] hover:bg-white/5 hover:text-white cursor-pointer"
+          className="rounded-lg p-1.5 text-muted-ink hover:bg-white/5 hover:text-white cursor-pointer"
           aria-label={isMobile ? "Close navigation" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isMobile ? <X className="w-4 h-4" /> : collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -169,7 +169,7 @@ export function NexusSidebar({
           <button
             type="button"
             onClick={onToggleMore}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-[10px] font-mono uppercase tracking-[0.16em] text-[#5B7185] hover:text-[#A9C8D5] cursor-pointer"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-[10px] font-mono uppercase tracking-[0.16em] text-muted-ink hover:text-slate-600 dark:text-[#A9C8D5] cursor-pointer"
           >
             <MoreHorizontal className="w-3.5 h-3.5" />
             {!collapsed && <span>More modules</span>}
@@ -186,7 +186,7 @@ export function NexusSidebar({
                   }}
                   className={`block w-full rounded-lg px-3 py-1.5 text-left text-[11px] transition-colors cursor-pointer ${
                     activeSection === entry.id
-                      ? "text-[#00D9FF] bg-[#00D9FF]/8"
+                      ? "text-accent bg-[#00D9FF]/8"
                       : "text-[#7A8FA0] hover:text-white hover:bg-white/5"
                   }`}
                 >
@@ -200,11 +200,11 @@ export function NexusSidebar({
 
       <div className="border-t border-[#00D9FF]/10 px-4 py-3">
         {collapsed && !isMobile ? (
-          <div className="text-center text-[9px] font-mono text-[#5B7185]">AMV</div>
+          <div className="text-center text-[9px] font-mono text-muted-ink">AMV</div>
         ) : (
           <div>
-            <div className="text-[9px] font-mono uppercase tracking-[0.2em] text-[#5B7185]">POWERED BY</div>
-            <div className="text-[11px] font-semibold tracking-[0.16em] text-[#A9C8D5]">AM VEYRONIX</div>
+            <div className="text-[9px] font-mono uppercase tracking-[0.2em] text-muted-ink">POWERED BY</div>
+            <div className="text-[11px] font-semibold tracking-[0.16em] text-slate-600 dark:text-[#A9C8D5]">AM VEYRONIX</div>
           </div>
         )}
       </div>

@@ -60,7 +60,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
         <button
           type="button"
           onClick={startNew}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer whitespace-nowrap shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer whitespace-nowrap shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>New Project</span>
@@ -79,7 +79,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
             <button
               type="button"
               onClick={() => setEditing(null)}
-              className="text-xs text-slate-400 hover:text-slate-200 cursor-pointer"
+              className="text-xs text-muted-ink hover:text-slate-200 cursor-pointer"
             >
               Cancel
             </button>
@@ -160,7 +160,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
 
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>Save Project</span>
@@ -219,7 +219,7 @@ export function ProjectsView({ projects, onSaveProject }: ProjectsViewProps) {
                   <button
                     type="button"
                     onClick={() => setEditing(p)}
-                    className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer shrink-0"
+                    className="text-xs font-medium text-accent hover:underline cursor-pointer shrink-0"
                   >
                     Edit
                   </button>

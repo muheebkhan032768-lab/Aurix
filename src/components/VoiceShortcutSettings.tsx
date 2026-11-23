@@ -45,7 +45,7 @@ export function VoiceShortcutSettings({ shortcuts, onChange }: VoiceShortcutSett
     <div className="space-y-1.5" data-testid="voice-shortcuts">
       {(Object.keys(SHORTCUT_LABELS) as Array<keyof VoiceShortcuts>).map((key) => (
         <div key={key} className="flex items-center justify-between gap-2">
-          <span className="text-[10px] text-[#64748B] dark:text-slate-400">{SHORTCUT_LABELS[key]}</span>
+          <span className="text-[10px] text-muted-ink dark:text-slate-400">{SHORTCUT_LABELS[key]}</span>
           <button
             type="button"
             onClick={() => setCapturing(key)}
@@ -63,7 +63,7 @@ export function VoiceShortcutSettings({ shortcuts, onChange }: VoiceShortcutSett
       <button
         type="button"
         onClick={() => onChange({ ...DEFAULT_VOICE_SHORTCUTS })}
-        className="mt-1 inline-flex items-center gap-1 text-[10px] text-[#64748B] hover:text-[#10B981] cursor-pointer"
+        className="mt-1 inline-flex items-center gap-1 text-[10px] text-muted-ink hover:text-positive cursor-pointer"
       >
         <RotateCcw className="w-3 h-3" />
         Reset to defaults

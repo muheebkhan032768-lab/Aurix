@@ -222,12 +222,12 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
               className="h-16 w-16 shrink-0 rounded-2xl border-2 border-[#00D9FF]/50 object-cover"
             />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#00D9FF]">
+              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-accent">
                 <Lock className="h-3 w-3" /> Personal session locked
               </div>
-              <h1 className="mt-1 font-display text-xl font-bold tracking-wide text-white">DEX MADE Identity Gate</h1>
-              <p className="mt-1 text-[11px] leading-relaxed text-[#94A8B8]">
-                Verify {ownerName || "the owner"} with face <span className="text-[#A9C8D5]">or</span> voice — one successful method opens the session. Nothing personal is shown until then.
+              <h1 className="mt-1 font-display text-xl font-bold tracking-wide text-slate-900 dark:text-white">DEX MADE Identity Gate</h1>
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
+                Verify {ownerName || "the owner"} with face <span className="text-slate-600 dark:text-[#A9C8D5]">or</span> voice — one successful method opens the session. Nothing personal is shown until then.
               </p>
             </div>
           </div>
@@ -239,7 +239,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                 <span className="font-semibold">{pendingActivation.source === "gmail" ? "Gmail opened in Chrome" : "Chrome activity detected"}.</span>{" "}
                 {pendingActivation.detail} — verify the owner to activate DEX MADE.
               </div>
-              <button type="button" onClick={() => void onDismissPending()} aria-label="Dismiss activation request" className="cursor-pointer text-amber-300 hover:text-amber-100">
+              <button type="button" onClick={() => void onDismissPending()} aria-label="Dismiss activation request" className="cursor-pointer text-amber-700 dark:text-amber-300 hover:text-amber-100">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -261,9 +261,9 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                     active ? "bg-[#00D9FF]/15 text-white" : "text-[#7A8FA0] hover:text-white"
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${active ? "text-[#00D9FF]" : ""}`} />
+                  <Icon className={`h-3.5 w-3.5 ${active ? "text-accent" : ""}`} />
                   {entry.label}
-                  {!entry.available && <span className="text-[9px] text-[#5B7185]">off</span>}
+                  {!entry.available && <span className="text-[9px] text-muted-ink">off</span>}
                 </button>
               );
             })}
@@ -278,14 +278,14 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                 }} playsInline muted className="aspect-video w-full object-contain" />
                 <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.14em]">
                   <span className={`h-1.5 w-1.5 rounded-full ${camera.status === "active" ? "bg-rose-400 animate-pulse" : "bg-slate-500"}`} />
-                  <span className={camera.status === "active" ? "text-rose-300" : "text-slate-400"}>
+                  <span className={camera.status === "active" ? "text-rose-300" : "text-muted-ink"}>
                     {camera.status === "active" ? "Camera active" : camera.status === "paused" ? "Camera paused" : "Camera off"}
                   </span>
                 </div>
                 {camera.status !== "active" && phase !== "granted" && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/45 text-center">
-                    <Camera className="h-6 w-6 text-[#00D9FF]" />
-                    <p className="px-6 text-[11px] text-[#A9C8D5]">The camera opens only after you press the button below.</p>
+                    <Camera className="h-6 w-6 text-accent" />
+                    <p className="px-6 text-[11px] text-slate-600 dark:text-[#A9C8D5]">The camera opens only after you press the button below.</p>
                   </div>
                 )}
                 {phase === "running" && (
@@ -302,7 +302,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                     : "Face authentication is switched off in DEX MADE settings. Use voice or the owner PIN."}
                 </p>
               ) : phase === "granted" ? (
-                <p className="flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-300">
+                <p className="flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
                   <ShieldCheck className="h-4 w-4" /> Owner verified — unlocking DEX MADE.
                 </p>
               ) : (
@@ -316,7 +316,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                     <ScanFace className="h-4 w-4" />
                     {phase === "running" ? "Verifying… blink once" : "Verify my face"}
                   </button>
-                  <span className="text-[10px] text-[#5B7185]">Liveness: a blink is required. Photos are rejected.</span>
+                  <span className="text-[10px] text-muted-ink">Liveness: a blink is required. Photos are rejected.</span>
                 </div>
               )}
             </div>
@@ -324,10 +324,10 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
 
           {tab === "voice" && (
             <div className="mt-4 space-y-3">
-              <div className="rounded-xl border border-[#147DFF]/25 bg-[#147DFF]/10 px-3 py-3">
+              <div className="rounded-xl border border-[#147DFF]/25 bg-[#0B63D6]/10 px-3 py-3">
                 <div className="text-[9px] font-mono uppercase tracking-[0.2em] text-[#7FB6FF]">Say this challenge phrase</div>
                 <p className="mt-1 text-sm font-semibold text-white">{challenge?.text ?? "Loading challenge…"}</p>
-                <p className="mt-1 text-[10px] text-[#94A8B8]">
+                <p className="mt-1 text-[10px] text-slate-600 dark:text-[#94A8B8]">
                   A fresh phrase is generated every attempt, so a recorded replay cannot pass. Only voice features are compared — the audio itself is not stored.
                 </p>
               </div>
@@ -343,7 +343,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                   This browser has no speech recognition, so the anti-replay challenge cannot be checked. Use face verification or the owner PIN.
                 </p>
               ) : phase === "granted" ? (
-                <p className="flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-300">
+                <p className="flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-400/10 px-3 py-2 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
                   <ShieldCheck className="h-4 w-4" /> Owner verified — unlocking DEX MADE.
                 </p>
               ) : (
@@ -353,7 +353,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                       type="button"
                       onClick={() => void runVoice()}
                       disabled={phase === "running" || !challenge}
-                      className="inline-flex items-center gap-2 rounded-xl bg-[#147DFF] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-50 cursor-pointer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#0B63D6] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-50 cursor-pointer"
                     >
                       <Mic className="h-4 w-4" />
                       {phase === "running" ? "Listening…" : "Verify my voice"}
@@ -361,18 +361,18 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                     <button
                       type="button"
                       onClick={() => void loadChallenge()}
-                      className="rounded-xl border border-white/15 px-3 py-2 text-[11px] text-[#A9C8D5] hover:bg-white/5 cursor-pointer"
+                      className="rounded-xl border border-white/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer"
                     >
                       New phrase
                     </button>
                   </div>
                   {phase === "running" && (
                     <div className="h-1 overflow-hidden rounded-full bg-white/10">
-                      <div className="h-full bg-[#147DFF] transition-all" style={{ width: `${Math.max(6, progress * 100)}%` }} />
+                      <div className="h-full bg-[#0B63D6] transition-all" style={{ width: `${Math.max(6, progress * 100)}%` }} />
                     </div>
                   )}
                   {transcript && (
-                    <p className="text-[10px] text-[#94A8B8]">
+                    <p className="text-[10px] text-slate-600 dark:text-[#94A8B8]">
                       Heard: <span className="text-white">“{transcript}”</span>
                     </p>
                   )}
@@ -389,7 +389,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                 </p>
               ) : (
                 <>
-                  <label className="block text-[11px] text-[#94A8B8]">
+                  <label className="block text-[11px] text-slate-600 dark:text-[#94A8B8]">
                     <span>Owner PIN (recovery method)</span>
                     <input
                       type="password"
@@ -403,11 +403,11 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
                   <button
                     type="submit"
                     disabled={pinBusy || !pin.trim()}
-                    className="w-full rounded-xl bg-[#10B981] px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
+                    className="w-full rounded-xl bg-[#047857] px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
                   >
                     {pinBusy ? "Checking…" : "Unlock with PIN"}
                   </button>
-                  <p className="text-[10px] text-[#5B7185]">
+                  <p className="text-[10px] text-muted-ink">
                     A PIN is only a recovery path. It does not replace biometric verification when a sensor is available.
                   </p>
                 </>
@@ -419,7 +419,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
             <div
               className={`mt-3 rounded-xl border px-3 py-2 text-[11px] ${
                 phase === "granted"
-                  ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-300"
+                  ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300"
                   : "border-rose-400/30 bg-rose-400/10 text-rose-200"
               }`}
             >
@@ -428,7 +428,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
           )}
 
           {details.length > 0 && (
-            <ul className="mt-2 space-y-0.5 text-[10px] text-[#5B7185]">
+            <ul className="mt-2 space-y-0.5 text-[10px] text-muted-ink">
               {details.map((line) => (
                 <li key={line}>· {line}</li>
               ))}
@@ -436,7 +436,7 @@ export function AuthGate({ ownerName, snapshot, pendingActivation, onVerified, o
           )}
         </div>
 
-        <p className="px-2 text-center text-[10px] leading-relaxed text-[#5B7185]">
+        <p className="px-2 text-center text-[10px] leading-relaxed text-muted-ink">
           Camera and microphone open only for the verification you start. Sensors are released the moment it ends. Biometric templates stay encrypted on this machine.
         </p>
       </div>

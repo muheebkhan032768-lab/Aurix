@@ -970,7 +970,7 @@ export function HolographicHead3D({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] font-mono uppercase tracking-[0.3em] text-[#00F2FF]/80">DEX MADE</p>
-            <p className="mt-0.5 truncate text-[8px] font-mono uppercase tracking-[0.18em] text-[#5B7185]">
+            <p className="mt-0.5 truncate text-[8px] font-mono uppercase tracking-[0.18em] text-muted-ink">
               Personal AI assistant · {VIEW_LABEL[view]}
             </p>
           </div>
@@ -1015,7 +1015,7 @@ export function HolographicHead3D({
                 onClick={() => setView(option.id)}
                 aria-pressed={view === option.id}
                 className={`rounded-md px-2 py-1 text-[9px] font-mono uppercase tracking-[0.12em] transition-colors cursor-pointer ${
-                  view === option.id ? "bg-[#00D9FF]/15 text-[#00D9FF]" : "text-[#5B7185] hover:text-[#A9C8D5]"
+                  view === option.id ? "bg-[#00D9FF]/15 text-accent" : "text-muted-ink hover:text-slate-600 dark:text-[#A9C8D5]"
                 }`}
               >
                 {option.label}
@@ -1024,7 +1024,7 @@ export function HolographicHead3D({
           </div>
 
           <div className="text-right">
-            <p className="text-[8px] font-mono uppercase tracking-[0.18em] text-[#00D9FF]/60">Powered by</p>
+            <p className="text-[8px] font-mono uppercase tracking-[0.18em] text-accent/60">Powered by</p>
             <p className="text-[9px] font-display uppercase tracking-[0.2em] text-[#E8C877]">AM VEYRONIX</p>
           </div>
         </div>

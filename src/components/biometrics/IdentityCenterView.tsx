@@ -36,7 +36,7 @@ function Toggle({ label, hint, checked, onChange }: { label: string; hint: strin
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 accent-[#00D9FF]" />
       <span className="min-w-0">
         <span className="block text-[11px] font-medium text-white">{label}</span>
-        <span className="block text-[10px] leading-relaxed text-[#5B7185]">{hint}</span>
+        <span className="block text-[10px] leading-relaxed text-muted-ink">{hint}</span>
       </span>
     </label>
   );
@@ -201,7 +201,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
       {ok ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />}
       <div className="min-w-0">
         <div className="text-[11px] font-medium text-white">{label}</div>
-        <div className="text-[10px] text-[#5B7185]">{detail}</div>
+        <div className="text-[10px] text-muted-ink">{detail}</div>
       </div>
     </div>
   );
@@ -211,26 +211,26 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#00D9FF]">
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-accent">
               <ShieldCheck className="h-3.5 w-3.5" /> Personal authentication
             </div>
-            <h1 className="mt-1 font-display text-lg font-bold tracking-wide text-white">Owner Identity & Biometrics</h1>
-            <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#94A8B8]">
-              Face <span className="text-[#A9C8D5]">or</span> voice unlocks DEX MADE. Templates are encrypted on this machine and matched locally by the DEX MADE server — they are never returned to the browser.
+            <h1 className="mt-1 font-display text-lg font-bold tracking-wide text-slate-900 dark:text-white">Owner Identity & Biometrics</h1>
+            <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
+              Face <span className="text-slate-600 dark:text-[#A9C8D5]">or</span> voice unlocks DEX MADE. Templates are encrypted on this machine and matched locally by the DEX MADE server — they are never returned to the browser.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
                 session.status === "unlocked"
-                  ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300"
-                  : "border-amber-400/40 bg-amber-400/10 text-amber-300"
+                  ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300"
+                  : "border-amber-400/40 bg-amber-400/10 text-amber-700 dark:text-amber-300"
               }`}
             >
               {session.status === "unlocked" ? <ShieldCheck className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
               {session.status === "unlocked" ? `Owner verified${session.method ? ` · ${session.method}` : ""}` : "DEX MADE locked"}
             </span>
-            <button type="button" onClick={onLockNow} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-1.5 text-[11px] text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
+            <button type="button" onClick={onLockNow} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-1.5 text-[11px] text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
               <Lock className="h-3.5 w-3.5" /> Lock now
             </button>
             <button type="button" onClick={onLogout} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-400/30 px-3 py-1.5 text-[11px] text-rose-300 hover:bg-rose-500/10 cursor-pointer">
@@ -243,7 +243,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
           <div
             className={`mt-3 rounded-xl border px-3 py-2 text-[11px] ${
               message.tone === "ok"
-                ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-300"
+                ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300"
                 : message.tone === "error"
                   ? "border-rose-400/30 bg-rose-400/10 text-rose-200"
                   : "border-[#00D9FF]/25 bg-[#00D9FF]/10 text-[#A9E8F5]"
@@ -264,20 +264,20 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <div className="flex items-center gap-2">
-            <ScanFace className="h-4 w-4 text-[#00D9FF]" />
-            <h2 className="text-sm font-semibold text-white">Face recognition</h2>
+            <ScanFace className="h-4 w-4 text-accent" />
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Face recognition</h2>
           </div>
           <div className="mt-3 overflow-hidden rounded-xl border border-[#00D9FF]/20 bg-black">
             <video ref={camera.videoRef} playsInline muted className="aspect-video w-full object-contain" />
           </div>
           <div className="mt-3 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em]">
             <span className={`h-1.5 w-1.5 rounded-full ${camera.status === "active" ? "bg-rose-400 animate-pulse" : "bg-slate-500"}`} />
-            <span className={camera.status === "active" ? "text-rose-300" : "text-[#5B7185]"}>
+            <span className={camera.status === "active" ? "text-rose-300" : "text-muted-ink"}>
               {camera.status === "active" ? "Camera active" : camera.status === "error" ? "Camera unavailable" : "Camera off"}
             </span>
           </div>
           {camera.error && <p className="mt-2 text-[11px] text-rose-300">{camera.error}</p>}
-          <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-[#05080D]/50 px-3 py-2 text-[10px] leading-relaxed text-[#94A8B8]">
+          <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-[#05080D]/50 px-3 py-2 text-[10px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
             <input type="checkbox" checked={faceConsent} onChange={(e) => setFaceConsent(e.target.checked)} className="mt-0.5 accent-[#00D9FF]" />
             <span>I allow DEX MADE to open the camera and create a face template for me on this device.</span>
           </label>
@@ -297,9 +297,9 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
               </button>
             )}
           </div>
-          {faceProgress && <p className="mt-2 text-[11px] text-[#00D9FF]">{faceProgress}</p>}
+          {faceProgress && <p className="mt-2 text-[11px] text-accent">{faceProgress}</p>}
           {selfCheck !== null && (
-            <p className="mt-1 text-[10px] text-[#5B7185]">
+            <p className="mt-1 text-[10px] text-muted-ink">
               Last self-check similarity: <span className="text-white">{selfCheck.toFixed(3)}</span> · threshold {settings.faceThreshold.toFixed(2)}
             </p>
           )}
@@ -308,9 +308,9 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
         <Card>
           <div className="flex items-center gap-2">
             <Mic className="h-4 w-4 text-[#147DFF]" />
-            <h2 className="text-sm font-semibold text-white">Voice authentication</h2>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Voice authentication</h2>
           </div>
-          <label className="mt-3 block text-[11px] text-[#94A8B8]">
+          <label className="mt-3 block text-[11px] text-slate-600 dark:text-[#94A8B8]">
             <span>Authentication phrase (spoken during every verification)</span>
             <input
               value={draft.authPhrase}
@@ -318,7 +318,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
               className="mt-1 w-full rounded-xl border border-[#147DFF]/25 bg-[#05080D]/70 px-3 py-2 text-xs text-white outline-none focus:border-[#147DFF]/60"
             />
           </label>
-          <label className="mt-2 flex cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-[#05080D]/50 px-3 py-2 text-[10px] leading-relaxed text-[#94A8B8]">
+          <label className="mt-2 flex cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-[#05080D]/50 px-3 py-2 text-[10px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
             <input type="checkbox" checked={voiceConsent} onChange={(e) => setVoiceConsent(e.target.checked)} className="mt-0.5 accent-[#147DFF]" />
             <span>I allow DEX MADE to open the microphone and create a speaker template for me. Only MFCC features are kept — no audio recording is stored.</span>
           </label>
@@ -327,7 +327,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
               type="button"
               onClick={() => void recordVoice()}
               disabled={!voiceConsent || voiceBusy || voiceSamples.length >= 3}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#147DFF] px-3 py-2 text-[11px] font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-40 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B63D6] px-3 py-2 text-[11px] font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-40 cursor-pointer"
             >
               <Mic className="h-3.5 w-3.5" />
               {voiceBusy ? "Listening…" : `Record sample ${Math.min(voiceSamples.length + 1, 3)} of 3`}
@@ -336,7 +336,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
               type="button"
               onClick={() => void saveVoiceProfile()}
               disabled={voiceSamples.length < 2 || voiceBusy}
-              className="rounded-xl border border-[#147DFF]/40 px-3 py-2 text-[11px] text-[#9CC6FF] hover:bg-[#147DFF]/10 disabled:opacity-40 cursor-pointer"
+              className="rounded-xl border border-[#147DFF]/40 px-3 py-2 text-[11px] text-[#9CC6FF] hover:bg-[#0B63D6]/10 disabled:opacity-40 cursor-pointer"
             >
               Save voice profile
             </button>
@@ -348,17 +348,17 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
           </div>
           {voiceProgress > 0 && (
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full bg-[#147DFF]" style={{ width: `${voiceProgress * 100}%` }} />
+              <div className="h-full bg-[#0B63D6]" style={{ width: `${voiceProgress * 100}%` }} />
             </div>
           )}
-          <p className="mt-2 text-[10px] leading-relaxed text-[#5B7185]">
+          <p className="mt-2 text-[10px] leading-relaxed text-muted-ink">
             Say the phrase the same way each time. Verification compares your vocal-tract envelope and pitch against {enrollment.voice.samples || 0} enrolled recording(s) — both stay on this machine.
           </p>
         </Card>
       </div>
 
       <Card>
-        <h2 className="text-sm font-semibold text-white">Authentication policy</h2>
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Authentication policy</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           <Toggle label="Face authentication" hint="Allow face verification to unlock DEX MADE." checked={draft.faceEnabled} onChange={(v) => setDraft({ ...draft, faceEnabled: v })} />
           <Toggle label="Voice authentication" hint="Allow voice verification to unlock DEX MADE." checked={draft.voiceEnabled} onChange={(v) => setDraft({ ...draft, voiceEnabled: v })} />
@@ -369,17 +369,17 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <label className="block text-[11px] text-[#94A8B8]">
+          <label className="block text-[11px] text-slate-600 dark:text-[#94A8B8]">
             <span>Face match threshold · {draft.faceThreshold.toFixed(2)}</span>
             <input type="range" min={0.6} max={0.98} step={0.01} value={draft.faceThreshold} onChange={(e) => setDraft({ ...draft, faceThreshold: Number(e.target.value) })} className="mt-1 w-full accent-[#00D9FF]" />
-            <span className="block text-[10px] text-[#5B7185]">Higher = stricter. Tune with the self-check score above.</span>
+            <span className="block text-[10px] text-muted-ink">Higher = stricter. Tune with the self-check score above.</span>
           </label>
-          <label className="block text-[11px] text-[#94A8B8]">
+          <label className="block text-[11px] text-slate-600 dark:text-[#94A8B8]">
             <span>Voice match threshold · {draft.voiceThreshold.toFixed(2)}</span>
             <input type="range" min={0.4} max={0.95} step={0.01} value={draft.voiceThreshold} onChange={(e) => setDraft({ ...draft, voiceThreshold: Number(e.target.value) })} className="mt-1 w-full accent-[#147DFF]" />
-            <span className="block text-[10px] text-[#5B7185]">Rejected attempts show their score in the event log below.</span>
+            <span className="block text-[10px] text-muted-ink">Rejected attempts show their score in the event log below.</span>
           </label>
-          <label className="block text-[11px] text-[#94A8B8]">
+          <label className="block text-[11px] text-slate-600 dark:text-[#94A8B8]">
             <span>Training preview duration (seconds)</span>
             <input
               type="number"
@@ -389,7 +389,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
               onChange={(e) => setDraft({ ...draft, trainingPreviewSeconds: Number(e.target.value) })}
               className="mt-1 w-full rounded-xl border border-white/10 bg-[#05080D]/70 px-3 py-2 text-xs text-white outline-none focus:border-[#00D9FF]/50"
             />
-            <span className="block text-[10px] text-[#5B7185]">The floating camera preview auto-minimizes after this time.</span>
+            <span className="block text-[10px] text-muted-ink">The floating camera preview auto-minimizes after this time.</span>
           </label>
         </div>
 
@@ -398,39 +398,39 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
             type="button"
             onClick={() => void saveSettings()}
             disabled={savingSettings}
-            className="rounded-xl bg-[#10B981] px-4 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
+            className="rounded-xl bg-[#047857] px-4 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
           >
             {savingSettings ? "Saving…" : "Save identity policy"}
           </button>
-          <button type="button" onClick={() => void downloadModels()} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
+          <button type="button" onClick={() => void downloadModels()} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
             <RefreshCw className="h-3.5 w-3.5" /> Preload local vision models
           </button>
-          <button type="button" onClick={() => onNavigate("security")} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
+          <button type="button" onClick={() => onNavigate("security")} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
             <KeyRound className="h-3.5 w-3.5" /> PIN fallback & session timeout
           </button>
         </div>
-        {models && <p className="mt-2 text-[10px] text-[#5B7185]">{models}</p>}
-        <p className="mt-2 text-[10px] leading-relaxed text-[#5B7185]">
+        {models && <p className="mt-2 text-[10px] text-muted-ink">{models}</p>}
+        <p className="mt-2 text-[10px] leading-relaxed text-muted-ink">
           Local models: {snapshot.models.filter((model) => model.downloaded).length} of {snapshot.models.length} downloaded.{" "}
           {snapshot.models.map((model) => `${model.name}${model.downloaded ? " ✓" : " —"}`).join(" · ")}
         </p>
       </Card>
 
       <Card>
-        <h2 className="text-sm font-semibold text-white">Verification event log</h2>
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Verification event log</h2>
         <div className="mt-2 divide-y divide-white/5">
-          {snapshot.authEvents.length === 0 && <p className="py-4 text-[11px] text-[#5B7185]">No verification attempts recorded yet.</p>}
+          {snapshot.authEvents.length === 0 && <p className="py-4 text-[11px] text-muted-ink">No verification attempts recorded yet.</p>}
           {snapshot.authEvents.map((event) => (
             <div key={event.id} className="flex items-start justify-between gap-3 py-2">
               <div className="min-w-0">
                 <div className="text-[11px] text-white">
-                  <span className="font-mono uppercase tracking-[0.12em] text-[#5B7185]">{event.method}</span> ·{" "}
-                  <span className={event.outcome === "granted" ? "text-emerald-300" : "text-rose-300"}>{event.outcome}</span>
-                  {event.score !== null && <span className="text-[#5B7185]"> · score {event.score.toFixed(3)}</span>}
+                  <span className="font-mono uppercase tracking-[0.12em] text-muted-ink">{event.method}</span> ·{" "}
+                  <span className={event.outcome === "granted" ? "text-emerald-800 dark:text-emerald-300" : "text-rose-300"}>{event.outcome}</span>
+                  {event.score !== null && <span className="text-muted-ink"> · score {event.score.toFixed(3)}</span>}
                 </div>
-                <div className="text-[10px] text-[#5B7185]">{event.detail}</div>
+                <div className="text-[10px] text-muted-ink">{event.detail}</div>
               </div>
-              <span className="shrink-0 font-mono text-[9px] text-[#5B7185]">{event.createdAt.slice(0, 19).replace("T", " ")}</span>
+              <span className="shrink-0 font-mono text-[9px] text-muted-ink">{event.createdAt.slice(0, 19).replace("T", " ")}</span>
             </div>
           ))}
         </div>

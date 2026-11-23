@@ -90,8 +90,8 @@ export function TrainingMemoryCenterView() {
   };
 
   const kindIcon = (value: string) => {
-    if (value === "object") return <Sparkles className="h-3.5 w-3.5 text-[#00D9FF]" />;
-    if (value === "gesture") return <Hand className="h-3.5 w-3.5 text-[#A9C8D5]" />;
+    if (value === "object") return <Sparkles className="h-3.5 w-3.5 text-accent" />;
+    if (value === "gesture") return <Hand className="h-3.5 w-3.5 text-slate-600 dark:text-[#A9C8D5]" />;
     if (value === "task") return <Wand2 className="h-3.5 w-3.5 text-[#D6AD60]" />;
     return <ListChecks className="h-3.5 w-3.5 text-[#147DFF]" />;
   };
@@ -101,12 +101,12 @@ export function TrainingMemoryCenterView() {
       <section className="nexus-panel rounded-2xl p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#00D9FF]">
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-accent">
               <BrainCircuit className="h-3.5 w-3.5" /> DEX MADE memory center
             </div>
             <h1 className="mt-1 font-display text-lg font-bold tracking-wide text-white">Training Memory</h1>
-            <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#94A8B8]">
-              Only owner-approved examples appear here. Images and metadata live in <span className="font-mono text-[#A9C8D5]">data/training</span> on this machine; delete anything permanently at any time.
+            <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
+              Only owner-approved examples appear here. Images and metadata live in <span className="font-mono text-slate-600 dark:text-[#A9C8D5]">data/training</span> on this machine; delete anything permanently at any time.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -121,7 +121,7 @@ export function TrainingMemoryCenterView() {
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <div className="flex min-w-[200px] flex-1 items-center gap-2 rounded-xl border border-[#00D9FF]/15 bg-[#05080D]/60 px-3 py-2">
-            <Search className="h-3.5 w-3.5 text-[#5B7185]" />
+            <Search className="h-3.5 w-3.5 text-muted-ink" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -155,7 +155,7 @@ export function TrainingMemoryCenterView() {
       {clearOpen && (
         <section className="nexus-panel rounded-2xl border-rose-400/30 p-4">
           <h2 className="text-sm font-semibold text-rose-200">Delete every training example?</h2>
-          <p className="mt-1 text-[11px] text-[#94A8B8]">
+          <p className="mt-1 text-[11px] text-slate-600 dark:text-[#94A8B8]">
             This removes all approved images, gestures, commands and tasks from this machine. It cannot be undone. Type <span className="font-mono text-white">DELETE ALL</span> to confirm.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -168,7 +168,7 @@ export function TrainingMemoryCenterView() {
             <button type="button" onClick={() => void clearAll()} disabled={clearPhrase !== "DELETE ALL"} className="rounded-xl bg-rose-500 px-3 py-2 text-[11px] font-semibold text-white disabled:opacity-40 cursor-pointer">
               Permanently delete all
             </button>
-            <button type="button" onClick={() => { setClearOpen(false); setClearPhrase(""); }} className="rounded-xl border border-white/15 px-3 py-2 text-[11px] text-[#A9C8D5] cursor-pointer">
+            <button type="button" onClick={() => { setClearOpen(false); setClearPhrase(""); }} className="rounded-xl border border-white/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#A9C8D5] cursor-pointer">
               Cancel
             </button>
           </div>
@@ -176,9 +176,9 @@ export function TrainingMemoryCenterView() {
       )}
 
       {loading ? (
-        <p className="rounded-2xl border border-dashed border-white/10 px-4 py-10 text-center text-[11px] text-[#5B7185]">Loading approved training memory…</p>
+        <p className="rounded-2xl border border-dashed border-white/10 px-4 py-10 text-center text-[11px] text-muted-ink">Loading approved training memory…</p>
       ) : filtered.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-[#00D9FF]/15 px-4 py-10 text-center text-[11px] text-[#5B7185]">
+        <p className="rounded-2xl border border-dashed border-[#00D9FF]/15 px-4 py-10 text-center text-[11px] text-muted-ink">
           {examples.length === 0 ? "No training examples yet. Teach DEX MADE something in Visual Learning Mode." : "No example matches that search."}
         </p>
       ) : (
@@ -191,22 +191,22 @@ export function TrainingMemoryCenterView() {
               <div className="p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.14em] text-[#5B7185]">
+                    <div className="flex items-center gap-1.5 text-[9px] font-mono uppercase tracking-[0.14em] text-muted-ink">
                       {kindIcon(example.kind)} {KIND_LABELS[example.kind] ?? example.kind}
                     </div>
                     <h2 className="mt-0.5 truncate text-sm font-semibold text-white">{example.label}</h2>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-emerald-300">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-emerald-800 dark:text-emerald-300">
                     <CheckCircle2 className="h-2.5 w-2.5" /> approved
                   </span>
                 </div>
-                {example.description && <p className="mt-1.5 line-clamp-3 text-[11px] leading-relaxed text-[#94A8B8]">{example.description}</p>}
-                {example.trigger && <p className="mt-1 text-[10px] text-[#5B7185]">Trigger: <span className="text-[#A9C8D5]">{example.trigger}</span></p>}
+                {example.description && <p className="mt-1.5 line-clamp-3 text-[11px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">{example.description}</p>}
+                {example.trigger && <p className="mt-1 text-[10px] text-muted-ink">Trigger: <span className="text-slate-600 dark:text-[#A9C8D5]">{example.trigger}</span></p>}
                 {example.action?.urls?.length ? (
-                  <p className="mt-1 truncate text-[10px] text-[#5B7185]">{example.action.urls.join(" · ")}</p>
+                  <p className="mt-1 truncate text-[10px] text-muted-ink">{example.action.urls.join(" · ")}</p>
                 ) : null}
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <span className="font-mono text-[9px] text-[#5B7185]">
+                  <span className="font-mono text-[9px] text-muted-ink">
                     {example.category} · {new Date(example.createdAt).toLocaleDateString()}
                   </span>
                   <div className="flex items-center gap-1">
@@ -217,7 +217,7 @@ export function TrainingMemoryCenterView() {
                         setDraft({ label: example.label, description: example.description, category: example.category });
                       }}
                       aria-label={`Edit ${example.label}`}
-                      className="rounded-lg border border-white/10 p-1.5 text-[#A9C8D5] hover:bg-white/5 cursor-pointer"
+                      className="rounded-lg border border-white/10 p-1.5 text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer"
                     >
                       <Pencil className="h-3 w-3" />
                     </button>
@@ -242,14 +242,14 @@ export function TrainingMemoryCenterView() {
           <div className="nexus-panel w-full max-w-md space-y-2 rounded-2xl p-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-white">Edit training example</h2>
-              <button type="button" onClick={() => setEditing(null)} aria-label="Close" className="rounded-lg p-1 text-[#5B7185] hover:bg-white/5 cursor-pointer">
+              <button type="button" onClick={() => setEditing(null)} aria-label="Close" className="rounded-lg p-1 text-muted-ink hover:bg-white/5 cursor-pointer">
                 <X className="h-4 w-4" />
               </button>
             </div>
             <input value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} className="w-full rounded-xl border border-white/10 bg-[#05080D]/70 px-3 py-2 text-xs text-white outline-none" placeholder="Label" />
             <textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} rows={3} className="w-full rounded-xl border border-white/10 bg-[#05080D]/70 px-3 py-2 text-xs text-white outline-none" placeholder="Description" />
             <input value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} className="w-full rounded-xl border border-white/10 bg-[#05080D]/70 px-3 py-2 text-xs text-white outline-none" placeholder="Category" />
-            <button type="button" onClick={() => void saveEdit()} className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#10B981] px-3 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 cursor-pointer">
+            <button type="button" onClick={() => void saveEdit()} className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#047857] px-3 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 cursor-pointer">
               <Save className="h-3.5 w-3.5" /> Save changes
             </button>
           </div>
@@ -260,12 +260,12 @@ export function TrainingMemoryCenterView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">
           <div className="nexus-panel w-full max-w-sm space-y-3 rounded-2xl p-4">
             <h2 className="text-sm font-semibold text-white">Delete “{confirmDelete.label}”?</h2>
-            <p className="text-[11px] text-[#94A8B8]">The image and its metadata are removed from this machine. This cannot be undone.</p>
+            <p className="text-[11px] text-slate-600 dark:text-[#94A8B8]">The image and its metadata are removed from this machine. This cannot be undone.</p>
             <div className="flex gap-2">
               <button type="button" onClick={() => void remove(confirmDelete)} className="flex-1 rounded-xl bg-rose-500 px-3 py-2 text-[11px] font-semibold text-white cursor-pointer">
                 Delete permanently
               </button>
-              <button type="button" onClick={() => setConfirmDelete(null)} className="flex-1 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-[#A9C8D5] cursor-pointer">
+              <button type="button" onClick={() => setConfirmDelete(null)} className="flex-1 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#A9C8D5] cursor-pointer">
                 Cancel
               </button>
             </div>

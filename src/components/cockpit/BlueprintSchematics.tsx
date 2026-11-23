@@ -92,7 +92,7 @@ export function BlueprintSchematics({ state, accent = "#00F2FF" }: BlueprintSche
               </g>
             )}
           </svg>
-          <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#5B7185]">{view.label}</span>
+          <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-muted-ink">{view.label}</span>
         </div>
       ))}
 

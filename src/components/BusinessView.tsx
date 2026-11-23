@@ -189,7 +189,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
 
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer"
             >
               <FilePlus2 className="w-4 h-4" />
               <span>Save Business Record</span>
@@ -239,7 +239,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
               {visible.map((item) => (
                 <div key={item.id} className="py-4 flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-xs font-mono uppercase text-cyan-600 dark:text-cyan-400">
+                    <div className="text-xs font-mono uppercase text-accent">
                       {item.kind} · {item.status}
                     </div>
                     <div className="text-sm font-medium text-slate-900 dark:text-slate-100 mt-0.5">
@@ -264,7 +264,7 @@ export function BusinessView({ items, onSaveItem }: BusinessViewProps) {
                         onClick={() =>
                           onSaveItem({ ...item, status: "Paid", verifiedEntry: true })
                         }
-                        className="mt-1 text-xs text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                        className="mt-1 text-xs text-accent hover:underline cursor-pointer"
                       >
                         Mark Paid
                       </button>

@@ -343,9 +343,9 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
                 <h2 className="text-lg font-bold text-[#202938] dark:text-white">
                   DEX MADE Voice Engine &amp; Mic Diagnostics
                 </h2>
-                <p className="text-xs text-[#64748B] dark:text-slate-400 mt-1">{statusMessage}</p>
+                <p className="text-xs text-muted-ink dark:text-slate-400 mt-1">{statusMessage}</p>
               </div>
-              <span className="text-xs font-mono text-[#06B6D4] font-semibold">
+              <span className="text-xs font-mono text-accent font-semibold">
                 {settings.voiceName} · {settings.language}
               </span>
             </div>
@@ -358,14 +358,14 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
             <div className="mt-4 rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 p-3.5 space-y-2">
               <div className="flex items-center justify-between gap-2 text-xs">
                 <span className="font-medium text-[#202938] dark:text-slate-200 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-[#10B981]" />
+                  <Activity className="w-3.5 h-3.5 text-positive" />
                   <span>Live Microphone Volume Test</span>
                 </span>
-                <span className="font-mono text-[#64748B] tabular-nums">{micLevelPct}%</span>
+                <span className="font-mono text-muted-ink tabular-nums">{micLevelPct}%</span>
               </div>
               <div className="h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div
-                  className="h-full bg-[#10B981] transition-all duration-75"
+                  className="h-full bg-[#047857] transition-all duration-75"
                   style={{ width: `${micLevelPct}%` }}
                 />
               </div>
@@ -378,7 +378,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
                 type="button"
                 onClick={startRecording}
                 disabled={processing}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#047857] hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
               >
                 <Mic className="w-4 h-4" />
                 <span>{processing ? "Processing..." : settings.pushToTalk ? "Push to Speak" : "Start Voice Input"}</span>
@@ -399,7 +399,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               onClick={toggleMicVolumeTest}
               className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border text-xs font-medium cursor-pointer whitespace-nowrap ${
                 testingMic
-                  ? "border-[#10B981] bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                  ? "border-[#10B981] bg-emerald-50 dark:bg-emerald-700/15 text-emerald-800 dark:text-emerald-300"
                   : "border-slate-300 dark:border-slate-700 text-[#202938] dark:text-slate-200"
               }`}
             >
@@ -424,7 +424,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               <button
                 type="button"
                 onClick={stopAudioPlayback}
-                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#D6AD60] bg-amber-50 dark:bg-amber-500/10 text-[#9A742E] dark:text-amber-300 text-xs font-semibold cursor-pointer whitespace-nowrap"
+                className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-[#D6AD60] bg-amber-50 dark:bg-amber-500/10 text-warn dark:text-amber-300 text-xs font-semibold cursor-pointer whitespace-nowrap"
               >
                 <Square className="w-3.5 h-3.5" />
                 <span>Interrupt Voice</span>
@@ -446,7 +446,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
           </h3>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-xs text-[#64748B] dark:text-slate-400">
+            <label className="block text-xs text-muted-ink dark:text-slate-400">
               <span>Cloud Persona</span>
               <select
                 value={settings.voiceName}
@@ -461,7 +461,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
               </select>
             </label>
 
-            <label className="block text-xs text-[#64748B] dark:text-slate-400">
+            <label className="block text-xs text-muted-ink dark:text-slate-400">
               <span>Primary Language</span>
               <select
                 value={settings.language}
@@ -477,7 +477,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
             </label>
           </div>
 
-          <label className="block text-xs text-[#64748B] dark:text-slate-400">
+          <label className="block text-xs text-muted-ink dark:text-slate-400">
             <span>Installed Offline British Voices ({availableVoices.length} detected)</span>
             <select
               value={selectedBrowserVoice}
@@ -521,7 +521,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
             </label>
           </div>
 
-          <label className="block text-xs text-[#64748B] dark:text-slate-400">
+          <label className="block text-xs text-muted-ink dark:text-slate-400">
             <span>Speaking Speed: {settings.voiceSpeed.toFixed(2)}x</span>
             <input
               type="range"
@@ -534,7 +534,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
             />
           </label>
 
-          <label className="block text-xs text-[#64748B] dark:text-slate-400">
+          <label className="block text-xs text-muted-ink dark:text-slate-400">
             <span>VAD / Mic Sensitivity: {settings.vadSensitivity}%</span>
             <input
               type="range"
@@ -550,7 +550,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
           </label>
 
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
-            <label className="block text-xs text-[#64748B] dark:text-slate-400">
+            <label className="block text-xs text-muted-ink dark:text-slate-400">
               <span>Test Voice Synthesis</span>
               <textarea
                 rows={2}
@@ -562,7 +562,7 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
             <button
               type="button"
               onClick={() => playMaleVoice(testPhrase)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
             >
               <Volume2 className="w-3.5 h-3.5" />
               <span>Play DEX MADE British Voice</span>
@@ -577,19 +577,19 @@ export function VoiceAssistantView({ settings, onUpdateSettings }: VoiceAssistan
           Voice Conversation Log
         </h3>
         {turns.length === 0 ? (
-          <p className="text-sm text-[#64748B] dark:text-slate-400">
+          <p className="text-sm text-muted-ink dark:text-slate-400">
             Record a voice prompt above to transcribe and hear DEX MADE respond in your British Male voice configuration.
           </p>
         ) : (
           <div className="divide-y divide-slate-200 dark:divide-slate-800">
             {turns.map((t) => (
               <div key={t.id} className="py-4 space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-[#64748B]">
+                <div className="flex items-center justify-between text-xs text-muted-ink">
                   <span>Abdul Muheeb ({t.language})</span>
                   <span className="font-mono tabular-nums">{t.timestamp}</span>
                 </div>
                 <p className="text-sm font-semibold text-[#202938] dark:text-white">{t.userText}</p>
-                <p className="text-sm text-[#64748B] dark:text-slate-300">{t.aurixText}</p>
+                <p className="text-sm text-muted-ink dark:text-slate-300">{t.aurixText}</p>
               </div>
             ))}
           </div>

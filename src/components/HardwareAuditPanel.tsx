@@ -13,14 +13,14 @@ import {
 import type { HardwareAuditReport, HardwareAuditStatus } from "../types/aurix";
 
 const statusStyles: Record<HardwareAuditStatus, string> = {
-  Ready: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
-  Limited: "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+  Ready: "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+  Limited: "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800",
   "Cloud-dependent": "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800",
   "Requires setup": "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700",
 };
 
 const verdictDot: Record<"pass" | "warn" | "fail", string> = {
-  pass: "bg-emerald-500",
+  pass: "bg-emerald-700",
   warn: "bg-amber-500",
   fail: "bg-rose-500",
 };
@@ -52,12 +52,12 @@ export function HardwareAuditPanel() {
     <div className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] dark:text-slate-400">
-            <Gauge className="w-4 h-4 text-[#06B6D4]" />
+          <div className="flex items-center gap-2 text-xs text-muted-ink dark:text-slate-400">
+            <Gauge className="w-4 h-4 text-accent" />
             <span>Phase 1 · Hardware &amp; Environment Audit</span>
           </div>
           <h2 className="mt-1 text-lg font-bold text-[#202938] dark:text-white">Hardware Compatibility Report</h2>
-          <p className="mt-1 text-xs text-[#64748B] dark:text-slate-400">
+          <p className="mt-1 text-xs text-muted-ink dark:text-slate-400">
             Measured live from the machine running DEX MADE — every figure below is read from the host, none are estimated.
           </p>
         </div>
@@ -67,8 +67,8 @@ export function HardwareAuditPanel() {
             <span
               className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${
                 report.isWindowsHost
-                  ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                  : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                  ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                  : "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800"
               }`}
             >
               Source: {report.isWindowsHost ? "Windows host" : `${report.machine.osLabel} container`}
@@ -93,7 +93,7 @@ export function HardwareAuditPanel() {
       )}
 
       {!report && loading && (
-        <p className="mt-6 text-xs text-[#64748B] dark:text-slate-400">Probing CPU, memory, GPU and storage…</p>
+        <p className="mt-6 text-xs text-muted-ink dark:text-slate-400">Probing CPU, memory, GPU and storage…</p>
       )}
 
       {report && (
@@ -101,26 +101,26 @@ export function HardwareAuditPanel() {
           {/* Score + verdict */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1220] p-4">
-              <div className="text-xs text-[#64748B] dark:text-slate-400">Compatibility score</div>
+              <div className="text-xs text-muted-ink dark:text-slate-400">Compatibility score</div>
               <div className="mt-1 flex items-end gap-2">
-                <span className="font-mono text-3xl font-bold tabular-nums text-[#10B981]">{report.score}</span>
-                <span className="pb-1 text-xs text-[#64748B] dark:text-slate-400">/ 100 · {report.tier}</span>
+                <span className="font-mono text-3xl font-bold tabular-nums text-positive">{report.score}</span>
+                <span className="pb-1 text-xs text-muted-ink dark:text-slate-400">/ 100 · {report.tier}</span>
               </div>
               <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div className="h-full rounded-full bg-[#10B981]" style={{ width: `${report.score}%` }} />
+                <div className="h-full rounded-full bg-[#047857]" style={{ width: `${report.score}%` }} />
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1220] p-4">
-              <div className="text-xs text-[#64748B] dark:text-slate-400">Recommended performance mode</div>
+              <div className="text-xs text-muted-ink dark:text-slate-400">Recommended performance mode</div>
               <div className="mt-1 font-mono text-lg font-bold text-[#202938] dark:text-white">{report.performanceMode}</div>
-              <div className="mt-1 text-[11px] text-[#64748B] dark:text-slate-400">
+              <div className="mt-1 text-[11px] text-muted-ink dark:text-slate-400">
                 Cloud intelligence mode {report.cloudModeAvailable ? "available (key configured)" : "unlocks once a cloud key is stored"}
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1220] p-4">
-              <div className="text-xs text-[#64748B] dark:text-slate-400">Selected local model</div>
+              <div className="text-xs text-muted-ink dark:text-slate-400">Selected local model</div>
               <div className="mt-1 text-sm font-bold text-[#202938] dark:text-white">{report.recommendedLocalModel.label}</div>
-              <div className="mt-1 text-[11px] text-[#64748B] dark:text-slate-400">
+              <div className="mt-1 text-[11px] text-muted-ink dark:text-slate-400">
                 ~{report.recommendedLocalModel.approxSizeGb} GB · {report.recommendedLocalModel.rationale}
               </div>
             </div>
@@ -130,44 +130,44 @@ export function HardwareAuditPanel() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {[
               {
-                icon: <Cpu className="w-4 h-4 text-[#06B6D4]" />,
+                icon: <Cpu className="w-4 h-4 text-accent" />,
                 label: "Processor",
                 value: report.machine.cpuModel,
                 detail: `${report.machine.physicalCores ?? "?"} physical · ${report.machine.logicalCores} logical cores`,
               },
               {
-                icon: <MemoryStick className="w-4 h-4 text-[#06B6D4]" />,
+                icon: <MemoryStick className="w-4 h-4 text-accent" />,
                 label: "Memory",
                 value: `${report.machine.installedRamGb} GB installed`,
                 detail: `${report.machine.freeRamGb} GB free right now`,
               },
               {
-                icon: <Sparkles className="w-4 h-4 text-[#06B6D4]" />,
+                icon: <Sparkles className="w-4 h-4 text-accent" />,
                 label: "Graphics",
                 value: report.machine.gpuName ?? "No GPU probe available",
                 detail: `${report.machine.gpuKind}${report.machine.gpuVramGb ? ` · ${report.machine.gpuVramGb} GB VRAM` : ""}`,
               },
               {
-                icon: <HardDrive className="w-4 h-4 text-[#06B6D4]" />,
+                icon: <HardDrive className="w-4 h-4 text-accent" />,
                 label: "Storage",
                 value: `${report.machine.diskFreeGb} GB free`,
                 detail: `of ${report.machine.diskTotalGb} GB · ${report.machine.arch}`,
               },
             ].map((item) => (
               <div key={item.label} className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-                <div className="flex items-center gap-2 text-xs text-[#64748B] dark:text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-muted-ink dark:text-slate-400">
                   {item.icon}
                   <span>{item.label}</span>
                 </div>
                 <div className="mt-1.5 text-sm font-bold text-[#202938] dark:text-white break-words">{item.value}</div>
-                <div className="mt-1 text-[11px] text-[#64748B] dark:text-slate-400">{item.detail}</div>
+                <div className="mt-1 text-[11px] text-muted-ink dark:text-slate-400">{item.detail}</div>
               </div>
             ))}
           </div>
 
           {/* Architecture decision */}
           <div className="rounded-xl border border-cyan-200 dark:border-cyan-900 bg-cyan-50/60 dark:bg-cyan-950/20 p-5">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#0891B2] dark:text-cyan-300">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-accent">
               <MonitorSmartphone className="w-4 h-4" />
               Selected AI architecture
             </div>
@@ -183,7 +183,7 @@ export function HardwareAuditPanel() {
             <ul className="mt-3 space-y-1 text-[11px] text-[#475569] dark:text-slate-400">
               {report.architecture.rationale.map((line) => (
                 <li key={line} className="flex gap-2">
-                  <span className="text-[#10B981]">▸</span>
+                  <span className="text-positive">▸</span>
                   <span>{line}</span>
                 </li>
               ))}
@@ -205,7 +205,7 @@ export function HardwareAuditPanel() {
                       {sub.status}
                     </span>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-[#64748B] dark:text-slate-400">{sub.detail}</p>
+                  <p className="text-[11px] leading-relaxed text-muted-ink dark:text-slate-400">{sub.detail}</p>
                 </div>
               ))}
             </div>
@@ -218,12 +218,12 @@ export function HardwareAuditPanel() {
               {report.checks.map((check) => (
                 <li key={check.label} className="flex items-start gap-2 text-xs">
                   {check.verdict === "pass" ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-emerald-500 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-positive shrink-0" />
                   ) : (
                     <span className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${verdictDot[check.verdict]}`} />
                   )}
                   <span className="text-[#202938] dark:text-slate-200 font-medium">{check.label}</span>
-                  <span className="text-[#64748B] dark:text-slate-400">— {check.detail}</span>
+                  <span className="text-muted-ink dark:text-slate-400">— {check.detail}</span>
                 </li>
               ))}
             </ul>
@@ -231,7 +231,7 @@ export function HardwareAuditPanel() {
 
           {report.warnings.length > 0 && (
             <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+              <div className="flex items-center gap-2 text-xs font-semibold text-amber-800 dark:text-amber-300">
                 <AlertTriangle className="w-4 h-4" />
                 Notes from this audit
               </div>
@@ -243,7 +243,7 @@ export function HardwareAuditPanel() {
             </div>
           )}
 
-          <p className="text-[10px] font-mono text-[#94A3B8] dark:text-slate-500">
+          <p className="text-[10px] font-mono text-muted-ink">
             Audit generated {new Date(report.generatedAt).toLocaleString()} · host {report.machine.hostname}
           </p>
         </div>

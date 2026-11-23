@@ -67,7 +67,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
           <button
             type="button"
             onClick={createNewSite}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add</span>
@@ -126,7 +126,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? "Saving..." : "Save Record"}</span>
@@ -187,7 +187,7 @@ export function WebsitesView({ websites, onSaveWebsite }: WebsitesViewProps) {
               <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
                 Domains & Active Domain Designation
               </span>
-              <span className="text-xs font-mono text-cyan-600 dark:text-cyan-400">
+              <span className="text-xs font-mono text-accent">
                 Active: {draft.activeDomain || "None marked"}
               </span>
             </div>

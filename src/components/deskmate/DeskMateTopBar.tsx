@@ -134,8 +134,8 @@ export function DeskMateTopBar({
           <span
             className={`hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10.5px] font-medium lg:flex ${
               isOnline
-                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300"
+                : "border-amber-400/30 bg-amber-400/10 text-amber-700 dark:text-amber-300"
             }`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? "bg-emerald-400" : "bg-amber-400"} animate-pulse`} />
@@ -151,7 +151,7 @@ export function DeskMateTopBar({
             >
               <Bell className="h-4 w-4" />
               {openTasks.length > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--d-cyan)] px-1 text-[9px] font-bold text-[#03111a]">
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--d-cyan)] px-1 text-[9px] font-bold text-[var(--d-bg)]">
                   {openTasks.length}
                 </span>
               )}

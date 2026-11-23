@@ -86,7 +86,7 @@ export function HomeView({
               />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-sm font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <span>Engage DEX MADE</span>
                 <ArrowRight className="w-4 h-4" />
@@ -155,7 +155,7 @@ export function HomeView({
             </div>
             <div>
               <div className="text-xs text-slate-500 dark:text-slate-400">HW Tier</div>
-              <div className="font-mono text-sm font-semibold text-cyan-600 dark:text-cyan-400 mt-0.5">
+              <div className="font-mono text-sm font-semibold text-accent mt-0.5">
                 {telemetry.hardwareTier.split("-")[0]}
               </div>
             </div>
@@ -174,7 +174,7 @@ export function HomeView({
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
             {websites.length}
           </div>
-          <div className="mt-1 text-xs text-cyan-600 dark:text-cyan-400">Manage domain records</div>
+          <div className="mt-1 text-xs text-accent">Manage domain records</div>
         </button>
 
         <button
@@ -186,7 +186,7 @@ export function HomeView({
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
             {projects.filter((p) => p.status === "active").length}
           </div>
-          <div className="mt-1 text-xs text-cyan-600 dark:text-cyan-400">{projects.length} total tracked</div>
+          <div className="mt-1 text-xs text-accent">{projects.length} total tracked</div>
         </button>
 
         <button
@@ -198,7 +198,7 @@ export function HomeView({
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
             {openTasks.length}
           </div>
-          <div className="mt-1 text-xs text-cyan-600 dark:text-cyan-400">Daily & engineering queue</div>
+          <div className="mt-1 text-xs text-accent">Daily & engineering queue</div>
         </button>
 
         <button
@@ -210,7 +210,7 @@ export function HomeView({
           <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">
             {company.services.length}
           </div>
-          <div className="mt-1 text-xs text-cyan-600 dark:text-cyan-400">{company.name} catalog</div>
+          <div className="mt-1 text-xs text-accent">{company.name} catalog</div>
         </button>
       </section>
 
@@ -224,7 +224,7 @@ export function HomeView({
             <button
               type="button"
               onClick={() => onNavigate("websites")}
-              className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer whitespace-nowrap shrink-0"
+              className="text-xs font-medium text-accent hover:underline cursor-pointer whitespace-nowrap shrink-0"
             >
               Open Website Manager
             </button>
@@ -259,7 +259,7 @@ export function HomeView({
             <button
               type="button"
               onClick={() => onNavigate("productivity")}
-              className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:underline cursor-pointer whitespace-nowrap shrink-0"
+              className="text-xs font-medium text-accent hover:underline cursor-pointer whitespace-nowrap shrink-0"
             >
               View Planner
             </button>

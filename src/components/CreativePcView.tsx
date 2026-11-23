@@ -351,7 +351,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
       <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F1724] p-5 sm:p-6 space-y-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-xs font-mono uppercase tracking-[0.16em] text-[#06B6D4] font-semibold">
+            <div className="text-xs font-mono uppercase tracking-[0.16em] text-accent font-semibold">
               Creative, Website &amp; Windows Desktop Suite
             </div>
             <h1 className="text-xl font-bold text-[#202938] dark:text-white mt-0.5">
@@ -362,14 +362,14 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
           <div className="flex flex-wrap items-center gap-2">
             <a
               href="/api/project/complete-download.zip"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white font-semibold text-xs whitespace-nowrap"
             >
               <Package className="w-4 h-4" />
               <span>Download Complete DEX MADE 2.0 Project (.zip)</span>
             </a>
             <a
               href="/api/deliverables/download.zip"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[#D6AD60] bg-amber-50 dark:bg-amber-500/10 text-[#9A742E] dark:text-amber-300 font-semibold text-xs whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-[#D6AD60] bg-amber-50 dark:bg-amber-500/10 text-warn dark:text-amber-300 font-semibold text-xs whitespace-nowrap"
             >
               <Laptop className="w-4 h-4" />
               <span>Windows Native Scripts Only (.zip)</span>
@@ -399,9 +399,9 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
             >
               <div className="min-w-0">
                 <div className="text-xs font-semibold text-[#202938] dark:text-white truncate">{item.label}</div>
-                <div className="text-[11px] font-mono text-[#64748B] truncate">{item.sub}</div>
+                <div className="text-[11px] font-mono text-muted-ink truncate">{item.sub}</div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+              <ExternalLink className="w-3.5 h-3.5 text-positive shrink-0" />
             </a>
           ))}
         </div>
@@ -412,7 +412,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
         <section className="xl:col-span-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F1724] p-5 space-y-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#10B981]" />
+              <Sparkles className="w-4 h-4 text-positive" />
               <h2 className="text-sm font-semibold text-[#202938] dark:text-white">
                 Zero-Cost AI Creative &amp; Engineering Studio
               </h2>
@@ -436,8 +436,8 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                     onClick={() => setActiveStudio(tab.id)}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer whitespace-nowrap ${
                       activeStudio === tab.id
-                        ? "bg-[#10B981] text-white font-semibold"
-                        : "text-[#64748B] dark:text-slate-300 hover:text-[#202938] dark:hover:text-white"
+                        ? "bg-[#047857] text-white font-semibold"
+                        : "text-muted-ink dark:text-slate-300 hover:text-[#202938] dark:hover:text-white"
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -479,13 +479,13 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
               <button
                 type="submit"
                 disabled={codingBusy}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
               >
                 <Code2 className="w-3.5 h-3.5" />
                 <span>{codingBusy ? "Analyzing..." : "Generate / Review Code"}</span>
               </button>
               {codeResult && (
-                <pre className="p-3.5 rounded-xl bg-slate-900 text-emerald-300 font-mono text-xs whitespace-pre-wrap max-h-64 overflow-y-auto border border-slate-700">
+                <pre className="p-3.5 rounded-xl bg-slate-900 text-emerald-800 dark:text-emerald-300 font-mono text-xs whitespace-pre-wrap max-h-64 overflow-y-auto border border-slate-700">
                   {codeResult}
                 </pre>
               )}
@@ -495,7 +495,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
               <form onSubmit={(e) => handleGenerateCreative(e)} className="space-y-2.5">
                 {activeStudio === "writing" && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-[#64748B]">Format:</span>
+                    <span className="text-xs text-muted-ink">Format:</span>
                     {["Client Email Proposal", "Product Description", "Social Media Post", "Marketing Copy", "Master Prompt"].map((fmt) => (
                       <button
                         key={fmt}
@@ -503,8 +503,8 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         onClick={() => setWritingType(fmt)}
                         className={`px-2.5 py-1 rounded-lg border text-xs cursor-pointer ${
                           writingType === fmt
-                            ? "bg-[#10B981]/10 border-[#10B981] text-emerald-700 dark:text-emerald-300 font-semibold"
-                            : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-700 text-[#64748B]"
+                            ? "bg-[#047857]/10 border-[#10B981] text-emerald-800 dark:text-emerald-300 font-semibold"
+                            : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-700 text-muted-ink"
                         }`}
                       >
                         {fmt}
@@ -529,7 +529,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         // trigger prompt kind smoothly via form below
                       }
                     }}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#10B981] hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold text-xs cursor-pointer shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#047857] hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold text-xs cursor-pointer shrink-0 whitespace-nowrap"
                   >
                     <Play className="w-3.5 h-3.5" />
                     <span>{generating ? "Generating..." : "Generate Free"}</span>
@@ -541,7 +541,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                       onClick={(e) => handleGenerateCreative(e, "prompt")}
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0B111B] text-xs font-medium text-[#202938] dark:text-slate-200 cursor-pointer shrink-0 whitespace-nowrap"
                     >
-                      <Wand2 className="w-3.5 h-3.5 text-[#06B6D4]" />
+                      <Wand2 className="w-3.5 h-3.5 text-accent" />
                       <span>Master Prompt</span>
                     </button>
                   )}
@@ -553,7 +553,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <div className="text-xs font-semibold text-[#202938] dark:text-white">{asset.title}</div>
-                      <div className="text-[11px] font-mono text-[#10B981] uppercase">
+                      <div className="text-[11px] font-mono text-positive uppercase">
                         Engine: {asset.source} · $0 Cost
                       </div>
                     </div>
@@ -563,7 +563,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         <button
                           type="button"
                           onClick={downloadPngFromSvg}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>Download PNG</span>
@@ -583,7 +583,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         type="button"
                         disabled={recordingVideo}
                         onClick={exportWebmVideo}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] hover:bg-emerald-600 disabled:opacity-60 text-white font-semibold text-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#047857] hover:bg-emerald-600 disabled:opacity-60 text-white font-semibold text-xs cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>{recordingVideo ? "Recording 6s WebM..." : "Export WebM Video"}</span>
@@ -598,7 +598,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                           setCopiedText(true);
                           setTimeout(() => setCopiedText(false), 1800);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] text-white font-semibold text-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#047857] text-white font-semibold text-xs cursor-pointer"
                       >
                         <Copy className="w-3.5 h-3.5" />
                         <span>{copiedText ? "Copied!" : "Copy Text"}</span>
@@ -617,7 +617,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                           a.click();
                           URL.revokeObjectURL(url);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] text-white font-semibold text-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#047857] text-white font-semibold text-xs cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Download HTML5 Site</span>
@@ -638,7 +638,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         ref={videoCanvasRef}
                         className="w-full aspect-video rounded-xl border border-slate-200 dark:border-slate-700 bg-[#F8FAFC]"
                       />
-                      <p className="text-[11px] text-[#64748B]">
+                      <p className="text-[11px] text-muted-ink">
                         Rendered cleanly using CPU-safe HTML5 Canvas motion storyboard encoder (compatible with Intel HD 3000 / entry-level laptops).
                       </p>
                     </div>
@@ -662,7 +662,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                         rows={5}
                         value={editableWebsiteHtml}
                         onChange={(e) => setEditableWebsiteHtml(e.target.value)}
-                        className="w-full rounded-xl bg-slate-900 text-emerald-300 p-3 font-mono text-[11px] border border-slate-700"
+                        className="w-full rounded-xl bg-slate-900 text-emerald-800 dark:text-emerald-300 p-3 font-mono text-[11px] border border-slate-700"
                       />
                     </div>
                   )}
@@ -677,7 +677,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                       <div className="text-xs font-semibold text-[#202938] dark:text-white">
                         Local Photo Resizer &amp; Filter Canvas Editor
                       </div>
-                      <div className="text-[11px] text-[#64748B]">
+                      <div className="text-[11px] text-muted-ink">
                         Upload any PNG/JPG to resize, adjust brightness/contrast/grayscale locally, and export PNG.
                       </div>
                     </div>
@@ -700,7 +700,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                       onClick={() => imageInputRef.current?.click()}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0F1724] text-xs font-medium text-[#202938] dark:text-slate-200 cursor-pointer"
                     >
-                      <Upload className="w-3.5 h-3.5 text-[#06B6D4]" />
+                      <Upload className="w-3.5 h-3.5 text-accent" />
                       <span>Upload Photo</span>
                     </button>
                   </div>
@@ -708,7 +708,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                   {uploadedImgUrl && (
                     <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
-                        <label className="text-[#64748B]">
+                        <label className="text-muted-ink">
                           Brightness ({imgBrightness}%)
                           <input
                             type="range"
@@ -719,7 +719,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             className="w-full accent-[#10B981]"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-muted-ink">
                           Contrast ({imgContrast}%)
                           <input
                             type="range"
@@ -730,7 +730,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             className="w-full accent-[#10B981]"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-muted-ink">
                           Grayscale ({imgGrayscale}%)
                           <input
                             type="range"
@@ -741,7 +741,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             className="w-full accent-[#10B981]"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-muted-ink">
                           Width (px)
                           <input
                             type="number"
@@ -752,7 +752,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                             className="mt-0.5 w-full rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0F1724] px-2 py-1 text-[#202938] dark:text-white"
                           />
                         </label>
-                        <label className="text-[#64748B]">
+                        <label className="text-muted-ink">
                           Height (px)
                           <input
                             type="number"
@@ -771,7 +771,7 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                       <button
                         type="button"
                         onClick={downloadEditedPhoto}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981] text-white text-xs font-semibold cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#047857] text-white text-xs font-semibold cursor-pointer"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Export Edited PNG</span>
@@ -789,12 +789,12 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileCode2 className="w-4 h-4 text-[#10B981]" />
+                <FileCode2 className="w-4 h-4 text-positive" />
                 <h2 className="text-sm font-semibold text-[#202938] dark:text-white">
                   Local File Creator &amp; Editor
                 </h2>
               </div>
-              <span className="text-[11px] font-mono text-[#64748B]">./workspace_files</span>
+              <span className="text-[11px] font-mono text-muted-ink">./workspace_files</span>
             </div>
 
             {files.length > 0 && (
@@ -809,8 +809,8 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                     }}
                     className={`px-2.5 py-1 rounded-lg border text-xs font-mono cursor-pointer ${
                       activeFileName === f.name
-                        ? "bg-emerald-50 dark:bg-emerald-500/15 border-[#10B981] text-emerald-700 dark:text-emerald-300 font-semibold"
-                        : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-800 text-[#64748B] dark:text-slate-300"
+                        ? "bg-emerald-50 dark:bg-emerald-700/15 border-[#10B981] text-emerald-800 dark:text-emerald-300 font-semibold"
+                        : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-800 text-muted-ink dark:text-slate-300"
                     }`}
                   >
                     {f.name}
@@ -838,12 +838,12 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
                 className="w-full rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 p-3 text-xs font-mono text-[#202938] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#10B981]"
               />
 
-              {fileFeedback && <div className="text-xs text-[#10B981] font-medium">{fileFeedback}</div>}
+              {fileFeedback && <div className="text-xs text-positive font-medium">{fileFeedback}</div>}
 
               <button
                 type="submit"
                 disabled={savingFile || !activeFileName.trim()}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#10B981] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#047857] hover:bg-emerald-600 text-white font-semibold text-xs cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>{savingFile ? "Saving..." : "Save File to Workspace"}</span>
@@ -851,8 +851,8 @@ export function CreativePcView({ websites }: CreativePcViewProps) {
             </form>
           </div>
 
-          <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 p-3 text-xs text-[#64748B] flex items-center gap-2">
-            <Globe className="w-4 h-4 text-[#06B6D4] shrink-0" />
+          <div className="rounded-xl bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 p-3 text-xs text-muted-ink flex items-center gap-2">
+            <Globe className="w-4 h-4 text-accent shrink-0" />
             <span>
               In-browser edits remain sandboxed in <code className="font-mono">./workspace_files</code>. Download the complete Windows ZIP above to run native Windows automation via <code className="font-mono">AURIX_Portable_Start.bat</code>.
             </span>

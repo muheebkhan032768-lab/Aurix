@@ -36,7 +36,7 @@ export function SystemFlow({ voiceState }: SystemFlowProps) {
   return (
     <section className="nexus-panel-soft min-w-0 rounded-2xl px-3.5 py-3" aria-label="System flow">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">System Flow</h3>
+        <h3 className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-600 dark:text-[#A9C8D5]">System Flow</h3>
         <span className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">Signal path</span>
       </div>
 
@@ -57,7 +57,7 @@ export function SystemFlow({ voiceState }: SystemFlowProps) {
                 className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-2 py-1.5 transition-colors ${
                   isActive
                     ? "border-[#00FF9D]/60 bg-[#00FF9D]/10 text-[#C8FFE4]"
-                    : "border-[#00F2FF]/15 bg-[#05080D]/50 text-[#94A8B8]"
+                    : "border-[#00F2FF]/15 bg-[#05080D]/50 text-slate-600 dark:text-[#94A8B8]"
                 }`}
               >
                 <Icon className={`h-3 w-3 ${isActive ? "text-[#00FF9D]" : "text-[#00F2FF]/70"}`} />

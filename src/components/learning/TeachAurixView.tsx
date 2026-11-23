@@ -545,11 +545,11 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
       <section className="nexus-panel rounded-2xl p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#00D9FF]">
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-accent">
               <Sparkles className="h-3.5 w-3.5" /> Teach DEX MADE
             </div>
             <h1 className="mt-1 font-display text-lg font-bold tracking-wide text-white">Visual Learning Mode</h1>
-            <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#94A8B8]">
+            <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
               Show an object, say what it is, review the capture, then approve it. Nothing is stored until you press Save.
               {snapshot.settings.sendImagesToCloud
                 ? " Cloud vision labeling is ON (consented) — captured frames can be sent to Gemini for a suggested name."
@@ -559,7 +559,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.12em] ${
-                training ? "border-[#00D9FF]/40 bg-[#00D9FF]/10 text-[#7FE9FF]" : "border-white/10 bg-white/5 text-[#5B7185]"
+                training ? "border-[#00D9FF]/40 bg-[#00D9FF]/10 text-[#7FE9FF]" : "border-white/10 bg-white/5 text-muted-ink"
               }`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${training ? "animate-pulse bg-[#00D9FF]" : "bg-slate-500"}`} />
@@ -579,7 +579,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
               onClick={toggleListening}
               disabled={!speechRecognitionSupported()}
               className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[11px] cursor-pointer disabled:opacity-40 ${
-                listening ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-white/15 text-[#A9C8D5] hover:bg-white/5"
+                listening ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300" : "border-white/15 text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5"
               }`}
             >
               {listening ? <Mic className="h-3.5 w-3.5" /> : <MicOff className="h-3.5 w-3.5" />}
@@ -600,7 +600,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
               message.tone === "error"
                 ? "border-rose-400/30 bg-rose-400/10 text-rose-200"
                 : message.tone === "ok"
-                  ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-300"
+                  ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-800 dark:text-emerald-300"
                   : "border-[#00D9FF]/25 bg-[#00D9FF]/10 text-[#A9E8F5]"
             }`}
           >
@@ -616,7 +616,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
               type="button"
               onClick={() => void identify()}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#147DFF] px-3 py-2 text-[11px] font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-40 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B63D6] px-3 py-2 text-[11px] font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-40 cursor-pointer"
             >
               <Eye className="h-3.5 w-3.5" /> {busy === "identify" ? "Looking…" : "What is this?"}
             </button>
@@ -624,7 +624,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
               type="button"
               onClick={() => void captureCandidate()}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#10B981] px-3 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#047857] px-3 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40 cursor-pointer"
             >
               <Camera className="h-3.5 w-3.5" /> {busy === "capture" ? "Capturing…" : "Teach this object"}
             </button>
@@ -632,20 +632,20 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
               type="button"
               onClick={() => void detectGesture()}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-[#A9C8D5] hover:bg-white/5 disabled:opacity-40 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 disabled:opacity-40 cursor-pointer"
             >
               <Hand className="h-3.5 w-3.5" /> {busy === "gesture" ? "Reading hand…" : "Read gesture"}
             </button>
             <button
               type="button"
               onClick={onOpenMemory}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-[#A9C8D5] hover:bg-white/5 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-2 text-[11px] text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer"
             >
               <ListChecks className="h-3.5 w-3.5" /> Training memory
             </button>
             <span className="ml-auto flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.14em]">
               <span className={`h-1.5 w-1.5 rounded-full ${camera.status === "active" ? "animate-pulse bg-rose-400" : "bg-slate-500"}`} />
-              <span className={camera.status === "active" ? "text-rose-300" : "text-[#5B7185]"}>
+              <span className={camera.status === "active" ? "text-rose-300" : "text-muted-ink"}>
                 {camera.status === "active" ? "Camera active" : camera.status === "paused" ? "Camera paused" : "Camera off"}
               </span>
             </span>
@@ -662,23 +662,23 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
                       ? "New observation (vision model)"
                       : "No confident identification"}
                 </div>
-                <p className="mt-1 text-[11px] leading-relaxed text-[#94A8B8]">
+                <p className="mt-1 text-[11px] leading-relaxed text-slate-600 dark:text-[#94A8B8]">
                   {identified
                     ? identified.example.description || "No description was saved with this example."
                     : identifyResult.cloudLabel ?? "DEX MADE will not guess. Teach it this object, or lower the threshold by adding more examples."}
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {identified && (
-                    <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-emerald-300">
+                    <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-emerald-800 dark:text-emerald-300">
                       saved example · {(identified.score * 100).toFixed(0)}%
                     </span>
                   )}
                   {identifyResult.matches.slice(0, 3).map((match) => (
-                    <span key={match.example.id} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-mono text-[#94A8B8]">
+                    <span key={match.example.id} className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-mono text-slate-600 dark:text-[#94A8B8]">
                       {match.example.label} · {(match.score * 100).toFixed(0)}%
                     </span>
                   ))}
-                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-mono text-[#5B7185]">
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-mono text-muted-ink">
                     {identifyResult.cloudConsent ? "cloud labeling allowed" : "local only"}
                   </span>
                 </div>
@@ -687,8 +687,8 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
           )}
 
           {candidate && (
-            <div className="mt-3 rounded-xl border border-[#10B981]/35 bg-[#10B981]/5 p-3">
-              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-emerald-300">
+            <div className="mt-3 rounded-xl border border-[#10B981]/35 bg-[#047857]/5 p-3">
+              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-emerald-800 dark:text-emerald-300">
                 <Check className="h-3.5 w-3.5" /> Review before saving
               </div>
               <div className="mt-2 grid gap-3 sm:grid-cols-[160px_minmax(0,1fr)]">
@@ -718,7 +718,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
                       type="button"
                       onClick={() => void saveCandidate()}
                       disabled={busy === "save"}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#10B981] px-3 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#047857] px-3 py-2 text-[11px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
                     >
                       <Save className="h-3.5 w-3.5" /> {busy === "save" ? "Saving…" : "Save example"}
                     </button>
@@ -733,7 +733,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
                       <X className="h-3.5 w-3.5" /> Discard
                     </button>
                     {candidate.suggestionSource === "cloud" && (
-                      <span className="text-[9px] font-mono uppercase tracking-[0.1em] text-[#5B7185]">suggested by cloud vision — verify it</span>
+                      <span className="text-[9px] font-mono uppercase tracking-[0.1em] text-muted-ink">suggested by cloud vision — verify it</span>
                     )}
                   </div>
                 </div>
@@ -755,16 +755,16 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-[#05080D]/50 p-3">
-              <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-[#A9C8D5]">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-slate-600 dark:text-[#A9C8D5]">
                 <Hand className="h-3.5 w-3.5" /> Gesture teaching
               </div>
               {gesture && (
-                <p className="mt-2 text-[11px] text-[#94A8B8]">
+                <p className="mt-2 text-[11px] text-slate-600 dark:text-[#94A8B8]">
                   Hand seen: <span className="text-white">{gesture.gesture.replace("_", " ")}</span> — shape only, no meaning until you assign one.
                 </p>
               )}
               {gestureMatches.length > 0 && (
-                <p className="mt-1 text-[10px] text-[#5B7185]">
+                <p className="mt-1 text-[10px] text-muted-ink">
                   Closest taught gesture: {gestureMatches[0].example.label} ({(gestureMatches[0].score * 100).toFixed(0)}%) →{" "}
                   {gestureMatches[0].example.trigger ?? "no command"}
                   {gestureMatches[0].score >= 0.9 && (
@@ -786,11 +786,11 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
                 </p>
               )}
               <div className="mt-2 flex flex-wrap gap-1.5">
-                <button type="button" onClick={() => void addGestureSample()} disabled={busy !== null || gestureSamples.length >= 3} className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[10px] text-[#A9C8D5] hover:bg-white/5 disabled:opacity-40 cursor-pointer">
+                <button type="button" onClick={() => void addGestureSample()} disabled={busy !== null || gestureSamples.length >= 3} className="rounded-lg border border-white/15 px-2.5 py-1.5 text-[10px] text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 disabled:opacity-40 cursor-pointer">
                   Capture sample {Math.min(gestureSamples.length + 1, 3)}/3
                 </button>
                 {gestureSamples.length > 0 && (
-                  <button type="button" onClick={() => setGestureSamples([])} className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[10px] text-[#5B7185] hover:bg-white/5 cursor-pointer">
+                  <button type="button" onClick={() => setGestureSamples([])} className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[10px] text-muted-ink hover:bg-white/5 cursor-pointer">
                     Reset samples
                   </button>
                 )}
@@ -807,13 +807,13 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
                 placeholder="Command to assign (e.g. Open work dashboard)"
                 className="mt-1.5 w-full rounded-lg border border-white/10 bg-[#05080D]/70 px-2.5 py-1.5 text-[11px] text-white placeholder:text-[#5B7185] outline-none"
               />
-              <button type="button" onClick={() => void saveGesture()} disabled={busy !== null || gestureSamples.length < 2} className="mt-2 w-full rounded-lg bg-[#147DFF] px-2.5 py-1.5 text-[10px] font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-40 cursor-pointer">
+              <button type="button" onClick={() => void saveGesture()} disabled={busy !== null || gestureSamples.length < 2} className="mt-2 w-full rounded-lg bg-[#0B63D6] px-2.5 py-1.5 text-[10px] font-semibold text-white hover:bg-[#2E8DFF] disabled:opacity-40 cursor-pointer">
                 Save gesture
               </button>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-[#05080D]/50 p-3">
-              <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-[#A9C8D5]">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-slate-600 dark:text-[#A9C8D5]">
                 <Wand2 className="h-3.5 w-3.5" /> Custom task (voice trigger)
               </div>
               <input
@@ -835,22 +835,22 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
                 placeholder="Note (optional)"
                 className="mt-1.5 w-full rounded-lg border border-white/10 bg-[#05080D]/70 px-2.5 py-1.5 text-[11px] text-white placeholder:text-[#5B7185] outline-none"
               />
-              <button type="button" onClick={() => void saveTask()} disabled={busy !== null} className="mt-2 w-full rounded-lg bg-[#10B981] px-2.5 py-1.5 text-[10px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40 cursor-pointer">
+              <button type="button" onClick={() => void saveTask()} disabled={busy !== null} className="mt-2 w-full rounded-lg bg-[#047857] px-2.5 py-1.5 text-[10px] font-semibold text-white hover:bg-emerald-600 disabled:opacity-40 cursor-pointer">
                 Save custom task
               </button>
-              <p className="mt-1.5 text-[9px] leading-relaxed text-[#5B7185]">
+              <p className="mt-1.5 text-[9px] leading-relaxed text-muted-ink">
                 A browser can only open approved URLs — it cannot launch native Windows apps. Every run asks for confirmation first.
               </p>
               <div className="mt-2 space-y-1">
                 {tasks.slice(0, 4).map((task) => (
                   <div key={task.id} className="flex items-center justify-between gap-2 rounded-lg border border-white/10 px-2 py-1.5">
-                    <span className="min-w-0 truncate text-[10px] text-[#A9C8D5]">{task.label}</span>
-                    <button type="button" onClick={() => runTask(task)} className="shrink-0 rounded-md border border-white/15 px-2 py-0.5 text-[9px] text-[#00D9FF] hover:bg-white/5 cursor-pointer">
+                    <span className="min-w-0 truncate text-[10px] text-slate-600 dark:text-[#A9C8D5]">{task.label}</span>
+                    <button type="button" onClick={() => runTask(task)} className="shrink-0 rounded-md border border-white/15 px-2 py-0.5 text-[9px] text-accent hover:bg-white/5 cursor-pointer">
                       Run
                     </button>
                   </div>
                 ))}
-                {tasks.length === 0 && <p className="text-[10px] text-[#5B7185]">No custom tasks saved yet.</p>}
+                {tasks.length === 0 && <p className="text-[10px] text-muted-ink">No custom tasks saved yet.</p>}
               </div>
               {runningTask && (
                 <div className="mt-2 rounded-lg border border-amber-400/35 bg-amber-400/10 px-2 py-1.5 text-[10px] text-amber-200">
@@ -871,46 +871,46 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
 
         <aside className="space-y-4">
           <section className="nexus-panel rounded-2xl p-4">
-            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-[#A9C8D5]">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-slate-600 dark:text-[#A9C8D5]">
               <Activity className="h-3.5 w-3.5" /> Session activity
             </div>
             <div className="mt-2 space-y-1.5">
-              {log.length === 0 && <p className="text-[11px] text-[#5B7185]">No activity yet. Start training mode to begin.</p>}
+              {log.length === 0 && <p className="text-[11px] text-muted-ink">No activity yet. Start training mode to begin.</p>}
               {log.map((entry) => (
                 <div key={entry.id} className="rounded-lg border border-white/5 bg-[#05080D]/50 px-2.5 py-1.5">
-                  <div className="text-[10px] leading-relaxed text-[#A9C8D5]">{entry.text}</div>
-                  <div className="font-mono text-[9px] text-[#5B7185]">{entry.at.slice(11, 19)}</div>
+                  <div className="text-[10px] leading-relaxed text-slate-600 dark:text-[#A9C8D5]">{entry.text}</div>
+                  <div className="font-mono text-[9px] text-muted-ink">{entry.at.slice(11, 19)}</div>
                 </div>
               ))}
             </div>
           </section>
 
           <section className="nexus-panel rounded-2xl p-4">
-            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.18em] text-[#A9C8D5]">
+            <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.18em] text-slate-600 dark:text-[#A9C8D5]">
               <span>Training memory</span>
-              <span className="text-[#5B7185]">{stats?.total ?? 0} approved</span>
+              <span className="text-muted-ink">{stats?.total ?? 0} approved</span>
             </div>
-            <div className="mt-2 space-y-1 text-[10px] text-[#5B7185]">
+            <div className="mt-2 space-y-1 text-[10px] text-muted-ink">
               <div className="flex justify-between"><span>Objects</span><span className="text-white">{stats?.byKind.object ?? 0}</span></div>
               <div className="flex justify-between"><span>Gestures</span><span className="text-white">{stats?.byKind.gesture ?? 0}</span></div>
               <div className="flex justify-between"><span>Voice commands</span><span className="text-white">{stats?.byKind.voice_command ?? 0}</span></div>
               <div className="flex justify-between"><span>Custom tasks</span><span className="text-white">{stats?.byKind.task ?? 0}</span></div>
             </div>
-            <p className="mt-2 text-[9px] leading-relaxed text-[#5B7185]">
+            <p className="mt-2 text-[9px] leading-relaxed text-muted-ink">
               Saved examples are retrieval memory, not model training. DEX MADE matches new observations against these embeddings locally.
             </p>
             {lastSaved && (
-              <div className="mt-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2 py-1.5 text-[10px] text-emerald-300">
+              <div className="mt-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2 py-1.5 text-[10px] text-emerald-800 dark:text-emerald-300">
                 Last saved: {lastSaved.label}
               </div>
             )}
           </section>
 
           <section className="nexus-panel rounded-2xl p-4">
-            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-[#A9C8D5]">
+            <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.18em] text-slate-600 dark:text-[#A9C8D5]">
               <CameraOff className="h-3.5 w-3.5" /> Camera privacy
             </div>
-            <p className="mt-1.5 text-[10px] leading-relaxed text-[#5B7185]">
+            <p className="mt-1.5 text-[10px] leading-relaxed text-muted-ink">
               The camera only runs in training mode or during verification you started. Closing it here releases the device immediately. The preview auto-minimizes after{" "}
               {snapshot.settings.trainingPreviewSeconds}s but the live indicator stays visible.
             </p>

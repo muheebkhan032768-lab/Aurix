@@ -42,10 +42,10 @@ export function CameraPreviewDock({
       <div className={`fixed bottom-24 z-40 ${sideClass} transition-all duration-300`}>
         <div className="nexus-panel flex items-center gap-2 rounded-2xl px-3 py-2 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
           <span className={`h-2 w-2 rounded-full ${active && !paused ? "animate-pulse bg-rose-400" : "bg-amber-400"}`} />
-          <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#A9C8D5]">
+          <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-slate-600 dark:text-[#A9C8D5]">
             {paused ? "Camera paused" : active ? "Camera live" : "Camera off"}
           </span>
-          <button type="button" onClick={onMaximize} aria-label="Maximize camera preview" className="rounded-lg p-1 text-[#00D9FF] hover:bg-white/5 cursor-pointer">
+          <button type="button" onClick={onMaximize} aria-label="Maximize camera preview" className="rounded-lg p-1 text-accent hover:bg-white/5 cursor-pointer">
             <Maximize2 className="h-3.5 w-3.5" />
           </button>
           <button type="button" onClick={onClose} aria-label="Close camera" className="rounded-lg p-1 text-rose-300 hover:bg-rose-500/10 cursor-pointer">
@@ -66,12 +66,12 @@ export function CameraPreviewDock({
           <video ref={videoRef} playsInline muted className="aspect-video w-full object-contain" />
           <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5 rounded-full bg-black/65 px-2 py-1 text-[9px] font-mono uppercase tracking-[0.14em]">
             <span className={`h-1.5 w-1.5 rounded-full ${active && !paused ? "animate-pulse bg-rose-400" : "bg-amber-400"}`} />
-            <span className={active && !paused ? "text-rose-300" : "text-amber-300"}>
+            <span className={active && !paused ? "text-rose-300" : "text-amber-700 dark:text-amber-300"}>
               {paused ? "Paused" : active ? "Camera live" : "Camera off"}
             </span>
           </div>
           {secondsLeft !== null && (
-            <div className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-[9px] font-mono text-[#A9C8D5]">
+            <div className="pointer-events-none absolute right-2 top-2 rounded-full bg-black/65 px-2 py-1 text-[9px] font-mono text-slate-600 dark:text-[#A9C8D5]">
               auto-minimize {secondsLeft}s
             </div>
           )}
@@ -90,7 +90,7 @@ export function CameraPreviewDock({
               onClick={() => onMove("left")}
               aria-label="Move preview left"
               title="Move left"
-              className={`rounded-lg p-1.5 hover:bg-white/5 cursor-pointer ${position === "left" ? "text-[#00D9FF]" : "text-[#5B7185]"}`}
+              className={`rounded-lg p-1.5 hover:bg-white/5 cursor-pointer ${position === "left" ? "text-accent" : "text-muted-ink"}`}
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
@@ -99,25 +99,25 @@ export function CameraPreviewDock({
               onClick={() => onMove("right")}
               aria-label="Move preview right"
               title="Move right"
-              className={`rounded-lg p-1.5 hover:bg-white/5 cursor-pointer ${position === "right" ? "text-[#00D9FF]" : "text-[#5B7185]"}`}
+              className={`rounded-lg p-1.5 hover:bg-white/5 cursor-pointer ${position === "right" ? "text-accent" : "text-muted-ink"}`}
             >
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
             {paused ? (
-              <button type="button" onClick={onResume} aria-label="Resume camera" title="Resume camera" className="rounded-lg p-1.5 text-emerald-300 hover:bg-white/5 cursor-pointer">
+              <button type="button" onClick={onResume} aria-label="Resume camera" title="Resume camera" className="rounded-lg p-1.5 text-emerald-800 dark:text-emerald-300 hover:bg-white/5 cursor-pointer">
                 <Play className="h-3.5 w-3.5" />
               </button>
             ) : (
-              <button type="button" onClick={onPause} aria-label="Pause camera" title="Pause camera" className="rounded-lg p-1.5 text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
+              <button type="button" onClick={onPause} aria-label="Pause camera" title="Pause camera" className="rounded-lg p-1.5 text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
                 <Pause className="h-3.5 w-3.5" />
               </button>
             )}
-            <button type="button" onClick={onMinimize} aria-label="Minimize camera preview" title="Minimize" className="rounded-lg p-1.5 text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
+            <button type="button" onClick={onMinimize} aria-label="Minimize camera preview" title="Minimize" className="rounded-lg p-1.5 text-slate-600 dark:text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
               <Minimize2 className="h-3.5 w-3.5" />
             </button>
           </div>
           <div className="flex items-center gap-0.5">
-            <span className="hidden items-center gap-1 px-1 text-[9px] font-mono uppercase tracking-[0.12em] text-[#5B7185] sm:flex">
+            <span className="hidden items-center gap-1 px-1 text-[9px] font-mono uppercase tracking-[0.12em] text-muted-ink sm:flex">
               <Video className="h-3 w-3" /> preview
             </span>
             <button type="button" onClick={onClose} aria-label="Close camera" title="Close camera" className="rounded-lg p-1.5 text-rose-300 hover:bg-rose-500/10 cursor-pointer">

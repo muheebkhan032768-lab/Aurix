@@ -80,7 +80,7 @@ export function SecurityCenterView({
       </div>
 
       {msg && (
-        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-500">
+        <div className="p-3 rounded-lg bg-emerald-700/10 border border-emerald-500/30 text-xs text-positive">
           {msg}
         </div>
       )}
@@ -127,7 +127,7 @@ export function SecurityCenterView({
 
           <button
             type="submit"
-            className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium cursor-pointer"
           >
             {security.hasPin ? "Update PIN" : "Set Personal PIN"}
           </button>
@@ -190,7 +190,7 @@ export function SecurityCenterView({
           <button
             type="button"
             onClick={() => setConfirmReset(true)}
-            className="px-4 py-2 rounded-lg border border-rose-400/60 text-rose-500 hover:bg-rose-500/10 text-xs font-medium cursor-pointer"
+            className="px-4 py-2 rounded-lg border border-rose-400/60 text-rose-700 dark:text-rose-400 hover:bg-rose-500/10 text-xs font-medium cursor-pointer"
           >
             Reset Security System
           </button>
@@ -239,7 +239,7 @@ export function SecurityCenterView({
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{log.detail}</div>
               </div>
-              <span className="text-[11px] font-mono tabular-nums text-slate-400 shrink-0">
+              <span className="text-[11px] font-mono tabular-nums text-muted-ink shrink-0">
                 {log.createdAt.slice(0, 19).replace("T", " ")}
               </span>
             </div>

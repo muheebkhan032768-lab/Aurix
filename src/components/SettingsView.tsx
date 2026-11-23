@@ -87,7 +87,7 @@ export function SettingsView({
             <h2 className="text-base font-bold text-[#202938] dark:text-white">
               Appearance, Performance Mode &amp; Complete Project Package
             </h2>
-            <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-ink dark:text-slate-400 mt-0.5">
               Detected {telemetry.installedRamGb} GB RAM ({telemetry.recommendedMode} hardware tier). Configure theme, animations, offline enforcement, and export full Windows package.
             </p>
           </div>
@@ -106,7 +106,7 @@ export function SettingsView({
               {settings.theme === "dark" ? (
                 <Sun className="w-4 h-4 text-[#D6AD60]" />
               ) : (
-                <Moon className="w-4 h-4 text-[#06B6D4]" />
+                <Moon className="w-4 h-4 text-accent" />
               )}
               <span>{settings.theme === "dark" ? "Switch to Bright Light UI" : "Switch to Dark UI"}</span>
             </button>
@@ -115,13 +115,13 @@ export function SettingsView({
               href="/api/backup/export"
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-[#202938] dark:text-slate-200"
             >
-              <Download className="w-4 h-4 text-[#06B6D4]" />
+              <Download className="w-4 h-4 text-accent" />
               <span>Export DB JSON</span>
             </a>
 
             <a
               href="/api/project/complete-download.zip"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white text-xs font-semibold"
             >
               <Package className="w-4 h-4" />
               <span>Download Complete DEX MADE 2.0 ZIP</span>
@@ -130,7 +130,7 @@ export function SettingsView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Performance Mode</span>
             <select
               value={settings.performanceMode}
@@ -146,7 +146,7 @@ export function SettingsView({
             </select>
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Wake Phrase</span>
             <input
               type="text"
@@ -154,10 +154,10 @@ export function SettingsView({
               onChange={(e) => onUpdateSettings({ ...settings, wakePhrase: e.target.value })}
               className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
             />
-            <span className="mt-1 block text-[10px] text-[#94A3B8]">Default: Hello Dex Made</span>
+            <span className="mt-1 block text-[10px] text-muted-ink">Default: Hello Dex Made</span>
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Startup Behavior</span>
             <select
               value={settings.startupBehavior}
@@ -232,7 +232,7 @@ export function SettingsView({
             <h2 className="text-base font-bold text-[#202938] dark:text-white">
               Startup Experience, Proactive Companion, DND &amp; Quiet Hours
             </h2>
-            <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-ink dark:text-slate-400 mt-0.5">
               Control launch splash animation, spoken British greeting, Do Not Disturb, and scheduled Quiet Hours.
             </p>
           </div>
@@ -240,7 +240,7 @@ export function SettingsView({
           <button
             type="button"
             onClick={onReplayStartup}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer whitespace-nowrap"
           >
             <Play className="w-3.5 h-3.5" />
             <span>Replay Startup Experience</span>
@@ -298,7 +298,7 @@ export function SettingsView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Animation Duration ({settings.startupDurationSeconds}s)</span>
             <input
               type="range"
@@ -313,7 +313,7 @@ export function SettingsView({
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Startup Sound Volume ({settings.startupSoundVolume}%)</span>
             <input
               type="range"
@@ -328,7 +328,7 @@ export function SettingsView({
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Greeting Volume ({settings.greetingVolume}%)</span>
             <input
               type="range"
@@ -343,7 +343,7 @@ export function SettingsView({
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Greeting Language</span>
             <select
               value={settings.greetingLanguage}
@@ -376,7 +376,7 @@ export function SettingsView({
             <span>Always-On Proactive Talk</span>
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Check-In Pace ({settings.proactiveIntervalSeconds || 20}s)</span>
             <input
               type="range"
@@ -425,7 +425,7 @@ export function SettingsView({
                 }
                 className="bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs text-[#202938] dark:text-white"
               />
-              <span className="text-xs text-[#64748B]">to</span>
+              <span className="text-xs text-muted-ink">to</span>
               <input
                 type="time"
                 aria-label="Quiet hours end"
@@ -456,16 +456,16 @@ export function SettingsView({
               />
               <div>
                 <h3 className="text-base font-bold text-[#202938] dark:text-white flex items-center gap-1.5">
-                  <User className="w-4 h-4 text-[#10B981]" />
+                  <User className="w-4 h-4 text-positive" />
                   <span>Owner Knowledge Profile</span>
                 </h3>
-                <p className="text-xs text-[#64748B]">Primary Owner: {ownerDraft.name}</p>
+                <p className="text-xs text-muted-ink">Primary Owner: {ownerDraft.name}</p>
               </div>
             </div>
 
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{savedFlag ? "Saved" : "Save Profile"}</span>
@@ -473,7 +473,7 @@ export function SettingsView({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-xs text-[#64748B]">
+            <label className="block text-xs text-muted-ink">
               <span>Owner Name</span>
               <input
                 type="text"
@@ -482,7 +482,7 @@ export function SettingsView({
                 className="mt-1 w-full bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-[#202938] dark:text-white"
               />
             </label>
-            <label className="block text-xs text-[#64748B]">
+            <label className="block text-xs text-muted-ink">
               <span>Role</span>
               <input
                 type="text"
@@ -493,7 +493,7 @@ export function SettingsView({
             </label>
           </div>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Programming Skills (comma separated)</span>
             <input
               type="text"
@@ -508,7 +508,7 @@ export function SettingsView({
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Learning Goals (one per line)</span>
             <textarea
               rows={3}
@@ -523,7 +523,7 @@ export function SettingsView({
             />
           </label>
 
-          <label className="block text-xs text-[#64748B]">
+          <label className="block text-xs text-muted-ink">
             <span>Assistant Preferences</span>
             <textarea
               rows={2}
@@ -537,7 +537,7 @@ export function SettingsView({
         {/* Persistent Scoped Memory Manager */}
         <section className="lg:col-span-6 bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-[#06B6D4]" />
+            <Database className="w-4 h-4 text-accent" />
             <h3 className="text-base font-bold text-[#202938] dark:text-white">
               Persistent Scoped Memory Manager
             </h3>
@@ -599,7 +599,7 @@ export function SettingsView({
             />
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#10B981] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-lg bg-[#047857] hover:bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Approve &amp; Store Memory</span>
@@ -610,17 +610,17 @@ export function SettingsView({
             {filteredMemories.map((m) => (
               <div key={m.id} className="py-3 flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-[11px] font-mono text-[#06B6D4] font-semibold">
+                  <div className="text-[11px] font-mono text-accent font-semibold">
                     {m.projectScope} · {m.category}
                   </div>
                   <div className="text-xs font-semibold text-[#202938] dark:text-white mt-0.5">{m.title}</div>
-                  <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">{m.content}</p>
+                  <p className="text-xs text-muted-ink dark:text-slate-400 mt-0.5">{m.content}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onDeleteMemory(m.id)}
                   aria-label="Delete memory"
-                  className="text-[#64748B] hover:text-rose-600 cursor-pointer shrink-0"
+                  className="text-muted-ink hover:text-rose-700 dark:text-rose-400 cursor-pointer shrink-0"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>

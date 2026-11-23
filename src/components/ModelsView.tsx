@@ -58,9 +58,9 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
     <div className="space-y-6">
       <div className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] dark:text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-muted-ink dark:text-slate-400">
             {isOnline && !settings.offlineModeForced ? (
-              <Wifi className="w-4 h-4 text-[#10B981]" />
+              <Wifi className="w-4 h-4 text-positive" />
             ) : (
               <WifiOff className="w-4 h-4 text-[#D6AD60]" />
             )}
@@ -87,8 +87,8 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
             }
             className={`px-3.5 py-2 rounded-lg border text-xs font-semibold cursor-pointer whitespace-nowrap ${
               settings.offlineModeForced
-                ? "bg-amber-50 dark:bg-amber-500/15 border-[#D6AD60] text-[#9A742E] dark:text-amber-300"
-                : "bg-emerald-50 dark:bg-emerald-500/15 border-[#10B981] text-emerald-700 dark:text-emerald-300"
+                ? "bg-amber-50 dark:bg-amber-500/15 border-[#D6AD60] text-warn dark:text-amber-300"
+                : "bg-emerald-50 dark:bg-emerald-700/15 border-[#10B981] text-emerald-800 dark:text-emerald-300"
             }`}
           >
             {settings.offlineModeForced ? "Offline Mode Enforced (Switch Online)" : "Online + Offline Hybrid (Force Offline)"}
@@ -111,17 +111,17 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
         <section className="bg-white dark:bg-[#0F1724] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-[#06B6D4]" />
+              <Cpu className="w-4 h-4 text-accent" />
               <h3 className="text-base font-bold text-[#202938] dark:text-white">
                 Hardware Adaptation &amp; Performance Mode
               </h3>
             </div>
-            <span className="text-xs font-mono font-semibold text-[#10B981]">
+            <span className="text-xs font-mono font-semibold text-positive">
               Recommended: {localInfo.recommendedMode}
             </span>
           </div>
 
-          <p className="text-xs text-[#64748B] dark:text-slate-400 leading-relaxed">
+          <p className="text-xs text-muted-ink dark:text-slate-400 leading-relaxed">
             {localInfo.hardwareSummaryNote}
           </p>
 
@@ -142,7 +142,7 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
                 }
                 className={`px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer ${
                   settings.performanceMode === pm.id
-                    ? "bg-[#10B981] border-[#10B981] text-white"
+                    ? "bg-[#047857] border-[#10B981] text-white"
                     : "bg-[#F8FAFC] dark:bg-[#0B111B] border-slate-200 dark:border-slate-700 text-[#202938] dark:text-slate-200"
                 }`}
               >
@@ -153,16 +153,16 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
 
           <div className="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
             <div className="py-2.5 flex justify-between gap-4">
-              <span className="text-[#64748B]">Installed System RAM</span>
+              <span className="text-muted-ink">Installed System RAM</span>
               <span className="font-mono font-semibold tabular-nums text-[#202938] dark:text-white">
                 {localInfo.installedRamGb} GB
               </span>
             </div>
             <div className="py-2.5 flex justify-between gap-4">
-              <span className="text-[#64748B]">Ollama Local Runtime (127.0.0.1:11434)</span>
+              <span className="text-muted-ink">Ollama Local Runtime (127.0.0.1:11434)</span>
               <span
                 className={`font-mono font-semibold ${
-                  localInfo.ollamaReachable ? "text-[#10B981]" : "text-[#9A742E] dark:text-amber-300"
+                  localInfo.ollamaReachable ? "text-positive" : "text-warn dark:text-amber-300"
                 }`}
               >
                 {localInfo.ollamaReachable
@@ -171,8 +171,8 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
               </span>
             </div>
             <div className="py-2.5 flex justify-between gap-4">
-              <span className="text-[#64748B]">SQLite Local Memory</span>
-              <span className="font-mono font-semibold text-[#10B981]">Active Offline</span>
+              <span className="text-muted-ink">SQLite Local Memory</span>
+              <span className="font-mono font-semibold text-positive">Active Offline</span>
             </div>
           </div>
 
@@ -187,8 +187,8 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
                   className="rounded-lg bg-[#F8FAFC] dark:bg-[#0B111B] border border-slate-200 dark:border-slate-800 px-3 py-2 flex items-center justify-between text-xs"
                 >
                   <span className="font-mono font-semibold text-[#202938] dark:text-white">{m.name}</span>
-                  <span className="font-mono text-[#64748B] tabular-nums">
-                    {m.sizeGb} GB · <strong className="text-[#10B981]">{m.fit}</strong>
+                  <span className="font-mono text-muted-ink tabular-nums">
+                    {m.sizeGb} GB · <strong className="text-positive">{m.fit}</strong>
                   </span>
                 </div>
               ))}
@@ -223,22 +223,22 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
                 onClick={() => onUpdateSettings({ ...settings, activeModel: m.id })}
                 className={`w-full text-left p-3.5 rounded-xl border transition-colors cursor-pointer ${
                   settings.activeModel === m.id
-                    ? "border-[#10B981] bg-emerald-50/70 dark:bg-emerald-500/10"
+                    ? "border-[#10B981] bg-emerald-50/70 dark:bg-emerald-700/10"
                     : "border-slate-200 dark:border-slate-800 bg-[#F8FAFC] dark:bg-[#0B111B]"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-xs text-[#202938] dark:text-white">{m.name}</span>
-                  <span className="font-mono text-xs text-[#10B981] font-semibold">
+                  <span className="font-mono text-xs text-positive font-semibold">
                     {settings.activeModel === m.id ? "Active" : "Select"}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-[#64748B] dark:text-slate-400">{m.desc}</p>
+                <p className="mt-1 text-xs text-muted-ink dark:text-slate-400">{m.desc}</p>
               </button>
             ))}
           </div>
 
-          <label className="block text-xs text-[#64748B] dark:text-slate-400">
+          <label className="block text-xs text-muted-ink dark:text-slate-400">
             <span>Default Thinking Depth</span>
             <select
               value={settings.thinkingLevel}
@@ -269,11 +269,11 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
                   <div className="min-w-0">
                     <div className="font-mono font-semibold text-[#202938] dark:text-white">
                       {rec.name}{" "}
-                      <span className={fits ? "text-[#10B981]" : "text-rose-600"}>
+                      <span className={fits ? "text-positive" : "text-rose-700 dark:text-rose-400"}>
                         ({fits ? "Fits your RAM" : `Needs ${rec.minRamGb}+ GB RAM`})
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#64748B] truncate">{rec.purpose}</div>
+                    <div className="text-[11px] text-muted-ink truncate">{rec.purpose}</div>
                   </div>
                   <button
                     type="button"
@@ -284,7 +284,7 @@ export function ModelsView({ settings, telemetry, isOnline, onUpdateSettings }: 
                     }}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0F1724] text-[11px] font-mono text-[#202938] dark:text-slate-200 cursor-pointer shrink-0"
                   >
-                    {copiedCmd === rec.name ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                    {copiedCmd === rec.name ? <Check className="w-3 h-3 text-positive" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedCmd === rec.name ? "Copied" : cmd}</span>
                   </button>
                 </div>
