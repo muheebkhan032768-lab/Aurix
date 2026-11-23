@@ -1,5 +1,7 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+/* `:is()` (not `:where()`) so dark overrides carry class specificity and always
+   beat the base light utility, regardless of stylesheet order. */
+@custom-variant dark (&:is(.dark, .dark *));
 
 @theme {
   --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;

@@ -387,10 +387,10 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10.5px] font-medium text-cyan-700 dark:text-cyan-300">
+        <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-medium text-cyan-800 dark:text-cyan-300">
           {link.category}
         </span>
-        <span className="text-[10.5px] text-slate-600 dark:text-slate-400">Added {formatDate(link.createdAt)}</span>
+        <span className="text-[11px] text-slate-600 dark:text-slate-300">Added {formatDate(link.createdAt)}</span>
       </div>
 
       {link.description && (
@@ -520,7 +520,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
             key={stat.label}
             className="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800/80 dark:bg-[#0D1420]"
           >
-            <div className="text-[10.5px] font-mono uppercase tracking-[0.14em] text-slate-600 dark:text-slate-400">{stat.label}</div>
+            <div className="text-[11px] font-mono uppercase tracking-[0.14em] text-slate-600 dark:text-slate-300">{stat.label}</div>
             <div className="mt-1 text-xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">{stat.value}</div>
           </div>
         ))}
