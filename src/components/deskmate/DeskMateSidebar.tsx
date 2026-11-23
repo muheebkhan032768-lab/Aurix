@@ -3,6 +3,7 @@ import {
   Activity,
   BarChart3,
   BellRing,
+  Bookmark,
   BookOpen,
   Bot,
   BrainCircuit,
@@ -47,6 +48,7 @@ export const NAV_GROUPS: Array<{ title: string; items: DeskNavEntry[] }> = [
     title: "Management",
     items: [
       { key: "projects", id: "projects", label: "Projects", icon: FolderKanban },
+      { key: "links", id: "links", label: "Link Vault", icon: Bookmark },
       { key: "documents", id: "files", label: "Documents", icon: FileText },
       { key: "notes", id: "productivity", label: "Notes", icon: StickyNote },
       { key: "reminders", id: "productivity", label: "Reminders", icon: BellRing },

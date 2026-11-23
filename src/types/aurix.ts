@@ -17,6 +17,7 @@ export type AurixSectionId =
   | "models"
   | "memory"
   | "automation"
+  | "links"
   | "identity"
   | "teach"
   | "training"
@@ -101,6 +102,26 @@ export interface ProjectRecord {
   securityNotes: string;
   updatedAt: string;
 }
+
+/**
+ * A link saved in the Link Vault. URLs are stored normalized (http/https only)
+ * and are unique per record so the same site cannot be saved twice.
+ */
+export interface SavedLink {
+  id: string;
+  name: string;
+  url: string;
+  category: string;
+  description: string;
+  tags: string[];
+  notes: string;
+  isFavourite: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Writable fields of a saved link (id and timestamps are assigned by the server). */
+export type SavedLinkInput = Omit<SavedLink, "id" | "createdAt" | "updatedAt">;
 
 export interface MemoryItem {
   id: string;
@@ -350,6 +371,7 @@ export interface BootstrapPayload {
   websites: WebsiteRecord[];
   projects: ProjectRecord[];
   memories: MemoryItem[];
+  links: SavedLink[];
   conversations: ConversationSummary[];
   business: BusinessItem[];
   tasks: TaskItem[];

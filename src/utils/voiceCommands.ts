@@ -35,6 +35,7 @@ export type VoiceIntent =
       needsAccount: boolean;
       label: string;
     }
+  | { kind: "link_command"; text: string; label: string }
   | { kind: "cancel"; label: string }
   | { kind: "ask_ai"; text: string; label: string };
 
@@ -53,6 +54,11 @@ const SECTION_COMMANDS: SectionCommand[] = [
     keywords: ["voice studio", "voice settings", "voice engine", "voice assistant", "voice"],
   },
   { section: "company", label: "Company Profile", keywords: ["company", "am veyronix"] },
+  {
+    section: "links",
+    label: "Link Vault",
+    keywords: ["link vault", "saved links", "link manager", "saved websites", "bookmarks"],
+  },
   { section: "websites", label: "Website Manager", keywords: ["websites", "website manager", "sites"] },
   { section: "projects", label: "Projects", keywords: ["projects", "project manager"] },
   { section: "developer", label: "Developer Workspace", keywords: ["developer", "dev studio", "workspace"] },
@@ -123,6 +129,29 @@ function clean(text: string): string {
 function capitalize(text: string): string {
   if (!text) return text;
   return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/**
+ * Phrases that belong to the Link Vault rather than the static website
+ * registry. They are resolved against saved_links on the server, so a new
+ * link added in the dashboard is immediately voice-accessible.
+ */
+const LINK_VAULT_PATTERNS: RegExp[] = [
+  /\b(link vault|saved links?|saved websites?|saved sites?|my links)\b/,
+  /\bsaved\b.*\b(links?|websites?|sites?|urls?)\b/,
+  /\bhow many (saved )?(links?|websites?)\b/,
+  /\blink count\b/,
+  /\bfavou?rite (website|link|site)\b/,
+  /\bcopy\b.*\b(url|link)\b/,
+  /\bwhich\b.*\b(links?|websites?)\b.*\b(saved|have i)\b/,
+  /\brecent(ly)? added\b.*\b(links?|websites?)\b/,
+  /\b(find|search|dhoondo|dhundo)\b.*\b(my|saved)\b.*\b(links?|websites?)\b/,
+  /\b(show|list|display|dikhao|batao)\b.*\b(my )?(saved )?(links?|websites?)\b/,
+  /\b(links?|websites?) (?:in|for|about|under|tagged|with tag)\b/,
+];
+
+function looksLikeLinkVaultCommand(lower: string): boolean {
+  return LINK_VAULT_PATTERNS.some((pattern) => pattern.test(lower));
 }
 
 function matchSection(text: string): SectionCommand | null {
@@ -204,6 +233,15 @@ export function parseVoiceCommand(raw: string): VoiceIntent {
 
   const note = parseNote(text);
   if (note) return note;
+
+  // "Open link vault" navigates to the dashboard; other saved-link phrases are
+  // resolved against the saved_links table on the server.
+  if (/\b(?:open|go to|goto|navigate to|switch to|take me to)\s+(?:the\s+)?link vault\b/i.test(lower)) {
+    return { kind: "navigate", section: "links", label: "Link Vault" };
+  }
+  if (looksLikeLinkVaultCommand(lower)) {
+    return { kind: "link_command", text, label: "Saved links" };
+  }
 
   // Saved websites are matched before in-app sections so "open my Instagram
   // account" opens Instagram rather than a dashboard tab.
@@ -288,6 +326,18 @@ export const VOICE_COMMAND_REFERENCE: Array<{ title: string; commands: string[] 
     ],
   },
   {
+    title: "Link Vault",
+    commands: [
+      "Open my saved Facebook link",
+      "Show my saved links",
+      "Show my AI tools links",
+      "Open my favourite website",
+      "How many links have I saved",
+      "Copy my Facebook URL",
+      "Find my saved Fiverr link",
+    ],
+  },
+  {
     title: "Productivity",
     commands: ["Add task buy a domain for NEXORA", "Add note review Cloudflare DNS", "Read my tasks"],
   },
@@ -311,4 +361,4 @@ export const VOICE_COMMAND_REFERENCE: Array<{ title: string; commands: string[] 
 ];
 
 export const VOICE_HELP_TEXT =
-  "I can navigate the app, add tasks and notes, read your task list, run self-healing, refresh system status, switch themes, mute or unmute my voice, lock the session, and answer questions. Try: open tasks, add task buy a domain, or run self-heal.";
+  "I can navigate the app, open your saved Link Vault websites, add tasks and notes, read your task list, run self-healing, refresh system status, switch themes, mute or unmute my voice, lock the session, and answer questions. Try: open my saved Instagram link, show my saved links, add task buy a domain, or run self-heal.";

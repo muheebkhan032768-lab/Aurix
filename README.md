@@ -12,6 +12,11 @@ DEX MADE 2.0 (Advanced Unified Responsive Intelligence X) is a full-stack, brigh
 - **5-Module Creative & Development Studio**: Picture SVG/PNG + Canvas Editor, 4-Scene WebM Motion Video Studio, AI Writing Studio, Coding Diagnostics Studio, and Responsive HTML5 Website Generator.
 - **Native Windows 10/11 Suite (`windows_native/`)**: Includes Python Core orchestration (`pc_controller.py`, `voice_engine.py`, `self_healer.py`, `security_argon2.py`), C# .NET 8 WPF desktop shell, and Inno Setup installer scripts.
 
+## Link Vault & AI Link Control (new)
+- **Link Vault**: a dashboard to save, search, categorise, favourite, edit and delete every website you use — stored permanently in the existing SQLite database (`saved_links`).
+- **Text & voice control**: "Open Facebook", "Show my AI tools links", "Copy my Facebook URL", "How many links have I saved" are answered from your saved links (never an invented URL), and open in a safe new tab. Adding a website never needs a code edit.
+- Import/export JSON and browser bookmarks, owner-session protection and URL-scheme validation included. Full details: [`docs/LINK_VAULT.md`](docs/LINK_VAULT.md).
+
 ## Owner Identity, Visual Learning & Activation (new)
 - **OR-based owner authentication**: face (with blink liveness) **or** voice (challenge-phrase replay protection) **or** PIN unlocks the personal session. Templates are encrypted on the machine and matched by the local server.
 - **TEACH DEX MADE**: floating ~1/8-screen camera preview (right by default, movable left, auto-minimizes after 60 s with a live indicator), object teaching with review-before-save, gesture teaching, custom voice tasks, and the DEX MADE Memory Center for approved examples.

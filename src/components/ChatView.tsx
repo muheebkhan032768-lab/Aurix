@@ -3,6 +3,7 @@ import { Plus, Send, Volume2 } from "lucide-react";
 import type {
   AppSettings,
   AurixLanguage,
+  AurixSectionId,
   ChatMessage,
   ConversationSummary,
   ThinkingDepth,
@@ -16,6 +17,7 @@ interface ChatViewProps {
   pendingQuickPrompt: string | null;
   onClearPendingQuickPrompt: () => void;
   onConversationsUpdated: (convs: ConversationSummary[]) => void;
+  onNavigate?: (section: AurixSectionId) => void;
 }
 
 export function ChatView({
@@ -25,6 +27,7 @@ export function ChatView({
   pendingQuickPrompt,
   onClearPendingQuickPrompt,
   onConversationsUpdated,
+  onNavigate,
 }: ChatViewProps) {
   const [activeConvId, setActiveConvId] = useState<string | undefined>(conversations[0]?.id);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -133,6 +136,14 @@ export function ChatView({
             prev.map((m) => (m.id === streamId ? (data.assistantMessage as ChatMessage) : m))
           );
           if (Array.isArray(data.conversations)) onConversationsUpdated(data.conversations);
+          // Link Vault answers carry the action the answer describes.
+          if (data.action?.type === "navigate" && data.action.section) {
+            onNavigate?.(data.action.section as AurixSectionId);
+          } else if (data.action?.type === "open_url" && data.action.url) {
+            window.open(data.action.url, "_blank", "noopener,noreferrer");
+          } else if (data.action?.type === "copy_url" && data.action.url) {
+            navigator.clipboard?.writeText(data.action.url).catch(() => {});
+          }
         } else if (event === "error") {
           throw new Error(data.error || "Conversation error.");
         }

@@ -12,6 +12,7 @@ import type {
   NoteItem,
   OwnerProfile,
   ProjectRecord,
+  SavedLink,
   SystemReadiness,
   TaskItem,
   WebsiteRecord,
@@ -23,6 +24,7 @@ import { VoiceAssistantView } from "./components/VoiceAssistantView";
 import { VoiceCommandSystem } from "./components/VoiceCommandSystem";
 import { CompanyView } from "./components/CompanyView";
 import { WebsitesView } from "./components/WebsitesView";
+import { LinkVaultView } from "./components/LinkVaultView";
 import { ProjectsView } from "./components/ProjectsView";
 import { DeveloperView } from "./components/DeveloperView";
 import { FileVisionView } from "./components/FileVisionView";
@@ -406,6 +408,13 @@ function AurixShell() {
     });
   };
 
+  const refreshLinks = async () => {
+    const res = await fetch("/api/links");
+    if (!res.ok) return;
+    const payload = (await res.json()) as { links: SavedLink[] };
+    setData((prev) => (prev ? { ...prev, links: payload.links } : prev));
+  };
+
   const saveProject = async (project: ProjectRecord) => {
     const res = await fetch("/api/projects", {
       method: "POST",
@@ -734,6 +743,7 @@ function AurixShell() {
             onConversationsUpdated={(conversations) =>
               setData((prev) => (prev ? { ...prev, conversations } : prev))
             }
+            onNavigate={setActiveSection}
           />
         )}
 
@@ -748,6 +758,8 @@ function AurixShell() {
         {activeSection === "websites" && (
           <WebsitesView websites={data.websites} onSaveWebsite={saveWebsite} />
         )}
+
+        {activeSection === "links" && <LinkVaultView links={data.links} onRefreshLinks={refreshLinks} />}
 
         {activeSection === "projects" && (
           <ProjectsView projects={data.projects} onSaveProject={saveProject} />

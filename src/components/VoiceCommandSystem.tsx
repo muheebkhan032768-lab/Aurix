@@ -46,6 +46,36 @@ import {
 } from "../utils/voiceCommands";
 import { openInNewTab, resolveAccountFromText, type WebsiteEntry } from "../utils/websiteRegistry";
 
+interface LinkCommandResponse {
+  handled: boolean;
+  reply?: string;
+  action?: {
+    type: "open_url" | "copy_url" | "navigate";
+    url?: string;
+    section?: string;
+    label?: string;
+  } | null;
+}
+
+/**
+ * Asks the server to resolve a phrase against the saved_links table. Returns
+ * null when the vault is unreachable (locked session or offline), so the
+ * existing registry and AI paths keep working.
+ */
+async function requestLinkCommand(text: string): Promise<LinkCommandResponse | null> {
+  try {
+    const res = await fetch("/api/links/command", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as LinkCommandResponse;
+  } catch {
+    return null;
+  }
+}
+
 interface VoiceCommandSystemProps {
   settings: AppSettings;
   tasks: TaskItem[];
@@ -671,6 +701,7 @@ export function VoiceCommandSystem({
       let ok = true;
       let speakResponse = true;
       let forceSpeak = false;
+      let vaultCommand: LinkCommandResponse | null = null;
       let prefetchedAudio: { audioBase64: string; mimeType?: string } | null = null;
 
       try {
@@ -683,6 +714,18 @@ export function VoiceCommandSystem({
           ok = false;
           speakResponse = false;
         } else {
+          // Saved links are resolved against the Link Vault first: it holds the
+          // owner's own URLs, the static registry is only the fallback.
+          if (intent.kind === "link_command" || intent.kind === "open_website") {
+            const resolved = await requestLinkCommand(text);
+            if (resolved?.handled) {
+              vaultCommand = resolved;
+              intent = { kind: "link_command", text, label: resolved.action?.label || "Saved link" };
+            } else if (intent.kind === "link_command") {
+              intent = { kind: "ask_ai", text: intent.text, label: "Ask DEX MADE" };
+            }
+          }
+
           switch (intent.kind) {
             case "navigate": {
               onNavigate(intent.section);
@@ -743,6 +786,32 @@ export function VoiceCommandSystem({
               response = `Opening ${entry.name}${account ? ` for ${account.label}` : ""} in a new tab.`;
               if (entry.id === "youtube-favourite") {
                 response += " Playback may need a click on the YouTube tab.";
+              }
+              break;
+            }
+            case "link_command": {
+              const resolved = vaultCommand;
+              if (!resolved?.handled) {
+                response = "I could not resolve that saved-link command.";
+                ok = false;
+                speakResponse = false;
+                break;
+              }
+              response = resolved.reply || "Done.";
+              if (resolved.action?.type === "open_url" && resolved.action.url) {
+                const opened = openInNewTab(resolved.action.url);
+                if (!opened) {
+                  response = `Your browser blocked the new tab. The saved link is ${resolved.action.url}`;
+                }
+              } else if (resolved.action?.type === "copy_url" && resolved.action.url) {
+                try {
+                  await navigator.clipboard.writeText(resolved.action.url);
+                  response = `${response} Copied to your clipboard.`;
+                } catch {
+                  // The reply already contains the URL.
+                }
+              } else if (resolved.action?.type === "navigate" && resolved.action.section) {
+                onNavigate(resolved.action.section as AurixSectionId);
               }
               break;
             }
@@ -876,6 +945,14 @@ export function VoiceCommandSystem({
                 await onRefreshSystem();
               }
               response = data.assistantMessage?.content || "Command processed.";
+              if (data.action?.type === "copy_url" && data.action.url) {
+                try {
+                  await navigator.clipboard.writeText(data.action.url);
+                  response = `${response} Copied to your clipboard.`;
+                } catch {
+                  // The reply already contains the URL.
+                }
+              }
               break;
             }
           }

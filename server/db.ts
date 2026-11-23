@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
+import { WEBSITE_REGISTRY } from "../src/utils/websiteRegistry";
+import { normalizeHttpUrl } from "./linkValidation";
 import type {
   AppSettings,
   AuditLogEntry,
@@ -14,6 +16,8 @@ import type {
   NoteItem,
   OwnerProfile,
   ProjectRecord,
+  SavedLink,
+  SavedLinkInput,
   SecurityStatus,
   SelfHealHistoryEntry,
   TaskItem,
@@ -191,7 +195,29 @@ db.exec(`
     summary TEXT NOT NULL,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS saved_links (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'Other',
+    description TEXT NOT NULL DEFAULT '',
+    tags_json TEXT NOT NULL DEFAULT '[]',
+    notes TEXT NOT NULL DEFAULT '',
+    is_favourite INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
+
+// A URL can only be saved once. Created separately so an older database that
+// somehow already holds a duplicate cannot stop the app from booting.
+try {
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_saved_links_url ON saved_links (url COLLATE NOCASE)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_saved_links_created ON saved_links (created_at DESC)`);
+} catch (error) {
+  console.warn("[DEX MADE Link Vault] Could not create the saved_links indexes:", error);
+}
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -761,7 +787,55 @@ function seedInitialData(): void {
   }
 }
 
+/**
+ * One-time Link Vault seed.
+ *
+ * The owner's existing spoken-command website registry already holds real,
+ * verified URLs. Importing them once means Link Vault starts useful (and voice
+ * commands keep working exactly as before) without inventing a single link.
+ * A kv_store flag makes sure a vault the owner deliberately emptied stays empty.
+ */
+function seedLinkVault(): void {
+  const seeded = db.prepare(`SELECT value FROM kv_store WHERE key = 'link_vault_seeded'`).get();
+  if (seeded) return;
+
+  const count = db.prepare(`SELECT COUNT(*) as cnt FROM saved_links`).get() as { cnt: number };
+  if (count.cnt === 0) {
+    const categoryMap: Record<string, string> = {
+      social: "Social Media",
+      work: "Business",
+      business: "Business",
+      tools: "AI Tools",
+      learning: "Education",
+      media: "Entertainment",
+    };
+    const insert = db.prepare(`
+      INSERT OR IGNORE INTO saved_links (id, name, url, category, description, tags_json, notes, is_favourite, created_at, updated_at)
+      VALUES (?, ?, ?, ?, '', '[]', '', 0, ?, ?)
+    `);
+    const ts = nowIso();
+    for (const entry of WEBSITE_REGISTRY) {
+      if (!entry.url) continue;
+      const normalized = normalizeHttpUrl(entry.url);
+      if (!normalized.ok) continue;
+      insert.run(
+        `lnk_registry_${entry.id.replace(/[^a-z0-9_]/gi, "_")}`,
+        entry.name,
+        normalized.url,
+        categoryMap[entry.category] ?? "Other",
+        ts,
+        ts
+      );
+    }
+  }
+
+  db.prepare(`INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('link_vault_seeded', '1', ?)`).run(
+    nowIso()
+  );
+}
+
 seedInitialData();
+seedLinkVault();
 export const seedIfNeeded = seedInitialData;
 
 // Data Access Helpers
@@ -1222,6 +1296,164 @@ export function deleteNote(id: string): void {
   db.prepare(`DELETE FROM notes WHERE id = ?`).run(id);
 }
 
+/* ------------------------------------------------------------------ */
+/* Link Vault — saved_links                                            */
+/* ------------------------------------------------------------------ */
+
+export class DuplicateSavedLinkError extends Error {
+  existing: SavedLink;
+  constructor(existing: SavedLink) {
+    super(`That URL is already saved as "${existing.name}".`);
+    this.name = "DuplicateSavedLinkError";
+    this.existing = existing;
+  }
+}
+
+function mapSavedLinkRow(row: Record<string, unknown>): SavedLink {
+  let tags: string[] = [];
+  try {
+    const parsed = JSON.parse(String(row.tags_json ?? "[]"));
+    if (Array.isArray(parsed)) tags = parsed.map((tag) => String(tag));
+  } catch {
+    tags = [];
+  }
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    url: String(row.url),
+    category: String(row.category || "Other"),
+    description: String(row.description ?? ""),
+    tags,
+    notes: String(row.notes ?? ""),
+    isFavourite: Number(row.is_favourite) === 1,
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  };
+}
+
+export function listSavedLinks(): SavedLink[] {
+  const rows = db
+    .prepare(`SELECT * FROM saved_links ORDER BY is_favourite DESC, name COLLATE NOCASE ASC`)
+    .all() as Record<string, unknown>[];
+  return rows.map(mapSavedLinkRow);
+}
+
+export function getSavedLink(id: string): SavedLink | null {
+  const row = db.prepare(`SELECT * FROM saved_links WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
+  return row ? mapSavedLinkRow(row) : null;
+}
+
+function findSavedLinkByUrl(url: string, excludeId?: string): SavedLink | null {
+  const row = excludeId
+    ? db.prepare(`SELECT * FROM saved_links WHERE url = ? COLLATE NOCASE AND id != ?`).get(url, excludeId)
+    : db.prepare(`SELECT * FROM saved_links WHERE url = ? COLLATE NOCASE`).get(url);
+  return row ? mapSavedLinkRow(row as Record<string, unknown>) : null;
+}
+
+export function savedLinkCategories(): string[] {
+  const rows = db
+    .prepare(`SELECT DISTINCT category FROM saved_links WHERE category != '' ORDER BY category COLLATE NOCASE ASC`)
+    .all() as Array<{ category: string }>;
+  return rows.map((row) => String(row.category));
+}
+
+export function createSavedLink(input: SavedLinkInput): SavedLink {
+  const duplicate = findSavedLinkByUrl(input.url);
+  if (duplicate) throw new DuplicateSavedLinkError(duplicate);
+
+  const ts = nowIso();
+  const link: SavedLink = { ...input, id: uid("lnk"), createdAt: ts, updatedAt: ts };
+  db.prepare(`
+    INSERT INTO saved_links (id, name, url, category, description, tags_json, notes, is_favourite, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    link.id,
+    link.name,
+    link.url,
+    link.category,
+    link.description,
+    JSON.stringify(link.tags),
+    link.notes,
+    link.isFavourite ? 1 : 0,
+    link.createdAt,
+    link.updatedAt
+  );
+  addAuditLog("LINK_SAVED", "Abdul Muheeb", `Saved link: ${link.name} (${link.category})`, "info");
+  return link;
+}
+
+export function updateSavedLink(id: string, input: SavedLinkInput): SavedLink | null {
+  const existing = getSavedLink(id);
+  if (!existing) return null;
+
+  const duplicate = findSavedLinkByUrl(input.url, id);
+  if (duplicate) throw new DuplicateSavedLinkError(duplicate);
+
+  const updated: SavedLink = { ...existing, ...input, id, createdAt: existing.createdAt, updatedAt: nowIso() };
+  db.prepare(`
+    UPDATE saved_links
+    SET name = ?, url = ?, category = ?, description = ?, tags_json = ?, notes = ?, is_favourite = ?, updated_at = ?
+    WHERE id = ?
+  `).run(
+    updated.name,
+    updated.url,
+    updated.category,
+    updated.description,
+    JSON.stringify(updated.tags),
+    updated.notes,
+    updated.isFavourite ? 1 : 0,
+    updated.updatedAt,
+    id
+  );
+  addAuditLog("LINK_UPDATED", "Abdul Muheeb", `Updated link: ${updated.name} (${updated.category})`, "info");
+  return updated;
+}
+
+export function deleteSavedLink(id: string): boolean {
+  const existing = getSavedLink(id);
+  if (!existing) return false;
+  db.prepare(`DELETE FROM saved_links WHERE id = ?`).run(id);
+  addAuditLog("LINK_DELETED", "Abdul Muheeb", `Deleted link: ${existing.name}`, "warning");
+  return true;
+}
+
+export function setSavedLinkFavourite(id: string, isFavourite: boolean): SavedLink | null {
+  const existing = getSavedLink(id);
+  if (!existing) return null;
+  const ts = nowIso();
+  db.prepare(`UPDATE saved_links SET is_favourite = ?, updated_at = ? WHERE id = ?`).run(
+    isFavourite ? 1 : 0,
+    ts,
+    id
+  );
+  return { ...existing, isFavourite, updatedAt: ts };
+}
+
+/**
+ * Bulk import. Returns how many rows were written and how many were skipped
+ * because the URL was already saved (or repeated inside the same batch).
+ * Existing records are never overwritten.
+ */
+export function importSavedLinks(inputs: SavedLinkInput[]): { imported: number; skipped: number } {
+  let imported = 0;
+  let skipped = 0;
+  const batchUrls = new Set<string>();
+  for (const input of inputs) {
+    const key = input.url.toLowerCase();
+    if (batchUrls.has(key) || findSavedLinkByUrl(input.url)) {
+      skipped += 1;
+      continue;
+    }
+    batchUrls.add(key);
+    createSavedLink(input);
+    imported += 1;
+  }
+  if (imported > 0) {
+    addAuditLog("LINKS_IMPORTED", "Abdul Muheeb", `Imported ${imported} link(s) into Link Vault.`, "info");
+  }
+  return { imported, skipped };
+}
+
 export function getSecurityStatus(): SecurityStatus {
   const row = db.prepare(`SELECT * FROM security_config WHERE id = 1`).get() as Record<string, unknown>;
   const lockedUntil = row.locked_until ? String(row.locked_until) : null;
@@ -1428,6 +1660,7 @@ export function exportFullBackup() {
     websites: listWebsites(),
     projects: listProjects(),
     memories: listMemories(),
+    links: listSavedLinks(),
     business: listBusinessItems(),
     tasks: listTasks(),
     notes: listNotes(),

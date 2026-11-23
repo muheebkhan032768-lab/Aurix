@@ -28,6 +28,7 @@ import {
   listMemories,
   listNotes,
   listProjects,
+  listSavedLinks,
   listSelfHealHistory,
   listTasks,
   listWebsites,
@@ -67,6 +68,8 @@ import {
 } from "./server/geminiPool";
 import { NATIVE_WINDOWS_FILES } from "./server/nativeWindowsBundle";
 import { registerBiometricRoutes } from "./server/biometricRoutes";
+import { registerLinkRoutes } from "./server/linkRoutes";
+import { linkCommandAction, resolveLinkCommand } from "./server/linkCommands";
 import { laptopControlStatus, planLaptopCommand, runLaptopPlan } from "./server/laptopControl";
 import { detectLocalOllamaModels } from "./server/offlineBrain";
 import { buildHardwareAudit } from "./server/hardwareAudit";
@@ -202,6 +205,7 @@ async function startServer() {
   );
 
   registerBiometricRoutes(app);
+  registerLinkRoutes(app);
 
   // Bootstrap entire state
   app.get("/api/bootstrap", async (_req, res) => {
@@ -212,6 +216,7 @@ async function startServer() {
       websites: listWebsites(),
       projects: listProjects(),
       memories: listMemories(),
+      links: listSavedLinks(),
       conversations: listConversations(),
       business: listBusinessItems(),
       tasks: listTasks(),
@@ -325,6 +330,27 @@ async function startServer() {
       language: language || settings.language,
     });
 
+    // Saved-link commands ("open Facebook", "show my AI tools links") answer
+    // from the Link Vault table instead of asking the language model.
+    const linkCommand = resolveLinkCommand(message, listSavedLinks());
+    if (linkCommand.handled) {
+      const assistantMsg = addMessage({
+        conversationId: activeConvId,
+        role: "assistant",
+        content: linkCommand.reply,
+        modelUsed: "link-vault",
+        language: language || settings.language,
+        thinkingLevel: "MINIMAL",
+      });
+      return {
+        conversationId: activeConvId,
+        userMessage: userMsg,
+        assistantMessage: assistantMsg,
+        action: linkCommandAction(linkCommand),
+        conversations: listConversations(),
+      };
+    }
+
     const aiReply = await chatWithAurix({
       history,
       userMessage: message,
@@ -415,6 +441,28 @@ async function startServer() {
     };
 
     send("start", { conversationId: activeConvId, userMessage: userMsg });
+
+    // Link Vault commands are answered deterministically from saved_links.
+    const streamedLinkCommand = resolveLinkCommand(message, listSavedLinks());
+    if (streamedLinkCommand.handled) {
+      send("delta", { text: streamedLinkCommand.reply });
+      const assistantMsg = addMessage({
+        conversationId: activeConvId,
+        role: "assistant",
+        content: streamedLinkCommand.reply,
+        modelUsed: "link-vault",
+        language: targetLanguage,
+        thinkingLevel: "MINIMAL",
+      });
+      send("done", {
+        conversationId: activeConvId,
+        assistantMessage: assistantMsg,
+        conversations: listConversations(),
+        action: linkCommandAction(streamedLinkCommand),
+      });
+      res.end();
+      return;
+    }
 
     let streamed = "";
     try {
@@ -1008,6 +1056,9 @@ async function startServer() {
       // A spoken laptop command (open YouTube, play music, open a folder, find a
       // file) runs for real when DEX MADE is running on the owner's own computer.
       const laptopPlan = planLaptopCommand(text, listWebsites());
+      // Saved links win over the generic website registry: the vault is the
+      // owner's own record of what a site name means.
+      const linkCommand = resolveLinkCommand(text, listSavedLinks());
 
       const activeConvId = ensureConversation(
         conversationId,
@@ -1026,6 +1077,7 @@ async function startServer() {
 
       let action:
         | { type: "open_url"; label: string; url: string }
+        | { type: "copy_url"; label: string; url: string }
         | { type: "navigate"; section: string; label: string }
         | { type: "self_heal"; report: Awaited<ReturnType<typeof runSelfHealAudit>> }
         | { type: "creative"; asset: Awaited<ReturnType<typeof generateFreeCreativeAsset>> }
@@ -1036,7 +1088,48 @@ async function startServer() {
       // The model that actually answered, after any pool failover.
       let servedModel: string | null = null;
 
-      if (laptopPlan) {
+      if (linkCommand.handled) {
+        servedModel = "link-vault";
+        replyText = linkCommand.reply;
+
+        if (linkCommand.kind === "open") {
+          if (emergencyStopActive) {
+            replyText = "Emergency Stop is active, Muheeb. Clear it before I open a saved website.";
+          } else if (laptopControlStatus().available) {
+            // Running on the owner's own computer: open the saved URL natively
+            // through the existing laptop-control layer.
+            const outcome = await runLaptopPlan({
+              kind: "open_url",
+              label: `Open ${linkCommand.link.name}`,
+              target: linkCommand.link.url,
+              spoken: linkCommand.reply,
+              fallbackUrl: linkCommand.link.url,
+            });
+            addDesktopActionLog({
+              action: "Open Saved Link",
+              target: linkCommand.link.url,
+              status: outcome.ok ? "approved" : "blocked",
+              executedIn: outcome.ok ? "Laptop Control" : "Preview Sandbox Bridge",
+              detail: outcome.detail,
+            });
+            if (outcome.ok) {
+              replyText = `Opening ${linkCommand.link.name} on your computer.`;
+            } else {
+              action = { type: "open_url", label: `Open ${linkCommand.link.name}`, url: linkCommand.link.url };
+              replyText = `Opening ${linkCommand.link.name} in a new tab — ${linkCommand.link.url}`;
+            }
+          } else {
+            action = { type: "open_url", label: `Open ${linkCommand.link.name}`, url: linkCommand.link.url };
+          }
+        } else {
+          const linkAction = linkCommandAction(linkCommand);
+          if (linkAction?.type === "navigate") {
+            action = { type: "navigate", section: linkAction.section || "links", label: linkAction.label };
+          } else if (linkAction?.type === "copy_url" && linkAction.url) {
+            action = { type: "copy_url", label: linkAction.label, url: linkAction.url };
+          }
+        }
+      } else if (laptopPlan) {
         if (emergencyStopActive) {
           addDesktopActionLog({
             action: laptopPlan.label,
