@@ -300,7 +300,9 @@ export async function runWithGeminiFailover<T>(
           throw error;
         }
         recordFailure(key, error, kind);
-        if (kind === "invalid_key") break; // a revoked key never recovers on retry
+        // A revoked key never recovers on retry, and a rate-limited key gains
+        // nothing from an immediate second attempt — move to the next key.
+        if (kind === "invalid_key" || kind === "quota") break;
         if (attempt < ATTEMPTS_PER_KEY) {
           await sleep(BACKOFF_BASE_MS * 2 ** (attempt - 1));
         }
@@ -333,6 +335,8 @@ export interface GeminiKeyPublicStatus {
   envName: string;
   role: KeyRole;
   masked: string;
+  /** Slot number of an earlier key holding the exact same secret, if any. */
+  duplicateOfSlot: number | null;
   status: "active" | "cooldown" | "unavailable" | "missing";
   requests: number;
   successes: number;
@@ -347,6 +351,10 @@ export function getGeminiPoolStatus() {
   const now = Date.now();
   const configured = getConfiguredKeys();
   const bySlot = new Map(configured.map((k) => [k.slot, k]));
+  const findDuplicate = (key: GeminiKeyState): number | null => {
+    const earlier = configured.find((other) => other.slot < key.slot && other.apiKey === key.apiKey);
+    return earlier ? earlier.slot : null;
+  };
   const keys: GeminiKeyPublicStatus[] = SLOT_ENV_NAMES.map((entry) => {
     const key = bySlot.get(entry.slot);
     if (!key) {
@@ -355,6 +363,7 @@ export function getGeminiPoolStatus() {
         envName: entry.names[0],
         role: entry.role,
         masked: "not configured",
+        duplicateOfSlot: null,
         status: "missing",
         requests: 0,
         successes: 0,
@@ -371,6 +380,7 @@ export function getGeminiPoolStatus() {
       envName: key.envName,
       role: key.role,
       masked: key.masked,
+      duplicateOfSlot: findDuplicate(key),
       status: key.status,
       requests: key.requests,
       successes: key.successes,

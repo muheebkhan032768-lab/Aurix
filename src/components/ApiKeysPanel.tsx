@@ -8,6 +8,7 @@ interface KeyStatusRow {
   envName: string;
   role: string;
   masked: string;
+  duplicateOfSlot: number | null;
   status: KeyStatus;
   requests: number;
   successes: number;
@@ -175,6 +176,11 @@ export function ApiKeysPanel() {
                   </td>
                   <td className="py-2.5 pr-3 font-mono text-[11px] text-[#202938] dark:text-slate-300">
                     {key.masked}
+                    {key.duplicateOfSlot && (
+                      <p className="font-sans text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                        Same key as API {key.duplicateOfSlot}
+                      </p>
+                    )}
                   </td>
                   <td className="py-2.5 pr-3">
                     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${style.className}`}>
