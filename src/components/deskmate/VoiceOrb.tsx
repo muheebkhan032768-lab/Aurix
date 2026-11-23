@@ -3,6 +3,7 @@ import { Mic, Square } from "lucide-react";
 import type { AppSettings } from "../../types/aurix";
 import { getVoiceEngineSnapshot, getSharedStream, startCapture, stopCapture } from "../../utils/voiceEngine";
 import { useVoiceSnapshot } from "../../utils/voiceBus";
+import { startLiveTranscript, type LiveTranscriptSession } from "../../utils/liveTranscript";
 
 const BAR_COUNT = 26;
 
@@ -23,15 +24,20 @@ export function VoiceOrb({ settings, onExchange }: VoiceOrbProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bars, setBars] = useState<number[]>(() => Array.from({ length: BAR_COUNT }, () => 0.16));
+  /** Words the microphone is hearing right now, before the command runs. */
+  const [liveText, setLiveText] = useState("");
 
   const ctxRef = useRef<AudioContext | null>(null);
   const rafRef = useRef<number | null>(null);
+  const liveSessionRef = useRef<LiveTranscriptSession | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      liveSessionRef.current?.cancel();
+      liveSessionRef.current = null;
       if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
       ctxRef.current?.close().catch(() => {});
     };
@@ -114,17 +120,37 @@ export function VoiceOrb({ settings, onExchange }: VoiceOrbProps) {
     }
     startMeter();
     setListening(true);
-  }, [busy, listening, startMeter]);
+    setLiveText("");
+    liveSessionRef.current?.cancel();
+    liveSessionRef.current = startLiveTranscript({
+      language: settings.language,
+      onInterim: (text) => {
+        if (mountedRef.current) setLiveText(text);
+      },
+    });
+  }, [busy, listening, settings.language, startMeter]);
 
   const stopListening = useCallback(async () => {
     if (!listening) return;
     setListening(false);
     setBars(Array.from({ length: BAR_COUNT }, () => 0.16));
     teardownMeter();
-    const result = await stopCapture({
+    const session = liveSessionRef.current;
+    liveSessionRef.current = null;
+    // The browser dictation answers instantly; the recorded clip is the
+    // fallback when it heard nothing.
+    const recorded = stopCapture({
       language: settings.language,
       autoDetectLanguage: settings.autoDetectLanguage,
     });
+    const liveText = session ? await session.finish() : "";
+    if (!mountedRef.current) return;
+    if (liveText.trim()) {
+      setLiveText("");
+      await submit(liveText.trim());
+      return;
+    }
+    const result = await recorded;
     if (!mountedRef.current) return;
     if (result.error) {
       setError(result.error);
@@ -196,6 +222,14 @@ export function VoiceOrb({ settings, onExchange }: VoiceOrbProps) {
 
       <p className="mt-4 text-sm font-semibold tracking-wide text-[var(--d-text)]">{statusLabel}</p>
       <p className="mt-1 text-[11px] text-[var(--d-dim)]">{subLabel}</p>
+      {active && (
+        <p
+          aria-live="polite"
+          className="mt-2 min-h-[1.25rem] max-w-[280px] text-center text-xs font-medium text-[var(--d-text)]"
+        >
+          {liveText}
+        </p>
+      )}
 
       <div className="mt-3 flex items-center gap-2">
         <button

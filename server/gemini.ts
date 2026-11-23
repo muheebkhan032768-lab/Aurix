@@ -432,6 +432,23 @@ export async function synthesizeAurixVoice(params: {
   }
 }
 
+/** Rejects a promise that outlives the latency budget for a voice request. */
+function withDeadline<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
 export async function transcribeAudioInput(params: {
   audioBase64: string;
   mimeType: string;
@@ -441,7 +458,6 @@ export async function transcribeAudioInput(params: {
   if (settings.offlineModeForced) {
     throw new Error("Offline mode active: use browser SpeechRecognition or type your command.");
   }
-  const ai = getClient();
   const languageRule = params.languageHint
     ? `The speaker is most likely using ${params.languageHint}. Transcribe in the language actually spoken.`
     : "Detect the spoken language (English, Urdu or Hindi) and transcribe in that language.";
@@ -454,24 +470,41 @@ export async function transcribeAudioInput(params: {
     "If the clip contains no clear speech (silence, background noise or music), output exactly: [silence]",
     "Output only the transcript — no quotes, labels or commentary.",
   ].join("\n");
+  // Speech is latency-critical: one attempt per route, a short per-request
+  // deadline and an overall cap, so a quota-exhausted model cannot hold the
+  // reply for minutes while the pool retries every key.
+  const STT_TIMEOUT_MS = 12_000;
+  const STT_OVERALL_MS = 20_000;
   let response: GenerateContentResponse;
   try {
-    response = await ai.models.generateContent({
-      model: "gemini-3.5-transcribe",
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType: params.mimeType,
-              data: params.audioBase64,
+    response = await withDeadline(
+      runWithGeminiFailover(
+        (ai, _key, model) =>
+          ai.models.generateContent({
+            model,
+            contents: {
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: params.mimeType,
+                    data: params.audioBase64,
+                  },
+                },
+                {
+                  text: instruction,
+                },
+              ],
             },
-          },
-          {
-            text: instruction,
-          },
-        ],
-      },
-    });
+          }),
+        {
+          models: buildModelLadder("gemini-3.5-transcribe"),
+          timeoutMs: STT_TIMEOUT_MS,
+          attemptsPerKey: 1,
+        }
+      ),
+      STT_OVERALL_MS,
+      "Transcription timed out."
+    );
   } catch (err) {
     if (err instanceof GeminiKeysExhaustedError) {
       // Every key and audio-capable model is cooling down; the pool message

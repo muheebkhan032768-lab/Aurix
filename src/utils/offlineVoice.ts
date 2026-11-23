@@ -154,7 +154,7 @@ export function speakWithOfflineBritishVoice(
 
   const preferred = getPreferredDeviceVoice(language, preferredVoiceUri);
 
-  const rate = Math.max(0.8, Math.min(1.2, speed));
+  const rate = Math.max(0.9, Math.min(1.15, speed));
   let started = false;
   let watchdog = 0;
 
@@ -177,7 +177,7 @@ export function speakWithOfflineBritishVoice(
     utter.rate = rate;
     // A male device voice keeps a gentle lower pitch; when the device only has a
     // neutral or female voice the pitch drops further so DEX MADE still sounds male.
-    utter.pitch = preferred && isMaleVoiceName(preferred.name) ? 0.95 : 0.82;
+    utter.pitch = preferred && isMaleVoiceName(preferred.name) ? 0.95 : 0.9;
     utter.volume = Math.max(0, Math.min(1, volume ?? 1));
     utter.onstart = () => {
       if (!started) {

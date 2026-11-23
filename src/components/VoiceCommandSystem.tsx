@@ -30,6 +30,7 @@ import {
   stopSpeaking as engineStopSpeaking,
 } from "../utils/voiceEngine";
 import { publishVoice } from "../utils/voiceBus";
+import { startLiveTranscript, type LiveTranscriptSession } from "../utils/liveTranscript";
 import {
   DEFAULT_VOICE_SHORTCUTS,
   formatShortcut,
@@ -195,7 +196,7 @@ export function VoiceCommandSystem({
   const [micPermission, setMicPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
 
   const wakeRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const captionRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const liveSessionRef = useRef<LiveTranscriptSession | null>(null);
   const wakeEnabledRef = useRef(false);
   const awaitingWakeCommandRef = useRef(false);
   const speakingRef = useRef(false);
@@ -296,77 +297,68 @@ export function VoiceCommandSystem({
     handleSpokenInputRef.current = handleSpokenInput;
   }, [handleSpokenInput]);
 
-  // A browser caption pass runs beside the real recording so the live
-  // transcript can show words while you speak. It is display-only: the server
-  // transcription of the clip stays the authoritative command.
-  const stopLiveCaption = useCallback(() => {
-    const recognition = captionRecognitionRef.current;
-    captionRecognitionRef.current = null;
-    try {
-      recognition?.stop();
-    } catch {
-      // Recognition may already be stopped.
-    }
+  // Live dictation runs beside the recording: words appear while you speak and
+  // the final text becomes the command the moment you stop, with no wait on the
+  // server. The recorded clip is transcribed server-side only as a fallback
+  // when the browser recogniser heard nothing.
+  const cancelLiveTranscript = useCallback(() => {
+    const session = liveSessionRef.current;
+    liveSessionRef.current = null;
+    session?.cancel();
   }, []);
 
-  const startLiveCaption = useCallback(() => {
-    stopLiveCaption();
-    const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) return;
+  const beginLiveTranscript = useCallback(() => {
+    cancelLiveTranscript();
     setLiveCaption("");
-    try {
-      const recognition = new Ctor();
-      recognition.lang = localeFor(settingsRef.current.language);
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.onresult = (event) => {
-        let text = "";
-        for (let i = event.resultIndex; i < event.results.length; i += 1) {
-          text += event.results[i][0]?.transcript || "";
-        }
-        const clean = text.trim();
-        if (clean) setLiveCaption(clean);
-      };
-      recognition.onerror = () => {
-        captionRecognitionRef.current = null;
-      };
-      recognition.onend = () => {
-        captionRecognitionRef.current = null;
-      };
-      recognition.start();
-      captionRecognitionRef.current = recognition;
-    } catch {
-      // Live captions are optional — recording carries on without them.
-    }
-  }, [stopLiveCaption]);
+    liveSessionRef.current = startLiveTranscript({
+      language: settingsRef.current.language,
+      onInterim: (text) => setLiveCaption(text),
+    });
+  }, [cancelLiveTranscript]);
 
-  // Push-to-talk capture: one recording session through the shared voice
-  // engine, transcribed by the server so DEX MADE hears the real words.
+  // Push-to-talk capture: the browser dictation answers instantly while the
+  // recording is transcribed on the server in the background as a fallback.
   const stopListening = useCallback(() => {
     const current = settingsRef.current;
-    stopLiveCaption();
+    const session = liveSessionRef.current;
+    liveSessionRef.current = null;
     setListening(false);
     setStatusMessage("Transcribing what you said…");
-    void stopCapture({
+
+    const finish = (transcript: string) => {
+      setLiveCaption("");
+      setError(null);
+      void handleSpokenInputRef.current(transcript, "voice");
+    };
+
+    const recorded = stopCapture({
       language: current.language,
       autoDetectLanguage: current.autoDetectLanguage,
-    }).then((result) => {
-      if (result.error) {
-        setError(result.error);
-        setStatus("error");
-        setStatusMessage("Speech recognition is unavailable right now.");
-      } else if (result.silent) {
-        setStatus("idle");
-        setStatusMessage("I didn't catch that — press Space and speak again.");
-        setError("Sorry, I didn't catch that. Could you repeat?");
+    });
+    const live = session ? session.finish() : Promise.resolve("");
+
+    void live.then((liveText) => {
+      if (liveText.trim()) {
+        finish(liveText.trim());
       } else {
-        setError(null);
-        void handleSpokenInputRef.current(result.transcript, "voice");
+        void recorded.then((result) => {
+          if (result.error) {
+            setError(result.error);
+            setStatus("error");
+            setStatusMessage("Speech recognition is unavailable right now.");
+          } else if (result.silent || !result.transcript.trim()) {
+            setStatus("idle");
+            setStatusMessage("I didn't catch that — press Space and speak again.");
+            setError("Sorry, I didn't catch that. Could you repeat?");
+          } else {
+            finish(result.transcript);
+          }
+        });
       }
       if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
       resumeAlwaysOnRef.current = false;
     });
-  }, [stopLiveCaption]);
+  }, []);
 
   const startListening = useCallback(async () => {
     if (isCapturing() || listeningRef.current) {
@@ -403,8 +395,8 @@ export function VoiceCommandSystem({
     setListening(true);
     setStatus("listening");
     setStatusMessage("Listening — press Space again to send.");
-    startLiveCaption();
-  }, [stopListening, cancelSpeech, startLiveCaption]);
+    beginLiveTranscript();
+  }, [stopListening, cancelSpeech, beginLiveTranscript]);
 
 
   const stopWakeListening = useCallback(() => {
@@ -1091,7 +1083,8 @@ export function VoiceCommandSystem({
       wakeEnabledRef.current = false;
       try {
         wakeRecognitionRef.current?.stop();
-        captionRecognitionRef.current?.stop();
+        liveSessionRef.current?.cancel();
+        liveSessionRef.current = null;
       } catch {
         // Ignore teardown races.
       }

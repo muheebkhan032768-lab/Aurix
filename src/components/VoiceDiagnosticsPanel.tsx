@@ -242,13 +242,13 @@ export function VoiceDiagnosticsPanel({ settings, onUpdateSettings }: VoiceDiagn
           />
         </label>
         <label className="block text-xs text-[#64748B]">
-          <span>Voice volume · {Math.round((settings.voiceVolume ?? 1.5) * 100)}% (50–200%)</span>
+          <span>Voice volume · {Math.round((settings.voiceVolume ?? 2) * 100)}% (50–300%)</span>
           <input
             type="range"
             min={0.5}
-            max={2}
+            max={3}
             step={0.05}
-            value={settings.voiceVolume ?? 1.5}
+            value={settings.voiceVolume ?? 2}
             onChange={(e) => onUpdateSettings({ ...settings, voiceVolume: Number(e.target.value) })}
             className="mt-2 w-full accent-[#10B981]"
           />

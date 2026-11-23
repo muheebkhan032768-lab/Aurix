@@ -305,7 +305,7 @@ function seedInitialData(): void {
     voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS },
     voiceSpeed: 1.0,
     voicePitch: 1.0,
-    voiceVolume: 1.5,
+    voiceVolume: 2.0,
     language: "English",
     autoDetectLanguage: false,
     wakePhrase: "Hello Dex Made",
@@ -800,7 +800,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   voiceShortcuts: { ...DEFAULT_VOICE_SHORTCUTS },
   voiceSpeed: 1.0,
   voicePitch: 1.0,
-  voiceVolume: 1.5,
+  voiceVolume: 2.0,
   language: "English",
   autoDetectLanguage: false,
   wakePhrase: "Hello Dex Made",
@@ -858,6 +858,19 @@ export function getAppSettings(): AppSettings {
     }
     db.prepare(
       `INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('dex_identity_migration', '1', ?)`
+    ).run(nowIso());
+    saveAppSettings(merged);
+  }
+
+  // One-time louder default: earlier builds capped playback at 150%, which was
+  // too quiet for the device fallback voice.
+  const volumeBoost = db.prepare(`SELECT value FROM kv_store WHERE key = 'dex_voice_volume_boost'`).get();
+  if (!volumeBoost) {
+    if (!merged.voiceVolume || merged.voiceVolume < 2) {
+      merged.voiceVolume = DEFAULT_APP_SETTINGS.voiceVolume;
+    }
+    db.prepare(
+      `INSERT OR REPLACE INTO kv_store (key, value, updated_at) VALUES ('dex_voice_volume_boost', '1', ?)`
     ).run(nowIso());
     saveAppSettings(merged);
   }

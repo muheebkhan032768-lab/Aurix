@@ -209,7 +209,7 @@ export interface AppSettings {
   voiceName: "Charon" | "Fenrir" | "Puck";
   voiceSpeed: number;
   voicePitch: number;
-  /** Playback volume for the device voice, 0..1. */
+  /** Playback volume, 0.5..3 (above 1 is amplified through Web Audio gain). */
   voiceVolume: number;
   /** Device voice picked in settings (SpeechSynthesis voiceURI). */
   voiceId?: string;

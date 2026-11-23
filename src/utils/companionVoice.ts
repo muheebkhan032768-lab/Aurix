@@ -37,7 +37,7 @@ let graphSource: MediaElementAudioSourceNode | null = null;
  * graph is what makes amplification above 100% possible.
  */
 async function applyPlaybackVolume(audio: HTMLAudioElement, volume: number) {
-  const target = Math.max(0.5, Math.min(2, Number.isFinite(volume) ? volume : 1));
+  const target = Math.max(0.5, Math.min(3, Number.isFinite(volume) ? volume : 1));
   // Up to 100% the element itself is enough; the graph is only needed to
   // amplify, and it must never risk silencing the reply.
   if (target <= 1) {
@@ -63,11 +63,12 @@ async function applyPlaybackVolume(audio: HTMLAudioElement, volume: number) {
     const gain = audioGraph.createGain();
     gain.gain.value = target;
     const compressor = audioGraph.createDynamicsCompressor();
-    compressor.threshold.value = -20;
-    compressor.knee.value = 14;
-    compressor.ratio.value = 8;
+    // A harder limiter lets a 200–300% gain stay loud without clipping.
+    compressor.threshold.value = -24;
+    compressor.knee.value = 12;
+    compressor.ratio.value = 12;
     compressor.attack.value = 0.003;
-    compressor.release.value = 0.25;
+    compressor.release.value = 0.2;
     source.connect(gain).connect(compressor).connect(audioGraph.destination);
     graphSource = source;
     audio.volume = 1;
