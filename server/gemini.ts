@@ -148,7 +148,15 @@ function buildVoiceSystemPrompt(language?: AurixLanguage): string {
 }
 
 /** Spoken replies are abandoned after this long and re-asked on the next route. */
-const VOICE_DEADLINE_MS = 8000;
+const VOICE_DEADLINE_MS = 20000;
+
+/**
+ * Per-attempt budget for a spoken reply. Google rejects any request deadline
+ * below 10s with a 400 INVALID_ARGUMENT, so 10s is both the floor and the
+ * longest a single stalled route is allowed to hold the answer back before
+ * the pool moves to the next key.
+ */
+const VOICE_ATTEMPT_MS = 10_000;
 
 export async function chatWithAurix(params: {
   history: ChatMessage[];
@@ -213,7 +221,9 @@ export async function chatWithAurix(params: {
         });
         return { response: result, servedModel: candidate };
       },
-      { models: buildModelLadder(model), timeoutMs: params.fast ? VOICE_DEADLINE_MS : undefined }
+      params.fast
+        ? { models: buildModelLadder(model), timeoutMs: VOICE_ATTEMPT_MS, attemptsPerKey: 1 }
+        : { models: buildModelLadder(model) }
     );
 
     const text = response.text?.trim();

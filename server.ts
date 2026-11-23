@@ -941,6 +941,8 @@ async function startServer() {
         | null = null;
 
       let replyText = "";
+      // The model that actually answered, after any pool failover.
+      let servedModel: string | null = null;
 
       if (laptopPlan) {
         if (emergencyStopActive) {
@@ -1054,13 +1056,16 @@ async function startServer() {
           fast: voiceFast,
         });
         replyText = aiReply.text;
+        servedModel = aiReply.modelUsed;
       }
 
       const assistantMsg = addMessage({
         conversationId: activeConvId,
         role: "assistant",
         content: replyText,
-        modelUsed: settings.offlineModeForced ? "offline-knowledge-engine" : settings.activeModel,
+        modelUsed: settings.offlineModeForced
+          ? "offline-knowledge-engine"
+          : servedModel || settings.activeModel,
         language: targetLang,
         thinkingLevel: settings.thinkingLevel,
       });

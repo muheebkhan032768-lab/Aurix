@@ -7,7 +7,7 @@ import { GoogleGenAI, type GenerateContentParameters, type GenerateContentRespon
  * Two independent axes are protected:
  *
  *   1. Keys — GEMINI_API_KEY_1 (or the pre-existing GEMINI_API_KEY) first, then
- *      _2, _3 and _4. A revoked key is taken out of rotation; a quota or
+ *      _2, _3, _4 and _5. A revoked key is taken out of rotation; a quota or
  *      transient failure only cools that key down.
  *   2. Models — a model can be out of quota (or retired) for *every* key at
  *      once, because free-tier quota is counted per Google project and model.
@@ -440,7 +440,12 @@ interface FailoverOptions {
   /** Model ladder; the requested model is always first. */
   models?: string[];
   timeoutMs?: number;
+  /** Tries per key before moving on; the fast voice path uses one. */
+  attemptsPerKey?: number;
 }
+
+/** Google answers 400 INVALID_ARGUMENT for any request deadline below 10s. */
+const MIN_PROVIDER_DEADLINE_MS = 10_000;
 
 function createClient(apiKey: string, timeoutMs: number): GoogleGenAI {
   return new GoogleGenAI({
@@ -450,8 +455,9 @@ function createClient(apiKey: string, timeoutMs: number): GoogleGenAI {
       apiVersion: "v1beta",
       headers: { "User-Agent": "aistudio-build" },
       // The SDK aborts the HTTP request itself when this elapses, so a stalled
-      // provider cannot pin a request open indefinitely.
-      timeout: timeoutMs,
+      // provider cannot pin a request open indefinitely. Never below the
+      // provider minimum, or every call fails with a 400 before it is sent.
+      timeout: Math.max(timeoutMs, MIN_PROVIDER_DEADLINE_MS),
     },
   });
 }
@@ -472,6 +478,7 @@ export async function runWithGeminiFailover<T>(
 
   const ladder = options.models?.length ? options.models : ["gemini-4-hydrogen", "gemini-3.5-flash", "gemini-3.1-flash-lite"];
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const attemptsPerKey = Math.max(1, options.attemptsPerKey ?? ATTEMPTS_PER_KEY);
   const now = Date.now();
   let attempted = false;
 
@@ -486,7 +493,7 @@ export async function runWithGeminiFailover<T>(
       if (runtime.cooldownUntil && runtime.cooldownUntil > Date.now()) continue;
       attempted = true;
 
-      for (let attempt = 1; attempt <= ATTEMPTS_PER_KEY; attempt += 1) {
+      for (let attempt = 1; attempt <= attemptsPerKey; attempt += 1) {
         const started = Date.now();
         try {
           const ai = createClient(key.apiKey, timeoutMs);
@@ -510,7 +517,7 @@ export async function runWithGeminiFailover<T>(
           // serves gains nothing from an immediate retry: move on.
           if (kind === "invalid_key" || kind === "quota" || kind === "model_unavailable") break;
 
-          if (attempt < ATTEMPTS_PER_KEY) {
+          if (attempt < attemptsPerKey) {
             const hinted = parseRetryDelayMs(error);
             await sleep(hinted ?? BACKOFF_BASE_MS * 2 ** (attempt - 1));
           }
