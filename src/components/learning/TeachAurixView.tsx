@@ -202,7 +202,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
         addLog(`No confident match. Vision model error: ${result.cloudError}`);
         setMessage({ tone: "error", text: result.cloudError });
       } else {
-        addLog("No confident match among approved examples. DEX MADE will not guess.");
+        addLog("No confident match among approved examples. AURIX will not guess.");
         speak("I cannot confidently identify this object yet. Would you like to teach me?");
       }
     } catch (err) {
@@ -477,7 +477,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
         return;
       }
       if (/\b(?:show my training history|training history|search my training memory|training memory)\b/.test(lower)) {
-        addLog("Opening the DEX MADE Memory Center.");
+        addLog("Opening the AURIX Memory Center.");
         onOpenMemory();
         return;
       }
@@ -527,7 +527,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
       "en-US"
     );
     setListening(true);
-    addLog("Voice control listening. Try: “DEX MADE, remember this object”.");
+    addLog("Voice control listening. Try: “AURIX, remember this object”.");
   };
 
   const closeCamera = () => {
@@ -546,7 +546,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.22em] text-[#00D9FF]">
-              <Sparkles className="h-3.5 w-3.5" /> Teach DEX MADE
+              <Sparkles className="h-3.5 w-3.5" /> Teach AURIX
             </div>
             <h1 className="mt-1 font-display text-lg font-bold tracking-wide text-white">Visual Learning Mode</h1>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#94A8B8]">
@@ -665,7 +665,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
                 <p className="mt-1 text-[11px] leading-relaxed text-[#94A8B8]">
                   {identified
                     ? identified.example.description || "No description was saved with this example."
-                    : identifyResult.cloudLabel ?? "DEX MADE will not guess. Teach it this object, or lower the threshold by adding more examples."}
+                    : identifyResult.cloudLabel ?? "AURIX will not guess. Teach it this object, or lower the threshold by adding more examples."}
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {identified && (
@@ -897,7 +897,7 @@ export function TeachAurixView({ snapshot, onOpenMemory }: TeachAurixViewProps) 
               <div className="flex justify-between"><span>Custom tasks</span><span className="text-white">{stats?.byKind.task ?? 0}</span></div>
             </div>
             <p className="mt-2 text-[9px] leading-relaxed text-[#5B7185]">
-              Saved examples are retrieval memory, not model training. DEX MADE matches new observations against these embeddings locally.
+              Saved examples are retrieval memory, not model training. AURIX matches new observations against these embeddings locally.
             </p>
             {lastSaved && (
               <div className="mt-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2 py-1.5 text-[10px] text-emerald-300">

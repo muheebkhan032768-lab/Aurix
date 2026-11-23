@@ -30,7 +30,6 @@ import {
   stopSpeaking as engineStopSpeaking,
 } from "../utils/voiceEngine";
 import { publishVoice } from "../utils/voiceBus";
-import { startLiveTranscript, type LiveTranscriptSession } from "../utils/liveTranscript";
 import {
   DEFAULT_VOICE_SHORTCUTS,
   formatShortcut,
@@ -58,11 +57,9 @@ interface VoiceCommandSystemProps {
   onEmergencyStop: (active: boolean) => Promise<void>;
   onLock: () => void;
   onRefreshSystem: () => Promise<void>;
-  /** Hide the floating companion orb (the dashboard has its own voice orb). */
-  suppressCompanion?: boolean;
 }
 
-type VoiceStatus = "idle" | "listening" | "processing" | "thinking" | "success" | "error";
+type VoiceStatus = "idle" | "listening" | "processing" | "success" | "error";
 type CommandSource = "voice" | "typed" | "wake";
 
 interface CommandLogEntry {
@@ -110,20 +107,21 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
 function localeFor(language: AppSettings["language"]): string {
   if (language === "Urdu") return "ur-PK";
   if (language === "Hindi") return "hi-IN";
-  return "en-US";
+  return "en-GB";
 }
 
-/** Ways the wake phrase "Hello Dex Made" is commonly heard by a recogniser. */
+/** Ways the wake phrase is commonly heard, including "Hello X". */
 const WAKE_ALIASES = [
-  "hello dex made",
-  "hey dex made",
-  "hello dexmade",
-  "hello dex maid",
-  "hello dax made",
-  "hello deks made",
-  "hello deck made",
-  "hello dex",
-  "hey dex",
+  "hello aurix",
+  "hey aurix",
+  "hello x",
+  "hey x",
+  "hello orix",
+  "hello aurex",
+  "hello auriks",
+  "hello aarox",
+  "hello auric",
+  "hello aurox",
 ];
 
 function splitWakePhrase(raw: string, wakePhrase: string): { heard: boolean; remainder: string } {
@@ -145,9 +143,9 @@ function splitWakePhrase(raw: string, wakePhrase: string): { heard: boolean; rem
 }
 
 function wakeAcknowledgement(language: AppSettings["language"]): string {
-  if (language === "Urdu") return "جی ہاں، سر۔ ڈیکس میڈ آن لائن ہے، میں سن رہا ہوں۔";
-  if (language === "Hindi") return "जी हाँ, सर। डेक्स मेड ऑनलाइन है, मैं सुन रहा हूँ।";
-  return "Yes, Sir. DEX MADE is online and listening. How may I assist you?";
+  if (language === "Urdu") return "اورکس آن لائن ہے، میں سن رہا ہوں۔";
+  if (language === "Hindi") return "ऑरिक्स ऑनलाइन है, मैं सुन रहा हूँ।";
+  return "AURIX online. I'm listening.";
 }
 
 /** Space starts and stops the microphone everywhere except inside a text field. */
@@ -159,7 +157,7 @@ function isTextEntryTarget(target: EventTarget | null): boolean {
 }
 
 /**
- * Global voice command layer for DEX MADE.
+ * Global voice command layer for AURIX.
  * Works on every screen: push-to-talk, hands-free wake phrase, typed commands,
  * a live transcript, a spoken confirmation and a searchable command reference.
  */
@@ -175,10 +173,9 @@ export function VoiceCommandSystem({
   onEmergencyStop,
   onLock,
   onRefreshSystem,
-  suppressCompanion = false,
 }: VoiceCommandSystemProps) {
   const [open, setOpen] = useState(false);
-  // Set while DEX MADE waits for the user to pick an account (e.g. Facebook).
+  // Set while AURIX waits for the user to pick an account (e.g. Facebook).
   const pendingSiteRef = useRef<{ entry: WebsiteEntry } | null>(null);
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [statusMessage, setStatusMessage] = useState("Ready for a command.");
@@ -196,7 +193,7 @@ export function VoiceCommandSystem({
   const [micPermission, setMicPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
 
   const wakeRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const liveSessionRef = useRef<LiveTranscriptSession | null>(null);
+  const captionRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const wakeEnabledRef = useRef(false);
   const awaitingWakeCommandRef = useRef(false);
   const speakingRef = useRef(false);
@@ -211,6 +208,8 @@ export function VoiceCommandSystem({
   const focusInputOnOpenRef = useRef(false);
   const runCommandRef = useRef<(raw: string, source?: CommandSource) => Promise<void>>(async () => {});
   const handleSpokenInputRef = useRef<(raw: string, source?: CommandSource) => void>(() => {});
+  const spaceHeldRef = useRef(false);
+  const spaceReleasePendingRef = useRef(false);
   const wakeListeningRef = useRef(false);
   const alwaysOnListeningRef = useRef(false);
   const resumeAlwaysOnRef = useRef(false);
@@ -267,14 +266,14 @@ export function VoiceCommandSystem({
     ]
   );
 
-  // "Hello DEX MADE" (or "Hello X") wakes the assistant, opens its interface and
+  // "Hello AURIX" (or "Hello X") wakes the assistant, opens its interface and
   // runs whatever follows the phrase as the command.
   const handleSpokenInput = useCallback(
     (raw: string, source: CommandSource = "voice") => {
       const spoken = raw.trim();
       if (!spoken) return;
       const current = settingsRef.current;
-      const { heard, remainder } = splitWakePhrase(spoken, current.wakePhrase || "Hello DEX MADE");
+      const { heard, remainder } = splitWakePhrase(spoken, current.wakePhrase || "Hello AURIX");
       if (!heard) {
         void runCommandRef.current(spoken, source);
         return;
@@ -283,7 +282,7 @@ export function VoiceCommandSystem({
       setOpen(true);
       setStatus("idle");
       setTranscript(spoken);
-      setStatusMessage("DEX MADE online — I am listening.");
+      setStatusMessage("AURIX online — I am listening.");
       if (remainder) {
         void runCommandRef.current(remainder, "wake");
         return;
@@ -297,68 +296,77 @@ export function VoiceCommandSystem({
     handleSpokenInputRef.current = handleSpokenInput;
   }, [handleSpokenInput]);
 
-  // Live dictation runs beside the recording: words appear while you speak and
-  // the final text becomes the command the moment you stop, with no wait on the
-  // server. The recorded clip is transcribed server-side only as a fallback
-  // when the browser recogniser heard nothing.
-  const cancelLiveTranscript = useCallback(() => {
-    const session = liveSessionRef.current;
-    liveSessionRef.current = null;
-    session?.cancel();
+  // A browser caption pass runs beside the real recording so the live
+  // transcript can show words while you speak. It is display-only: the server
+  // transcription of the clip stays the authoritative command.
+  const stopLiveCaption = useCallback(() => {
+    const recognition = captionRecognitionRef.current;
+    captionRecognitionRef.current = null;
+    try {
+      recognition?.stop();
+    } catch {
+      // Recognition may already be stopped.
+    }
   }, []);
 
-  const beginLiveTranscript = useCallback(() => {
-    cancelLiveTranscript();
+  const startLiveCaption = useCallback(() => {
+    stopLiveCaption();
+    const Ctor = getSpeechRecognitionCtor();
+    if (!Ctor) return;
     setLiveCaption("");
-    liveSessionRef.current = startLiveTranscript({
-      language: settingsRef.current.language,
-      onInterim: (text) => setLiveCaption(text),
-    });
-  }, [cancelLiveTranscript]);
+    try {
+      const recognition = new Ctor();
+      recognition.lang = localeFor(settingsRef.current.language);
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.onresult = (event) => {
+        let text = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          text += event.results[i][0]?.transcript || "";
+        }
+        const clean = text.trim();
+        if (clean) setLiveCaption(clean);
+      };
+      recognition.onerror = () => {
+        captionRecognitionRef.current = null;
+      };
+      recognition.onend = () => {
+        captionRecognitionRef.current = null;
+      };
+      recognition.start();
+      captionRecognitionRef.current = recognition;
+    } catch {
+      // Live captions are optional — recording carries on without them.
+    }
+  }, [stopLiveCaption]);
 
-  // Push-to-talk capture: the browser dictation answers instantly while the
-  // recording is transcribed on the server in the background as a fallback.
+  // Push-to-talk capture: one recording session through the shared voice
+  // engine, transcribed by the server so AURIX hears the real words.
   const stopListening = useCallback(() => {
     const current = settingsRef.current;
-    const session = liveSessionRef.current;
-    liveSessionRef.current = null;
+    stopLiveCaption();
     setListening(false);
     setStatusMessage("Transcribing what you said…");
-
-    const finish = (transcript: string) => {
-      setLiveCaption("");
-      setError(null);
-      void handleSpokenInputRef.current(transcript, "voice");
-    };
-
-    const recorded = stopCapture({
+    void stopCapture({
       language: current.language,
       autoDetectLanguage: current.autoDetectLanguage,
-    });
-    const live = session ? session.finish() : Promise.resolve("");
-
-    void live.then((liveText) => {
-      if (liveText.trim()) {
-        finish(liveText.trim());
+    }).then((result) => {
+      if (result.error) {
+        setError(result.error);
+        setStatus("error");
+        setStatusMessage("Speech recognition is unavailable right now.");
+      } else if (result.silent) {
+        setStatus("idle");
+        setStatusMessage("I didn't catch that — press Space and speak again.");
+        setError("Sorry, I didn't catch that. Could you repeat?");
       } else {
-        void recorded.then((result) => {
-          if (result.error) {
-            setError(result.error);
-            setStatus("error");
-            setStatusMessage("Speech recognition is unavailable right now.");
-          } else if (result.silent || !result.transcript.trim()) {
-            setStatus("idle");
-            setStatusMessage("I didn't catch that — press Space and speak again.");
-            setError("Sorry, I didn't catch that. Could you repeat?");
-          } else {
-            finish(result.transcript);
-          }
-        });
+        setError(null);
+        void handleSpokenInputRef.current(result.transcript, "voice");
       }
       if (resumeAlwaysOnRef.current) void startAlwaysOnRef.current();
       resumeAlwaysOnRef.current = false;
     });
-  }, []);
+  }, [stopLiveCaption]);
 
   const startListening = useCallback(async () => {
     if (isCapturing() || listeningRef.current) {
@@ -394,9 +402,13 @@ export function VoiceCommandSystem({
     }
     setListening(true);
     setStatus("listening");
-    setStatusMessage("Listening — press Space again to send.");
-    beginLiveTranscript();
-  }, [stopListening, cancelSpeech, beginLiveTranscript]);
+    setStatusMessage("Listening — release Space to send.");
+    startLiveCaption();
+    if (spaceReleasePendingRef.current) {
+      spaceReleasePendingRef.current = false;
+      stopListening();
+    }
+  }, [stopListening, cancelSpeech, startLiveCaption]);
 
 
   const stopWakeListening = useCallback(() => {
@@ -451,7 +463,7 @@ export function VoiceCommandSystem({
           }
 
           // Armed hands-free mode only reacts once the wake phrase is heard.
-          if (!splitWakePhrase(said, settings.wakePhrase || "Hello DEX MADE").heard) continue;
+          if (!splitWakePhrase(said, settings.wakePhrase || "Hello AURIX").heard) continue;
           handleSpokenInputRef.current(said, "wake");
         }
       };
@@ -627,7 +639,7 @@ export function VoiceCommandSystem({
     startAlwaysOnListening,
   ]);
 
-  // The microphone is independent of the speaker: muting DEX MADE's voice, or
+  // The microphone is independent of the speaker: muting AURIX's voice, or
   // turning Do Not Disturb on, must never disable push-to-talk. Only the
   // microphone switch or an Emergency Stop closes the input.
   useEffect(() => {
@@ -701,7 +713,7 @@ export function VoiceCommandSystem({
                 priority: intent.priority,
                 status: "todo",
                 dueDate: "",
-                notes: "Added by the DEX MADE voice command system.",
+                notes: "Added by the AURIX voice command system.",
               });
               response = `Added "${intent.title}" to your ${intent.category} tasks.`;
               break;
@@ -775,7 +787,7 @@ export function VoiceCommandSystem({
                 }
                 case "emergency_stop_off": {
                   await onEmergencyStop(false);
-                  response = "Emergency Stop cleared. DEX MADE operations resumed.";
+                  response = "Emergency Stop cleared. AURIX operations resumed.";
                   break;
                 }
                 case "set_theme": {
@@ -797,7 +809,7 @@ export function VoiceCommandSystem({
                   break;
                 }
                 case "lock_session": {
-                  response = "Locking the DEX MADE session.";
+                  response = "Locking the AURIX session.";
                   window.setTimeout(() => onLock(), 1200);
                   break;
                 }
@@ -844,8 +856,6 @@ export function VoiceCommandSystem({
               }
               // The spoken answer is synthesized in the same request, so audio
               // starts as soon as the reply text arrives.
-              setStatus("thinking");
-              setStatusMessage("Thinking…");
               const wantsVoice =
                 settings.voiceEnabled &&
                 !settings.doNotDisturb &&
@@ -862,7 +872,7 @@ export function VoiceCommandSystem({
                 }),
               });
               const data = await res.json();
-              if (!res.ok) throw new Error(data.error || "DEX MADE could not process that command.");
+              if (!res.ok) throw new Error(data.error || "AURIX could not process that command.");
               if (wantsVoice && data.audioBase64) {
                 prefetchedAudio = { audioBase64: data.audioBase64, mimeType: data.mimeType };
               }
@@ -1053,27 +1063,37 @@ export function VoiceCommandSystem({
           field.blur();
         }
         event.preventDefault();
-        if (event.repeat) return;
+        if (event.repeat || spaceHeldRef.current) return;
+        spaceHeldRef.current = true;
         // A focused button would otherwise be "clicked" by the spacebar.
         const focused = document.activeElement as HTMLElement | null;
         if (focused && focused !== document.body && !isTextEntryTarget(focused)) focused.blur();
         focusInputOnOpenRef.current = false;
         setOpen(true);
-        // One press starts listening, the next press stops and sends it.
-        if (listeningRef.current || isCapturing()) stopListeningRef.current();
-        else void startListeningRef.current();
+        void startListeningRef.current();
       }
+    };
+
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (!spaceHeldRef.current || !matchesShortcut(event, shortcutsRef.current.pushToTalk)) return;
+      spaceHeldRef.current = false;
+      if (listeningRef.current) stopListeningRef.current();
+      else spaceReleasePendingRef.current = true;
     };
 
     // Losing focus mid-recording must release the microphone.
     const onBlur = () => {
-      if (listeningRef.current) stopListeningRef.current();
+      if (!spaceHeldRef.current) return;
+      spaceHeldRef.current = false;
+      stopListeningRef.current();
     };
 
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     window.addEventListener("blur", onBlur);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", onBlur);
     };
   }, [cancelSpeech, stopContinuousListening]);
@@ -1083,8 +1103,7 @@ export function VoiceCommandSystem({
       wakeEnabledRef.current = false;
       try {
         wakeRecognitionRef.current?.stop();
-        liveSessionRef.current?.cancel();
-        liveSessionRef.current = null;
+        captionRecognitionRef.current?.stop();
       } catch {
         // Ignore teardown races.
       }
@@ -1111,9 +1130,7 @@ export function VoiceCommandSystem({
   useEffect(() => {
     publishVoice({
       state: processing
-        ? status === "thinking"
-          ? "thinking"
-          : "processing"
+        ? "processing"
         : speaking
           ? "speaking"
           : micActive
@@ -1142,9 +1159,7 @@ export function VoiceCommandSystem({
   ]);
 
   const displayStatus: VoiceStatus = processing
-    ? status === "thinking"
-      ? "thinking"
-      : "processing"
+    ? "processing"
     : speaking
       ? "success"
       : micActive
@@ -1152,9 +1167,7 @@ export function VoiceCommandSystem({
         : status;
 
   const companionState = processing
-    ? status === "thinking"
-      ? "thinking"
-      : "processing"
+    ? "processing"
     : speaking
       ? "speaking"
       : micActive
@@ -1164,9 +1177,7 @@ export function VoiceCommandSystem({
           : "idle";
 
   const companionCaption = processing
-    ? status === "thinking"
-      ? "Thinking it through…"
-      : "Working on that…"
+    ? "Working on that…"
     : lastResult?.text
       ? lastResult.text
       : micActive
@@ -1176,9 +1187,7 @@ export function VoiceCommandSystem({
           : statusMessage;
 
   const statusLabel = processing
-    ? status === "thinking"
-      ? "Thinking"
-      : "Working"
+    ? "Working"
     : speaking
       ? "Speaking"
       : micActive
@@ -1192,10 +1201,8 @@ export function VoiceCommandSystem({
   const dotClass =
     displayStatus === "listening"
       ? "bg-[#06B6D4]"
-      : displayStatus === "thinking"
-        ? "bg-[#147DFF]"
-        : displayStatus === "processing"
-          ? "bg-[#D6AD60]"
+      : displayStatus === "processing"
+        ? "bg-[#D6AD60]"
         : displayStatus === "error"
           ? "bg-rose-500"
           : displayStatus === "success"
@@ -1204,19 +1211,17 @@ export function VoiceCommandSystem({
 
   return (
     <>
-      {!suppressCompanion && (
-        <VoiceCompanionFigure
-          state={companionState}
-          caption={companionCaption}
-          open={open}
-          onToggle={() => setOpen((value) => !value)}
-        />
-      )}
+      <VoiceCompanionFigure
+        state={companionState}
+        caption={companionCaption}
+        open={open}
+        onToggle={() => setOpen((value) => !value)}
+      />
 
       {open && (
         <section
           data-testid="voice-command-panel"
-          aria-label="DEX MADE voice command system"
+          aria-label="AURIX voice command system"
           className="fixed bottom-28 right-3 sm:right-5 z-40 w-[calc(100vw-1.5rem)] sm:w-[430px] max-h-[70vh] overflow-y-auto rounded-2xl border border-emerald-500/35 bg-white/95 dark:bg-[#0F1724]/95 backdrop-blur-md shadow-2xl"
         >
           <div className="sticky top-0 z-10 flex items-start justify-between gap-3 px-4 pt-4 pb-3 bg-white/95 dark:bg-[#0F1724]/95 border-b border-slate-200/80 dark:border-slate-800/80">
@@ -1229,7 +1234,7 @@ export function VoiceCommandSystem({
                   Voice Command System
                 </h2>
                 <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#64748B] dark:text-slate-400">
-                  DEX MADE · Alt+V
+                  AURIX · Alt+V
                 </p>
               </div>
             </div>
@@ -1356,7 +1361,7 @@ export function VoiceCommandSystem({
                   ) : (
                     <Activity className="w-3 h-3 text-amber-600" />
                   )}
-                  <span>DEX MADE</span>
+                  <span>AURIX</span>
                   {speaking && <Volume2 className="w-3 h-3 text-[#10B981]" />}
                 </div>
                 <p className="text-xs text-[#202938] dark:text-slate-200 mt-1 leading-relaxed">
@@ -1458,7 +1463,7 @@ export function VoiceCommandSystem({
           <div className="px-4 py-2.5 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 text-[9px] text-[#64748B] dark:text-slate-500">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span>
-                Press {formatShortcut(shortcuts.pushToTalk)} to talk · press again to send · {formatShortcut(shortcuts.cancel)} cancels
+                Hold {formatShortcut(shortcuts.pushToTalk)} to talk · {formatShortcut(shortcuts.cancel)} cancels
               </span>
               <button
                 type="button"

@@ -6,7 +6,7 @@
  *   and object learning/retrieval
  * - hand_landmarker                  -> hand landmarks for gesture teaching
  *
- * Models are served by the local DEX MADE server from data/models; nothing is sent
+ * Models are served by the local AURIX server from data/models; nothing is sent
  * to a third party for these operations.
  */
 import type { FaceDetector, FaceLandmarker, HandLandmarker, ImageEmbedder } from "@mediapipe/tasks-vision";
@@ -216,7 +216,7 @@ export interface LivenessResult {
 
 /**
  * Liveness: requires a real blink during the capture window. A still photo of
- * the owner held to the camera never blinks, so it cannot unlock DEX MADE.
+ * the owner held to the camera never blinks, so it cannot unlock AURIX.
  */
 export async function runLivenessCheck(video: HTMLVideoElement, durationMs = 2800): Promise<LivenessResult> {
   const landmarker = await getFaceLandmarker();

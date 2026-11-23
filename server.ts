@@ -5,8 +5,7 @@ import path from "node:path";
 import express from "express";
 import JSZip from "jszip";
 import { createServer as createViteServer } from "vite";
-import type { AurixLanguage, SystemTelemetry, ThinkingDepth } from "./src/types/aurix";
-import { matchWebsiteCommand } from "./src/utils/websiteRegistry";
+import type { SystemTelemetry } from "./src/types/aurix";
 import {
   addAuditLog,
   addDesktopActionLog,
@@ -47,7 +46,6 @@ import {
 import {
   analyzeFileOrImage,
   chatWithAurix,
-  chatWithAurixStream,
   diagnoseAndRepairCode,
   draftBusinessDocument,
   generateFreeCreativeAsset,
@@ -57,14 +55,6 @@ import {
   synthesizeAurixVoice,
   transcribeAudioInput,
 } from "./server/gemini";
-import {
-  GeminiKeysExhaustedError,
-  GeminiNotConfiguredError,
-  getGeminiPoolStatus,
-  hasAnyGeminiKey,
-  resetGeminiKey,
-  testGeminiKeys,
-} from "./server/geminiPool";
 import { NATIVE_WINDOWS_FILES } from "./server/nativeWindowsBundle";
 import { registerBiometricRoutes } from "./server/biometricRoutes";
 import { laptopControlStatus, planLaptopCommand, runLaptopPlan } from "./server/laptopControl";
@@ -231,8 +221,7 @@ async function startServer() {
     const settings = getAppSettings();
     const ollama = await detectLocalOllamaModels(Number((os.totalmem() / 1024 ** 3).toFixed(2)));
     res.json({
-      aiProviderConnected: hasAnyGeminiKey() && !settings.offlineModeForced,
-      configuredGeminiKeys: getGeminiPoolStatus().configuredKeys,
+      aiProviderConnected: Boolean(process.env.GEMINI_API_KEY) && !settings.offlineModeForced,
       localModelsAvailable: ollama.reachable && ollama.models.length > 0,
       ownerProfileLoaded: Boolean(owner?.name),
       companyKnowledgeLoaded: Boolean(company?.name),
@@ -240,27 +229,6 @@ async function startServer() {
       microphoneStatus: "unknown",
       checkedAt: new Date().toISOString(),
     });
-  });
-
-  // Gemini multi-key failover pool — masked identifiers only, never a full key.
-  app.get("/api/ai/keys", (_req, res) =>
-    res.json(getGeminiPoolStatus(getAppSettings().activeModel || "gemini-4-hydrogen"))
-  );
-
-  app.post("/api/ai/keys/test", async (_req, res) => {
-    try {
-      const settings = getAppSettings();
-      const result = await testGeminiKeys(settings.activeModel || "gemini-4-hydrogen");
-      res.json(result);
-    } catch (err) {
-      res.status(500).json({ error: err instanceof Error ? err.message : "Key test failed." });
-    }
-  });
-
-  app.post("/api/ai/keys/:slot/reset", (req, res) => {
-    const slot = Number(req.params.slot);
-    const ok = resetGeminiKey(slot);
-    res.status(ok ? 200 : 404).json({ ok, status: getGeminiPoolStatus() });
   });
 
   // Owner Profile
@@ -299,179 +267,59 @@ async function startServer() {
     res.json(getConversationMessages(req.params.id));
   });
 
-  const runChatRequest = async (payload: {
-    conversationId?: string;
-    message: string;
-    model?: "gemini-4-hydrogen" | "gemini-3.1-flash-lite";
-    language?: AurixLanguage;
-    thinkingLevel?: ThinkingDepth;
-    scopedWebsite?: string;
-    mode?: string;
-  }) => {
-    const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode } = payload;
-    const settings = getAppSettings();
-    const activeConvId = ensureConversation(
-      conversationId,
-      message,
-      mode || "chat",
-      model || settings.activeModel,
-      language || settings.language
-    );
-    const history = getConversationMessages(activeConvId);
-    const userMsg = addMessage({
-      conversationId: activeConvId,
-      role: "user",
-      content: message,
-      language: language || settings.language,
-    });
-
-    const aiReply = await chatWithAurix({
-      history,
-      userMessage: message,
-      model,
-      language,
-      thinkingLevel,
-      scopedWebsite,
-    });
-
-    const assistantMsg = addMessage({
-      conversationId: activeConvId,
-      role: "assistant",
-      content: aiReply.text,
-      modelUsed: aiReply.modelUsed,
-      language: language || settings.language,
-      thinkingLevel: aiReply.thinkingLevel,
-    });
-
-    return {
-      conversationId: activeConvId,
-      userMessage: userMsg,
-      assistantMessage: assistantMsg,
-      conversations: listConversations(),
-    };
-  };
-
-  // One in-flight reply per (conversation, message): a double submit or a
-  // retried request joins the request already running instead of asking
-  // Gemini twice for the same answer.
-  const inFlightChats = new Map<string, Promise<unknown>>();
-
   app.post("/api/chat", async (req, res) => {
-    const { conversationId, message } = req.body || {};
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ error: "Message text is required." });
-    }
-
-    const dedupeKey = `${conversationId || "new"}::${message.trim()}`;
-    let pending = inFlightChats.get(dedupeKey);
-    if (!pending) {
-      pending = runChatRequest(req.body).finally(() => inFlightChats.delete(dedupeKey));
-      inFlightChats.set(dedupeKey, pending);
-    }
-
     try {
-      res.json(await pending);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "AI chat request failed.";
-      // An exhausted pool is a temporary outage, not a broken request.
-      const status =
-        err instanceof GeminiKeysExhaustedError || err instanceof GeminiNotConfiguredError ? 503 : 500;
-      res.status(status).json({ error: msg });
-    }
-  });
-
-  // Streaming chat: tokens arrive as server-sent events so the reply renders
-  // while it is still being generated instead of after the whole answer.
-  app.post("/api/chat/stream", async (req, res) => {
-    const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode } = req.body || {};
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ error: "Message text is required." });
-    }
-
-    const settings = getAppSettings();
-    const targetLanguage = language || settings.language;
-    const activeConvId = ensureConversation(
-      conversationId,
-      message,
-      mode || "chat",
-      model || settings.activeModel,
-      targetLanguage
-    );
-    const history = getConversationMessages(activeConvId);
-    const userMsg = addMessage({
-      conversationId: activeConvId,
-      role: "user",
-      content: message,
-      language: targetLanguage,
-    });
-
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache, no-transform");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders?.();
-
-    const send = (event: string, data: unknown) => {
-      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-    };
-
-    send("start", { conversationId: activeConvId, userMessage: userMsg });
-
-    let streamed = "";
-    try {
-      const aiReply = await chatWithAurixStream(
-        {
-          history,
-          userMessage: message,
-          model,
-          language: targetLanguage,
-          thinkingLevel,
-          scopedWebsite,
-        },
-        (delta) => {
-          streamed += delta;
-          send("delta", { text: delta });
-        }
+      const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode } = req.body;
+      if (!message || typeof message !== "string") {
+        return res.status(400).json({ error: "Message text is required." });
+      }
+      const settings = getAppSettings();
+      const activeConvId = ensureConversation(
+        conversationId,
+        message,
+        mode || "chat",
+        model || settings.activeModel,
+        language || settings.language
       );
+      const history = getConversationMessages(activeConvId);
+      const userMsg = addMessage({
+        conversationId: activeConvId,
+        role: "user",
+        content: message,
+        language: language || settings.language,
+      });
+
+      const aiReply = await chatWithAurix({
+        history,
+        userMessage: message,
+        model,
+        language,
+        thinkingLevel,
+        scopedWebsite,
+      });
+
       const assistantMsg = addMessage({
         conversationId: activeConvId,
         role: "assistant",
         content: aiReply.text,
         modelUsed: aiReply.modelUsed,
-        language: targetLanguage,
+        language: language || settings.language,
         thinkingLevel: aiReply.thinkingLevel,
       });
-      send("done", {
+
+      res.json({
         conversationId: activeConvId,
+        userMessage: userMsg,
         assistantMessage: assistantMsg,
         conversations: listConversations(),
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "AI chat request failed.";
-      if (streamed.trim()) {
-        // Keep the words the user already saw instead of losing the answer.
-        const assistantMsg = addMessage({
-          conversationId: activeConvId,
-          role: "assistant",
-          content: streamed.trim(),
-          modelUsed: model || settings.activeModel,
-          language: targetLanguage,
-          thinkingLevel: thinkingLevel || settings.thinkingLevel,
-        });
-        send("done", {
-          conversationId: activeConvId,
-          assistantMessage: assistantMsg,
-          conversations: listConversations(),
-          interrupted: true,
-        });
-      } else {
-        send("error", { error: msg });
-      }
-    } finally {
-      res.end();
+      res.status(500).json({ error: msg });
     }
   });
 
-  // Voice Synthesis (Male DEX MADE Voice via Gemini 3.8 TTS)
+  // Voice Synthesis (Male AURIX Voice via Gemini 3.8 TTS)
   app.post("/api/voice/tts", async (req, res) => {
     try {
       const settings = getAppSettings();
@@ -513,7 +361,7 @@ async function startServer() {
       const targetLang = language || settings.language || "English";
       const activeConvId = ensureConversation(
         conversationId,
-        "DEX MADE Live Companion",
+        "AURIX Live Companion",
         "companion",
         "gemini-3.1-flash-lite",
         targetLang
@@ -569,7 +417,7 @@ async function startServer() {
   app.post("/api/vision/analyze", async (req, res) => {
     try {
       const result = await analyzeFileOrImage(req.body);
-      addAuditLog("FILE_ANALYZED", "DEX MADE Vision/File", `Analyzed ${req.body.fileName || "input"} (${req.body.mode})`, "info");
+      addAuditLog("FILE_ANALYZED", "AURIX Vision/File", `Analyzed ${req.body.fileName || "input"} (${req.body.mode})`, "info");
       res.json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "File & Vision analysis failed.";
@@ -585,7 +433,7 @@ async function startServer() {
         return res.status(400).json({ error: "Research query is required." });
       }
       const result = await researchWebWithGrounding({ query, language });
-      addAuditLog("WEB_RESEARCH", "DEX MADE Research", `Executed grounded search: ${String(query).slice(0, 60)}`, "info");
+      addAuditLog("WEB_RESEARCH", "AURIX Research", `Executed grounded search: ${String(query).slice(0, 60)}`, "info");
       res.json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Internet research failed.";
@@ -597,7 +445,7 @@ async function startServer() {
   app.post("/api/dev/assist", async (req, res) => {
     try {
       const result = await runDeveloperAssistant(req.body);
-      addAuditLog("DEV_ASSIST", "DEX MADE Dev", `Developer review for ${req.body.languageTarget} (${req.body.projectScope})`, "info");
+      addAuditLog("DEV_ASSIST", "AURIX Dev", `Developer review for ${req.body.languageTarget} (${req.body.projectScope})`, "info");
       res.json(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Developer assistant request failed.";
@@ -636,7 +484,7 @@ async function startServer() {
   // Settings
   app.put("/api/settings", (req, res) => {
     const saved = saveAppSettings(req.body);
-    addAuditLog("SETTINGS_UPDATED", "Abdul Muheeb", "Updated DEX MADE settings.", "info");
+    addAuditLog("SETTINGS_UPDATED", "Abdul Muheeb", "Updated AURIX settings.", "info");
     res.json(saved);
   });
 
@@ -729,7 +577,7 @@ async function startServer() {
         buildHardwareAudit({
           ollamaReachable: ollama.reachable,
           ollamaModelCount: ollama.models.length,
-          cloudKeyConfigured: hasAnyGeminiKey() && !settings.offlineModeForced,
+          cloudKeyConfigured: Boolean(process.env.GEMINI_API_KEY) && !settings.offlineModeForced,
         })
       );
     } catch (err) {
@@ -792,7 +640,7 @@ async function startServer() {
     res.json({ ok: true, entry });
   });
 
-  // Real laptop control (live only when DEX MADE runs on the owner's own PC).
+  // Real laptop control (live only when AURIX runs on the owner's own PC).
   app.get("/api/laptop/status", (_req, res) => {
     res.json(laptopControlStatus());
   });
@@ -835,7 +683,7 @@ async function startServer() {
       action: active ? "Emergency Stop Triggered" : "Emergency Stop Cleared",
       target: "All Desktop & Proactive Automations",
       status: active ? "stopped" : "approved",
-      executedIn: "DEX MADE Safety Controller",
+      executedIn: "AURIX Safety Controller",
       detail: entry.detail,
     });
     res.json({ emergencyStopActive, entry, actionLog });
@@ -844,7 +692,7 @@ async function startServer() {
   // Backup Export
   app.get("/api/backup/export", (_req, res) => {
     const dump = exportFullBackup();
-    addAuditLog("BACKUP_EXPORTED", "Abdul Muheeb", "Exported full DEX MADE SQLite knowledge backup JSON.", "info");
+    addAuditLog("BACKUP_EXPORTED", "Abdul Muheeb", "Exported full AURIX SQLite knowledge backup JSON.", "info");
     res.setHeader("Content-Disposition", 'attachment; filename="aurix-backup.json"');
     res.json(dump);
   });
@@ -878,7 +726,7 @@ async function startServer() {
       addAuditLog(
         "COMPLETE_PROJECT_EXPORT",
         "Abdul Muheeb",
-        `Downloaded complete DEX MADE 2.0 ZIP package (${entries.length} files, ${(buffer.length / 1024).toFixed(1)} KB).`,
+        `Downloaded complete AURIX 2.0 ZIP package (${entries.length} files, ${(buffer.length / 1024).toFixed(1)} KB).`,
         "info"
       );
       res.setHeader("Content-Type", "application/zip");
@@ -1006,7 +854,7 @@ async function startServer() {
       const targetLang = language || settings.language || "English";
       const q = text.toLowerCase();
       // A spoken laptop command (open YouTube, play music, open a folder, find a
-      // file) runs for real when DEX MADE is running on the owner's own computer.
+      // file) runs for real when AURIX is running on the owner's own computer.
       const laptopPlan = planLaptopCommand(text, listWebsites());
 
       const activeConvId = ensureConversation(
@@ -1033,8 +881,6 @@ async function startServer() {
         | null = null;
 
       let replyText = "";
-      // The model that actually answered, after any pool failover.
-      let servedModel: string | null = null;
 
       if (laptopPlan) {
         if (emergencyStopActive) {
@@ -1080,7 +926,7 @@ async function startServer() {
           action: "Open Website",
           target: "https://www.youtube.com",
           status: emergencyStopActive ? "blocked" : "approved",
-          executedIn: "DEX MADE Command Router",
+          executedIn: "AURIX Command Router",
           detail: emergencyStopActive ? "Blocked by Emergency Stop." : "Prepared YouTube launcher link.",
         });
         replyText = emergencyStopActive
@@ -1118,25 +964,8 @@ async function startServer() {
         const todayLogs = listAuditLogs().filter((entry) => entry.createdAt.startsWith(today));
         const latest = todayLogs[0]?.detail ? ` Latest entry: ${todayLogs[0].detail}.` : "";
         replyText = `Here is today's picture for AM VEYRONIX, Muheeb: ${projects.length} projects tracked, ${business.length} business records, ${openTasks.length} open tasks, and ${todayLogs.length} logged actions today.${latest}`;
-      } else if (matchWebsiteCommand(text)?.entry.url) {
-        // Any site in the spoken-command registry opens by name: "open GitHub",
-        // "open Instagram", "open Gmail", …
-        const siteMatch = matchWebsiteCommand(text);
-        const url = siteMatch?.account?.url || siteMatch?.entry.url || "";
-        const siteName = siteMatch?.entry.name || "that website";
-        action = { type: "open_url", label: `Open ${siteName}`, url };
-        addDesktopActionLog({
-          action: "Open Website",
-          target: url,
-          status: emergencyStopActive ? "blocked" : "approved",
-          executedIn: "DEX MADE Command Router",
-          detail: emergencyStopActive ? "Blocked by Emergency Stop." : `Prepared ${siteName} launcher link.`,
-        });
-        replyText = emergencyStopActive
-          ? "Emergency Stop is currently active, Muheeb. Clear it in Computer Control and I will open that for you."
-          : `Opening ${siteName} for you, Muheeb.`;
       } else {
-        // Voice conversations pass a fast model so DEX MADE answers in about a
+        // Voice conversations pass a fast model so AURIX answers in about a
         // second instead of waiting on the deep thinking model.
         const voiceFast = requestedModel === "gemini-3.1-flash-lite";
         const aiReply = await chatWithAurix({
@@ -1148,16 +977,13 @@ async function startServer() {
           fast: voiceFast,
         });
         replyText = aiReply.text;
-        servedModel = aiReply.modelUsed;
       }
 
       const assistantMsg = addMessage({
         conversationId: activeConvId,
         role: "assistant",
         content: replyText,
-        modelUsed: settings.offlineModeForced
-          ? "offline-knowledge-engine"
-          : servedModel || settings.activeModel,
+        modelUsed: settings.offlineModeForced ? "offline-knowledge-engine" : settings.activeModel,
         language: targetLang,
         thinkingLevel: settings.thinkingLevel,
       });
@@ -1211,15 +1037,15 @@ async function startServer() {
   await runSelfHealAudit({ deepCodeScan: false, reason: "Boot watchdog" });
 
   app.listen(3000, "0.0.0.0", () => {
-    console.log("DEX MADE 2.0 Server listening on http://0.0.0.0:3000");
+    console.log("AURIX 2.0 Server listening on http://0.0.0.0:3000");
   });
 }
 
 process.on("unhandledRejection", (reason) => {
-  console.error("[DEX MADE Self-Heal Shield] Unhandled rejection:", reason);
+  console.error("[AURIX Self-Heal Shield] Unhandled rejection:", reason);
 });
 process.on("uncaughtException", (err) => {
-  console.error("[DEX MADE Self-Heal Shield] Uncaught exception:", err);
+  console.error("[AURIX Self-Heal Shield] Uncaught exception:", err);
 });
 
 startServer();

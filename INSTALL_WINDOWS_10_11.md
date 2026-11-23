@@ -1,4 +1,4 @@
-# DEX MADE 2.0 — Windows 10 & Windows 11 Installation Guide
+# AURIX 2.0 — Windows 10 & Windows 11 Installation Guide
 **POWERED BY: AM VEYRONIX**
 
 ## System Requirements
@@ -18,7 +18,7 @@
 ## Step 2 — Fast One-Click Launch (Recommended)
 1. Double-click `windows_native\AURIX_Portable_Start.bat`.
 2. On first launch, it automatically runs `npm install` to download local Node dependencies.
-3. Your default browser opens `http://localhost:3000` showing the 8-second DEX MADE startup sequence and bright Command Hub.
+3. Your default browser opens `http://localhost:3000` showing the 8-second AURIX startup sequence and bright Command Hub.
 
 *Or manually via PowerShell / Command Prompt:*
 ```powershell
@@ -34,7 +34,7 @@ npm run dev
      ```powershell
      ollama pull qwen2.5:0.5b
      ```
-     *(Choose **Lightweight Mode** in DEX MADE Settings or System > AI Models)*
+     *(Choose **Lightweight Mode** in AURIX Settings or System > AI Models)*
    - **8 GB RAM / Balanced Laptop**:
      ```powershell
      ollama pull qwen2.5:1.5b
@@ -43,7 +43,7 @@ npm run dev
      ```powershell
      ollama pull llama3.2:3b
      ```
-3. DEX MADE automatically detects running Ollama models at `http://127.0.0.1:11434`.
+3. AURIX automatically detects running Ollama models at `http://127.0.0.1:11434`.
 
 ## Step 4 — Optional Native Python Windows PC Automation
 ```powershell
@@ -57,28 +57,28 @@ If you want optional cloud Gemini features while online, copy `.env.example` to 
 ```env
 GEMINI_API_KEY="your_api_key_here"
 ```
-Never share `.env` publicly. Without a key, DEX MADE runs cleanly in Offline + Local Mode.
+Never share `.env` publicly. Without a key, AURIX runs cleanly in Offline + Local Mode.
 
 ## Step 6 — Always-On Laptop Control (Voice Commands That Actually Act)
-Laptop control works only while DEX MADE is running **on your own PC** (`windows_native\AURIX_Portable_Start.bat` or `npm run dev`).
+Laptop control works only while AURIX is running **on your own PC** (`windows_native\AURIX_Portable_Start.bat` or `npm run dev`).
 The hosted browser preview cannot reach your computer, so it offers a clickable link instead of opening anything.
 
-Start DEX MADE automatically with Windows (recommended):
+Start AURIX automatically with Windows (recommended):
 ```powershell
 cd C:\Users\YourName\AURIX_2.0\windows_native
 powershell -ExecutionPolicy Bypass -File .\installer\aurix_autostart.ps1
 ```
-To undo, delete `DEX MADE 2.0.lnk` from `shell:startup`.
+To undo, delete `AURIX 2.0.lnk` from `shell:startup`.
 
-Voice / typed commands DEX MADE can execute on the laptop:
+Voice / typed commands AURIX can execute on the laptop:
 - “open YouTube” · “play my favourite music” · “open my company website”
 - “open my Downloads folder” · “open my Projects folder”
 - “search my laptop for report” (finds files/folders and reveals them in Explorer)
 - “edit my file notes” (opens the file in your default editor)
 - “open notepad / calculator / VS Code / Spotify”
-- “what is my company growth today” (answered from DEX MADE's own project and audit data)
+- “what is my company growth today” (answered from AURIX's own project and audit data)
 
-Social inboxes (Instagram, Facebook, TikTok, LinkedIn, YouTube): DEX MADE opens the platform's messages page in your
+Social inboxes (Instagram, Facebook, TikTok, LinkedIn, YouTube): AURIX opens the platform's messages page in your
 browser. Reading the message contents themselves requires that platform's own API/login, so it stays a page launch.
 
 Every executed action is written to the Automation Center log, and Emergency Stop blocks all of them instantly.

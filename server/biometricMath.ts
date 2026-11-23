@@ -1,7 +1,7 @@
 /**
- * Matching math for DEX MADE biometric verification.
+ * Matching math for AURIX biometric verification.
  *
- * Everything here runs on the local DEX MADE server: the browser only ever sends
+ * Everything here runs on the local AURIX server: the browser only ever sends
  * a fresh sample, and the enrolled template never leaves the backend.
  *
  * Voice scoring was calibrated with synthesized speech (see

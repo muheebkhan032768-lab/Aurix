@@ -55,7 +55,7 @@ export function ExplodedView({ state }: ExplodedViewProps) {
         </span>
       </div>
 
-      <svg viewBox="0 0 520 290" className="mt-1 h-auto w-full" role="img" aria-label="DEX MADE core exploded architecture">
+      <svg viewBox="0 0 520 290" className="mt-1 h-auto w-full" role="img" aria-label="AURIX core exploded architecture">
         <defs>
           <radialGradient id="exploded-core" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor={accent} stopOpacity="0.55" />

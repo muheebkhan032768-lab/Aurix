@@ -7,7 +7,7 @@ export const NATIVE_WINDOWS_FILES: DeliverableFile[] = [
     language: "python",
     description: "Main Python AI orchestration daemon & IPC JSON-RPC bridge for C# WPF shell.",
     content: `"""
-DEX MADE 2.0 — Native Windows AI Core Orchestrator
+AURIX 2.0 — Native Windows AI Core Orchestrator
 Creator: Abdul Muheeb | Company: AM VEYRONIX
 """
 import json
@@ -66,7 +66,7 @@ class AurixOrchestrator:
 
 
 if __name__ == "__main__":
-    orchestrator = AurixOrchestrator(Path.home() / "AppData" / "Local" / "AM_VEYRONIX" / "DEX MADE")
+    orchestrator = AurixOrchestrator(Path.home() / "AppData" / "Local" / "AM_VEYRONIX" / "AURIX")
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     language: "python",
     description: "Hybrid Cloud + Local ONNX Runtime / PyTorch AI Router with automatic CPU/GPU scaling.",
     content: `"""
-DEX MADE 2.0 Hybrid AI Router (Cloud + Local ONNX / CPU fallback)
+AURIX 2.0 Hybrid AI Router (Cloud + Local ONNX / CPU fallback)
 """
 import os
 import urllib.request
@@ -128,7 +128,7 @@ class HybridAIRouter:
         return (
             f"[Offline Local Mode — {self.select_local_quantization()}] "
             "No cloud network or local ONNX model weight file is loaded at this path yet. "
-            "Place an approved ONNX model in %LOCALAPPDATA%\\\\AM_VEYRONIX\\\\DEX MADE\\\\models to enable offline inference."
+            "Place an approved ONNX model in %LOCALAPPDATA%\\\\AM_VEYRONIX\\\\AURIX\\\\models to enable offline inference."
         )
 `,
   },
@@ -136,16 +136,16 @@ class HybridAIRouter:
     path: "python_core/voice_engine.py",
     category: "Python Core",
     language: "python",
-    description: "Offline/Online speech recognition, wake-word loop ('Hello DEX MADE'), and male TTS adapter.",
+    description: "Offline/Online speech recognition, wake-word loop ('Hello AURIX'), and male TTS adapter.",
     content: `"""
-DEX MADE 2.0 Voice Engine — Wake Word, Speech Recognition & Male TTS
+AURIX 2.0 Voice Engine — Wake Word, Speech Recognition & Male TTS
 Languages: English, Urdu, Hindi
 """
 import pyttsx3
 
 
 class AurixVoiceEngine:
-    def __init__(self, wake_phrase: str = "Hello DEX MADE"):
+    def __init__(self, wake_phrase: str = "Hello AURIX"):
         self.wake_phrase = wake_phrase.lower()
         self.engine = pyttsx3.init("sapi5")
         self.configure_male_voice(rate=178)
@@ -173,7 +173,7 @@ class AurixVoiceEngine:
     language: "python",
     description: "Argon2id PIN hashing, attempt limits, temporary lockout, and security audit log.",
     content: `"""
-DEX MADE 2.0 Security Module — Argon2id PIN Hashing & Lockout Controls
+AURIX 2.0 Security Module — Argon2id PIN Hashing & Lockout Controls
 """
 import sqlite3
 import time
@@ -240,7 +240,7 @@ class AurixSecurityManager:
     language: "python",
     description: "Structured SQLite memory manager keeping AM VEYRONIX websites strictly isolated.",
     content: `"""
-DEX MADE 2.0 SQLite Memory Store — Strict Website & Project Isolation
+AURIX 2.0 SQLite Memory Store — Strict Website & Project Isolation
 """
 import sqlite3
 from pathlib import Path
@@ -274,7 +274,7 @@ class AurixMemoryStore:
     path: "python_core/requirements.txt",
     category: "Python Core",
     language: "text",
-    description: "Python 3.11+ dependencies for DEX MADE Windows AI Core.",
+    description: "Python 3.11+ dependencies for AURIX Windows AI Core.",
     content: `google-genai>=1.0.0
 psutil>=6.0.0
 argon2-cffi>=23.1.0
@@ -297,8 +297,8 @@ Pillow>=10.4.0
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PlatformTarget>x64</PlatformTarget>
-    <AssemblyName>DEX MADE</AssemblyName>
-    <ApplicationTitle>DEX MADE 2.0 — AM VEYRONIX</ApplicationTitle>
+    <AssemblyName>AURIX</AssemblyName>
+    <ApplicationTitle>AURIX 2.0 — AM VEYRONIX</ApplicationTitle>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Speech" Version="8.0.0" />
@@ -350,7 +350,7 @@ namespace AurixDesktop
     path: "wpf_desktop/StartupWindow.xaml",
     category: "C# WPF Desktop",
     language: "xml",
-    description: "Pure black 8-second native WPF cinematic startup screen with metallic 3D DEX MADE 2.0 animation, cyan sweep, and fixed bottom-right AM VEYRONIX branding.",
+    description: "Pure black 8-second native WPF cinematic startup screen with metallic 3D AURIX 2.0 animation, cyan sweep, and fixed bottom-right AM VEYRONIX branding.",
     content: `<Window x:Class="AurixDesktop.StartupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -361,7 +361,7 @@ namespace AurixDesktop
             <!-- 0-2s: Cyan atmospheric radial glow -->
             <DoubleAnimation Storyboard.TargetName="CyanAura" Storyboard.TargetProperty="Opacity"
                              From="0" To="0.9" BeginTime="0:0:0" Duration="0:0:2"/>
-            <!-- 2-4s: Sudden 3D slam emergence of large metallic DEX MADE 2.0 -->
+            <!-- 2-4s: Sudden 3D slam emergence of large metallic AURIX 2.0 -->
             <DoubleAnimation Storyboard.TargetName="TitleContainer" Storyboard.TargetProperty="Opacity"
                              From="0" To="1" BeginTime="0:0:1.95" Duration="0:0:1.6"/>
             <DoubleAnimation Storyboard.TargetName="TitleScale" Storyboard.TargetProperty="ScaleX"
@@ -372,7 +372,7 @@ namespace AurixDesktop
                              From="1.48" To="1.0" BeginTime="0:0:1.95" Duration="0:0:1.8">
                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
-            <!-- 4-6s: Cyan light sweep across DEX MADE 2.0 -->
+            <!-- 4-6s: Cyan light sweep across AURIX 2.0 -->
             <DoubleAnimation Storyboard.TargetName="LightSweepTransform" Storyboard.TargetProperty="X"
                              From="-420" To="420" BeginTime="0:0:4" Duration="0:0:1.8"/>
             <DoubleAnimation Storyboard.TargetName="LightSweep" Storyboard.TargetProperty="Opacity"
@@ -403,7 +403,7 @@ namespace AurixDesktop
                 <Grid.RenderTransform>
                     <ScaleTransform x:Name="TitleScale" ScaleX="1.48" ScaleY="1.48"/>
                 </Grid.RenderTransform>
-                <TextBlock Text="DEX MADE 2.0" FontSize="108" FontWeight="Bold" HorizontalAlignment="Center">
+                <TextBlock Text="AURIX 2.0" FontSize="108" FontWeight="Bold" HorizontalAlignment="Center">
                     <TextBlock.Foreground>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#FFFFFF" Offset="0"/>
@@ -519,7 +519,7 @@ namespace AurixDesktop
         private async void StartupSequence_Completed(object? sender, EventArgs e)
         {
             _particleTimer.Stop();
-            bool verified = await WindowsHelloAuth.VerifyOwnerAsync("Verify Abdul Muheeb to enter DEX MADE 2.0");
+            bool verified = await WindowsHelloAuth.VerifyOwnerAsync("Verify Abdul Muheeb to enter AURIX 2.0");
             // If Windows Hello unavailable, MainWindow enforces configured Argon2id PIN fallback
             var main = new MainWindow();
             Application.Current.MainWindow = main;
@@ -537,10 +537,10 @@ namespace AurixDesktop
         private static void SpeakFirstTimeAwareGreeting(bool verified)
         {
             int hour = DateTime.Now.Hour;
-            string prefix = hour >= 5 && hour < 12 ? "Good morning, Muheeb. DEX MADE is online and ready."
-                          : hour >= 12 && hour < 17 ? "Good afternoon, Muheeb. DEX MADE is online and ready."
-                          : hour >= 17 && hour < 21 ? "Good evening, Muheeb. DEX MADE is online and ready."
-                          : "Good evening, Muheeb. DEX MADE is ready.";
+            string prefix = hour >= 5 && hour < 12 ? "Good morning, Muheeb. AURIX is online and ready."
+                          : hour >= 12 && hour < 17 ? "Good afternoon, Muheeb. AURIX is online and ready."
+                          : hour >= 17 && hour < 21 ? "Good evening, Muheeb. AURIX is online and ready."
+                          : "Good evening, Muheeb. AURIX is ready.";
 
             string full = verified
                 ? $"{prefix} All systems are operational. How may I assist you today?"
@@ -628,7 +628,7 @@ namespace AurixDesktop
     content: `<Window x:Class="AurixDesktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DEX MADE 2.0 — AM VEYRONIX" Height="860" Width="1400"
+        Title="AURIX 2.0 — AM VEYRONIX" Height="860" Width="1400"
         Background="#070B12" Foreground="#F1F5F9"
         WindowStartupLocation="CenterScreen">
     <Grid>
@@ -639,7 +639,7 @@ namespace AurixDesktop
 
         <Border Grid.Column="0" Background="#0D1420" BorderBrush="#1E293B" BorderThickness="0,0,1,0" Padding="20">
             <StackPanel>
-                <TextBlock Text="DEX MADE 2.0" FontSize="22" FontWeight="Bold" Foreground="#06B6D4"/>
+                <TextBlock Text="AURIX 2.0" FontSize="22" FontWeight="Bold" Foreground="#06B6D4"/>
                 <TextBlock Text="AM VEYRONIX · Abdul Muheeb" FontSize="12" Foreground="#94A3B8" Margin="0,4,0,20"/>
                 <Button Content="Home Dashboard" Margin="0,4" Padding="12,8" Click="NavButton_Click"/>
                 <Button Content="AI Chat Core" Margin="0,4" Padding="12,8" Click="NavButton_Click"/>
@@ -658,7 +658,7 @@ namespace AurixDesktop
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                <TextBlock x:Name="StatusTitle" Text="DEX MADE Native Desktop Core Ready" FontSize="24" FontWeight="SemiBold"/>
+                <TextBlock x:Name="StatusTitle" Text="AURIX Native Desktop Core Ready" FontSize="24" FontWeight="SemiBold"/>
                 <TextBlock x:Name="HardwareSummary" Text="Detecting system hardware..." FontSize="13" Foreground="#94A3B8" Margin="0,4,0,0"/>
             </StackPanel>
 
@@ -676,7 +676,7 @@ namespace AurixDesktop
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="PromptInput" Grid.Column="0" Padding="14,10" Background="#0D1420"
                          Foreground="#F8FAFC" BorderBrush="#334155" FontSize="14"/>
-                <Button Grid.Column="1" Content="Send to DEX MADE" Margin="12,0,0,0" Padding="20,10"
+                <Button Grid.Column="1" Content="Send to AURIX" Margin="12,0,0,0" Padding="20,10"
                         Background="#06B6D4" Foreground="#041018" FontWeight="SemiBold" Click="SendPrompt_Click"/>
             </Grid>
         </Grid>
@@ -743,14 +743,14 @@ namespace AurixDesktop
 
         private async void VerifyHello_Click(object sender, RoutedEventArgs e)
         {
-            var result = await WindowsHelloAuth.VerifyOwnerAsync("Verify Abdul Muheeb identity for DEX MADE");
-            MessageBox.Show(result ? "Windows Hello Verified." : "Biometric verification unavailable or cancelled.", "DEX MADE Security");
+            var result = await WindowsHelloAuth.VerifyOwnerAsync("Verify Abdul Muheeb identity for AURIX");
+            MessageBox.Show(result ? "Windows Hello Verified." : "Biometric verification unavailable or cancelled.", "AURIX Security");
         }
 
         private void NavButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is System.Windows.Controls.Button btn)
-                StatusTitle.Text = $"DEX MADE — {btn.Content}";
+                StatusTitle.Text = $"AURIX — {btn.Content}";
         }
     }
 }
@@ -794,25 +794,25 @@ namespace AurixDesktop
     path: "installer/aurix_autostart.ps1",
     category: "Build & Installer",
     language: "powershell",
-    description: "Registers DEX MADE 2.0 to start with Windows so voice control always has access to the laptop.",
-    content: `# DEX MADE 2.0 — Start with Windows (always-on laptop access)
+    description: "Registers AURIX 2.0 to start with Windows so voice control always has access to the laptop.",
+    content: `# AURIX 2.0 — Start with Windows (always-on laptop access)
 # Run once in PowerShell:
 #   powershell -ExecutionPolicy Bypass -File .\\installer\\aurix_autostart.ps1
 $ErrorActionPreference = "Stop"
 
 $launcher = (Resolve-Path (Join-Path $PSScriptRoot "..\\AURIX_Portable_Start.bat")).Path
 $startupFolder = [Environment]::GetFolderPath("Startup")
-$shortcutPath = Join-Path $startupFolder "DEX MADE 2.0.lnk"
+$shortcutPath = Join-Path $startupFolder "AURIX 2.0.lnk"
 
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $launcher
 $shortcut.WorkingDirectory = Split-Path $launcher
 $shortcut.WindowStyle = 7
-$shortcut.Description = "DEX MADE 2.0 — AM VEYRONIX personal AI assistant"
+$shortcut.Description = "AURIX 2.0 — AM VEYRONIX personal AI assistant"
 $shortcut.Save()
 
-Write-Host "DEX MADE 2.0 will now start with Windows." -ForegroundColor Green
+Write-Host "AURIX 2.0 will now start with Windows." -ForegroundColor Green
 Write-Host "Shortcut: $shortcutPath"
 Write-Host "To undo, delete that shortcut."
 `,
@@ -822,7 +822,7 @@ Write-Host "To undo, delete that shortcut."
     category: "Build & Installer",
     language: "powershell",
     description: "PowerShell script to bundle Python core + self-contained .NET 8 x64 WPF executable.",
-    content: `# DEX MADE 2.0 x64 Windows Build Script (Run on Windows 10/11 x64)
+    content: `# AURIX 2.0 x64 Windows Build Script (Run on Windows 10/11 x64)
 $ErrorActionPreference = "Stop"
 
 Write-Host "1. Installing Python dependencies..."
@@ -844,11 +844,11 @@ Write-Host "4. Build ready in ./dist/. Run Inno Setup on aurix_installer.iss to 
     language: "ini",
     description: "Inno Setup 6 script to compile a signed-ready Windows 10/11 x64 installer.",
     content: `[Setup]
-AppName=DEX MADE 2.0 — AM VEYRONIX
+AppName=AURIX 2.0 — AM VEYRONIX
 AppVersion=2.0.0
 AppPublisher=AM VEYRONIX (Abdul Muheeb)
-DefaultDirName={autopf}\\AM VEYRONIX\\DEX MADE
-DefaultGroupName=DEX MADE 2.0
+DefaultDirName={autopf}\\AM VEYRONIX\\AURIX
+DefaultGroupName=AURIX 2.0
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputBaseFilename=AURIX_2.0_Setup_x64
@@ -860,9 +860,9 @@ Source: "dist\\desktop\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdir
 Source: "dist\\python_core\\aurix_core.exe"; DestDir: "{app}\\python_core"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
-Name: "{autodesktop}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
-Name: "{userstartup}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
+Name: "{group}\\AURIX 2.0"; Filename: "{app}\\AURIX.exe"
+Name: "{autodesktop}\\AURIX 2.0"; Filename: "{app}\\AURIX.exe"
+Name: "{userstartup}\\AURIX 2.0"; Filename: "{app}\\AURIX.exe"
 `,
   },
   {
@@ -870,7 +870,7 @@ Name: "{userstartup}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
     category: "Documentation",
     language: "markdown",
     description: "Step-by-step Windows 10/11 x64 compilation and installation instructions.",
-    content: `# DEX MADE 2.0 — Native Windows 10/11 x64 Installation & Build Guide
+    content: `# AURIX 2.0 — Native Windows 10/11 x64 Installation & Build Guide
 
 ## Prerequisites (Windows 10/11 64-bit)
 1. .NET 8.0 SDK (x64)
@@ -881,7 +881,7 @@ Name: "{userstartup}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
 1. Open PowerShell inside \`installer/\`.
 2. Run \`./build_x64.ps1\` to freeze the Python AI core and publish the self-contained C# WPF executable.
 3. Open \`installer/aurix_installer.iss\` in Inno Setup Compiler and click **Build -> Compile** to produce \`AURIX_2.0_Setup_x64.exe\`.
-4. Set your \`GEMINI_API_KEY\` environment variable or Windows Credential Manager entry for cloud mode, and optionally place local ONNX model weights under \`%LOCALAPPDATA%\\AM_VEYRONIX\\DEX MADE\\models\`.
+4. Set your \`GEMINI_API_KEY\` environment variable or Windows Credential Manager entry for cloud mode, and optionally place local ONNX model weights under \`%LOCALAPPDATA%\\AM_VEYRONIX\\AURIX\\models\`.
 `,
   },
   {
@@ -889,12 +889,12 @@ Name: "{userstartup}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
     category: "Documentation",
     language: "markdown",
     description: "Troubleshooting guide for GPU/CPU inference, Windows Hello, and voice permissions.",
-    content: `# DEX MADE 2.0 — Troubleshooting Guide
+    content: `# AURIX 2.0 — Troubleshooting Guide
 
-- **No Dedicated GPU Detected**: DEX MADE automatically selects \`CPUExecutionProvider\` and \`Q4_0\` quantization so it runs reliably on entry-level laptops without CUDA.
-- **Windows Hello Unavailable**: Ensure a PIN/Hello face sensor is enrolled in Windows Settings -> Accounts -> Sign-in options. DEX MADE falls back automatically to Argon2id PIN verification.
-- **Voice Input Silent**: Confirm Windows Privacy -> Microphone access is enabled for desktop apps and adjust Microphone Sensitivity in DEX MADE Settings.
-- **Offline Mode**: When internet is unavailable, DEX MADE switches to local SQLite memory and local ONNX models if installed, clearly displaying Offline status.
+- **No Dedicated GPU Detected**: AURIX automatically selects \`CPUExecutionProvider\` and \`Q4_0\` quantization so it runs reliably on entry-level laptops without CUDA.
+- **Windows Hello Unavailable**: Ensure a PIN/Hello face sensor is enrolled in Windows Settings -> Accounts -> Sign-in options. AURIX falls back automatically to Argon2id PIN verification.
+- **Voice Input Silent**: Confirm Windows Privacy -> Microphone access is enabled for desktop apps and adjust Microphone Sensitivity in AURIX Settings.
+- **Offline Mode**: When internet is unavailable, AURIX switches to local SQLite memory and local ONNX models if installed, clearly displaying Offline status.
 `,
   },
   {
@@ -902,11 +902,11 @@ Name: "{userstartup}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
     category: "Documentation",
     language: "markdown",
     description: "Backup, export, and disaster recovery procedure for SQLite knowledge and PIN lockouts.",
-    content: `# DEX MADE 2.0 — Backup & Recovery Guide
+    content: `# AURIX 2.0 — Backup & Recovery Guide
 
 ## Exporting Backups
-- In the DEX MADE Command Center, open **Settings -> Memory & Backups** and click **Export JSON Backup**.
-- On native Windows installations, back up \`%LOCALAPPDATA%\\AM_VEYRONIX\\DEX MADE\\aurix_local.db\` and \`security.db\`.
+- In the AURIX Command Center, open **Settings -> Memory & Backups** and click **Export JSON Backup**.
+- On native Windows installations, back up \`%LOCALAPPDATA%\\AM_VEYRONIX\\AURIX\\aurix_local.db\` and \`security.db\`.
 
 ## PIN Lockout Recovery
 - 5 consecutive incorrect PIN entries trigger a 120-second cooldown lockout.
@@ -918,7 +918,7 @@ Name: "{userstartup}\\DEX MADE 2.0"; Filename: "{app}\\DEX MADE.exe"
     category: "Python Core",
     language: "python",
     description: "Native Windows 10/11 PC automation: launch YouTube/websites, apps, screenshots, Downloads sorting, firewall check, and Emergency Stop guard.",
-    content: `"""DEX MADE 2.0 — Native Windows PC Controller for Abdul Muheeb"""
+    content: `"""AURIX 2.0 — Native Windows PC Controller for Abdul Muheeb"""
 import os
 import shutil
 import subprocess
@@ -927,7 +927,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 
-EMERGENCY_FLAG = Path.home() / "AppData" / "Local" / "AM_VEYRONIX" / "DEX MADE" / "EMERGENCY_STOP.flag"
+EMERGENCY_FLAG = Path.home() / "AppData" / "Local" / "AM_VEYRONIX" / "AURIX" / "EMERGENCY_STOP.flag"
 
 ALLOWED_APPS = {
     "notepad": ["notepad.exe"],
@@ -1034,7 +1034,7 @@ def check_windows_firewall() -> Dict[str, Any]:
     category: "Python Core",
     language: "python",
     description: "12-step continuous self-healing watchdog: backup snapshots, AST syntax checks, SQLite PRAGMA repair, and rollback safety.",
-    content: `"""DEX MADE 2.0 — 12-Step Self-Healing Watchdog"""
+    content: `"""AURIX 2.0 — 12-Step Self-Healing Watchdog"""
 import ast
 import shutil
 import sqlite3
@@ -1075,7 +1075,7 @@ def heal_sqlite_db(db_path: str) -> Dict[str, Any]:
     category: "Python Core",
     language: "python",
     description: "100% Free Local/Offline AI Engine connecting to Ollama + RAM model fit check.",
-    content: `"""DEX MADE 2.0 — Free Local & Offline AI Brain"""
+    content: `"""AURIX 2.0 — Free Local & Offline AI Brain"""
 import urllib.request
 import json
 
@@ -1110,11 +1110,11 @@ def ask_local_ollama(prompt: str, model: str = "qwen2.5:1.5b") -> str | None:
     path: "AURIX_Portable_Start.bat",
     category: "Build & Installer",
     language: "batch",
-    description: "One-click Windows 10/11 Portable Launcher starting the DEX MADE 2.0 server and opening the bright desktop browser shell.",
+    description: "One-click Windows 10/11 Portable Launcher starting the AURIX 2.0 server and opening the bright desktop browser shell.",
     content: `@echo off
-title DEX MADE 2.0 - AM VEYRONIX Portable Launcher
+title AURIX 2.0 - AM VEYRONIX Portable Launcher
 echo ====================================================
-echo   DEX MADE 2.0 — POWERED BY AM VEYRONIX
+echo   AURIX 2.0 — POWERED BY AM VEYRONIX
 echo   Starting Personal AI Command Center...
 echo ====================================================
 cd /d "%~dp0.."
@@ -1132,7 +1132,7 @@ if not exist "node_modules" (
 )
 
 start "" http://localhost:3000
-echo [RUN] Starting DEX MADE 2.0 server on http://localhost:3000 ...
+echo [RUN] Starting AURIX 2.0 server on http://localhost:3000 ...
 call npm run dev
 pause
 `,
@@ -1142,9 +1142,9 @@ pause
     category: "Build & Installer",
     language: "powershell",
     description: "Windows 10/11 64-bit interactive environment checker & installer setup script.",
-    content: `# DEX MADE 2.0 — Windows 10/11 Setup Verification & Installer Helper
+    content: `# AURIX 2.0 — Windows 10/11 Setup Verification & Installer Helper
 $ErrorActionPreference = "Continue"
-Write-Host "=== DEX MADE 2.0 (AM VEYRONIX) Windows 10/11 Setup Check ===" -ForegroundColor Cyan
+Write-Host "=== AURIX 2.0 (AM VEYRONIX) Windows 10/11 Setup Check ===" -ForegroundColor Cyan
 
 $ramGb = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 2)
 Write-Host "Detected RAM: $ramGb GB"
@@ -1174,7 +1174,7 @@ else { Write-Host "Ollama Offline AI: Optional - Install from https://ollama.com
     category: "Build & Installer",
     language: "powershell",
     description: "Phase 1 hardware & environment audit for the real Windows PC. Reads CPU, RAM, GPU, disks, Windows build and AI runtimes, prints the compatibility verdict and saves aurix_hardware_audit.json.",
-    content: `# DEX MADE 2.0 — Phase 1 Hardware & Environment Audit (AM VEYRONIX)
+    content: `# AURIX 2.0 — Phase 1 Hardware & Environment Audit (AM VEYRONIX)
 # Run on the target Windows 10/11 PC:  powershell -ExecutionPolicy Bypass -File .\\Audit_Hardware.ps1
 $ErrorActionPreference = "Continue"
 $out = @{ generatedAt = (Get-Date).ToString("o") }
@@ -1194,7 +1194,7 @@ $dedicated = $gpu.Name -match "NVIDIA|GeForce|RTX|GTX|Radeon RX|Arc A"
 
 $score = [math]::Min(100, [math]::Round([math]::Min(40, $ramGb / 32 * 40)) + [math]::Round([math]::Min(24, $cpu.NumberOfCores / 8 * 24)) + $(if ($dedicated) { 20 } elseif ($gpu) { 8 } else { 4 }) + $(if ($diskFreeGb -ge 20) { 16 } elseif ($diskFreeGb -ge 8) { 10 } else { 4 }))
 
-Write-Host "=== DEX MADE 2.0 HARDWARE COMPATIBILITY REPORT ===" -ForegroundColor Cyan
+Write-Host "=== AURIX 2.0 HARDWARE COMPATIBILITY REPORT ===" -ForegroundColor Cyan
 Write-Host "OS            : $($os.Caption) build $($os.BuildNumber) ($($os.OSArchitecture))"
 Write-Host "CPU           : $($cpu.Name) - $($cpu.NumberOfCores) physical / $($cpu.NumberOfLogicalProcessors) logical cores"
 Write-Host "RAM           : $ramGb GB installed, $freeRamGb GB free"
@@ -1237,7 +1237,7 @@ $out += @{
 $jsonPath = Join-Path $PSScriptRoot "aurix_hardware_audit.json"
 $out | ConvertTo-Json -Depth 4 | Set-Content -Path $jsonPath -Encoding UTF8
 Write-Host "Saved JSON report: $jsonPath" -ForegroundColor Cyan
-Write-Host "Paste this JSON into the DEX MADE System & PC Monitor to confirm the architecture choice." -ForegroundColor DarkGray
+Write-Host "Paste this JSON into the AURIX System & PC Monitor to confirm the architecture choice." -ForegroundColor DarkGray
 `,
   },
 ];

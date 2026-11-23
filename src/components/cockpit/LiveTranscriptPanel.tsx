@@ -5,7 +5,6 @@ const STATE_LABEL: Record<VoiceSessionState, string> = {
   idle: "STANDBY",
   listening: "CAPTURING",
   processing: "TRANSCRIBING",
-  thinking: "THINKING",
   speaking: "VOICE OUT",
   error: "ATTENTION",
 };
@@ -14,7 +13,6 @@ const STATE_COLOR: Record<VoiceSessionState, string> = {
   idle: "text-[#5B7185]",
   listening: "text-[#00D9FF]",
   processing: "text-[#147DFF]",
-  thinking: "text-[#00D9FF]",
   speaking: "text-[#2FE9C6]",
   error: "text-rose-300",
 };
@@ -25,7 +23,7 @@ interface WordSpan {
 }
 
 /**
- * Live transcript: what the microphone is hearing, then DEX MADE's answer with the
+ * Live transcript: what the microphone is hearing, then AURIX's answer with the
  * word being spoken highlighted as the voice reaches it.
  */
 export function LiveTranscriptPanel() {
@@ -59,7 +57,7 @@ export function LiveTranscriptPanel() {
   return (
     <section
       className="nexus-panel rounded-2xl px-4 py-3"
-      aria-label="DEX MADE live transcript"
+      aria-label="AURIX live transcript"
       data-testid="live-transcript"
       data-transcript-state={voice.state}
     >
@@ -85,7 +83,7 @@ export function LiveTranscriptPanel() {
 
         <div>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">DEX MADE</p>
+            <p className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">AURIX</p>
             <span className="text-[8px] font-mono uppercase tracking-[0.14em] text-[#3F5567]">
               {words.length ? `${spokenWords}/${words.length} words` : "—"}
             </span>

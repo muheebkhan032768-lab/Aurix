@@ -67,7 +67,7 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
       return;
     }
     if (!confirmed) {
-      setFeedback({ ok: false, text: "Tick the confirmation box — DEX MADE never runs an action you did not approve." });
+      setFeedback({ ok: false, text: "Tick the confirmation box — AURIX never runs an action you did not approve." });
       return;
     }
     setBusy(true);
@@ -111,7 +111,7 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
           </button>
         </div>
         <p className="mt-1 text-[11px] text-[#94A8B8]">
-          Sensitive operations require explicit approval. When DEX MADE runs on your own computer these actions execute
+          Sensitive operations require explicit approval. When AURIX runs on your own computer these actions execute
           for real; the hosted browser preview only queues them.
         </p>
       </div>
@@ -129,7 +129,7 @@ export function AutomationCenterView({ auditLogs, emergencyStopActive, onToggleE
           </span>
         </div>
         <p className="mt-1 text-[11px] text-[#94A8B8]">
-          {laptop?.reason || "Checking whether DEX MADE can reach this computer…"}
+          {laptop?.reason || "Checking whether AURIX can reach this computer…"}
         </p>
         <p className="mt-1 text-[11px] text-[#5B7185]">
           Say: “open YouTube”, “play my favourite music”, “open my company website”, “open my Downloads folder”,

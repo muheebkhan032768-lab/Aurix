@@ -1,12 +1,12 @@
 /**
- * DEX MADE Owner Activation Bridge
+ * AURIX Owner Activation Bridge
  *
- * Sends only two facts to the local DEX MADE server:
+ * Sends only two facts to the local AURIX server:
  *   1. Chrome started
  *   2. A Gmail tab was opened
  *
  * It never reads page content, messages, passwords, OTPs or account details,
- * and it does not authenticate anyone. DEX MADE decides on its own whether the
+ * and it does not authenticate anyone. AURIX decides on its own whether the
  * owner must verify with face or voice before the personal session unlocks.
  */
 
@@ -26,7 +26,7 @@ async function notifyAurix(source, detail) {
         return;
       }
     } catch {
-      // DEX MADE is not running — nothing to do, never retry in a loop.
+      // AURIX is not running — nothing to do, never retry in a loop.
     }
   }
   chrome.action.setBadgeText({ text: "OFF" });
@@ -38,7 +38,7 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-  void notifyAurix("chrome", "DEX MADE bridge installed — Chrome bridge connected");
+  void notifyAurix("chrome", "AURIX bridge installed — Chrome bridge connected");
 });
 
 chrome.webNavigation.onCommitted.addListener((details) => {

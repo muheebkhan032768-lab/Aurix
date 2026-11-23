@@ -1,9 +1,9 @@
 /**
- * Local voice feature extraction for DEX MADE speaker verification.
+ * Local voice feature extraction for AURIX speaker verification.
  *
  * The microphone stream is analysed in the browser into MFCC frames (13
  * cepstral coefficients per 23 ms frame). Only those features are sent to the
- * local DEX MADE server — the raw recording is never uploaded or stored.
+ * local AURIX server — the raw recording is never uploaded or stored.
  */
 import { patchRuntime } from "./runtime";
 
@@ -299,7 +299,7 @@ export interface VoiceCommandListener {
 }
 
 /**
- * Continuous command listening for TEACH DEX MADE mode. Calls back with each
+ * Continuous command listening for TEACH AURIX mode. Calls back with each
  * finalized transcript. Stops cleanly and reports failures instead of looping.
  */
 export function listenForCommands(
@@ -309,7 +309,7 @@ export function listenForCommands(
 ): VoiceCommandListener {
   const Ctor = getRecognitionCtor();
   if (!Ctor) {
-    onError("This browser does not support speech recognition. Use the on-screen buttons to teach DEX MADE.");
+    onError("This browser does not support speech recognition. Use the on-screen buttons to teach AURIX.");
     return { stop: () => undefined };
   }
   let stopped = false;

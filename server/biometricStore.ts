@@ -1,5 +1,5 @@
 /**
- * DEX MADE biometric identity store.
+ * AURIX biometric identity store.
  *
  * - Enrolled face/voice templates are encrypted at rest with AES-256-GCM using
  *   a locally generated key (data/biometric.key, mode 0600) and never returned
@@ -37,7 +37,7 @@ function getKey(): Buffer {
   }
   const existing = fs.readFileSync(KEY_PATH);
   if (existing.length === 32) return existing;
-  throw new Error("DEX MADE biometric key file is corrupt. Delete data/biometric.key and re-enroll.");
+  throw new Error("AURIX biometric key file is corrupt. Delete data/biometric.key and re-enroll.");
 }
 
 function encryptPayload(value: unknown): string {
@@ -69,7 +69,7 @@ db.exec(`
     id INTEGER PRIMARY KEY CHECK (id = 1),
     face_enabled INTEGER NOT NULL DEFAULT 1,
     voice_enabled INTEGER NOT NULL DEFAULT 1,
-    auth_phrase TEXT NOT NULL DEFAULT 'DEX MADE authorize my voice',
+    auth_phrase TEXT NOT NULL DEFAULT 'AURIX authorize my voice',
     face_threshold REAL NOT NULL DEFAULT 0.86,
     voice_threshold REAL NOT NULL DEFAULT 0.78,
     require_biometric_on_boot INTEGER NOT NULL DEFAULT 1,
@@ -413,7 +413,7 @@ export function verifyFace(input: { embedding: number[]; geometry: number[]; liv
   const details: string[] = [];
 
   if (!settings.faceEnabled) {
-    return deny("face", "Face authentication is switched off in DEX MADE settings.", settings.faceThreshold, details);
+    return deny("face", "Face authentication is switched off in AURIX settings.", settings.faceThreshold, details);
   }
   if (!template || template.samples.length === 0) {
     return deny("face", "No face profile is enrolled yet.", settings.faceThreshold, details);
@@ -425,7 +425,7 @@ export function verifyFace(input: { embedding: number[]; geometry: number[]; liv
   if (!input.liveness?.blinkDetected) {
     return deny(
       "face",
-      "Liveness check failed: no blink was detected during the capture, so a printed photo or still image cannot unlock DEX MADE.",
+      "Liveness check failed: no blink was detected during the capture, so a printed photo or still image cannot unlock AURIX.",
       settings.faceThreshold,
       details
     );
@@ -462,7 +462,7 @@ export function verifyVoice(input: {
   const details: string[] = [];
 
   if (!settings.voiceEnabled) {
-    return deny("voice", "Voice authentication is switched off in DEX MADE settings.", settings.voiceThreshold, details);
+    return deny("voice", "Voice authentication is switched off in AURIX settings.", settings.voiceThreshold, details);
   }
   if (!template || template.utterances.length === 0) {
     return deny("voice", "No voice profile is enrolled yet.", settings.voiceThreshold, details);
@@ -609,7 +609,7 @@ export function recordActivation(source: string, detail: string): {
       uid("act"),
       source,
       "ignored",
-      `${detail} — detection disabled in DEX MADE settings.`,
+      `${detail} — detection disabled in AURIX settings.`,
       nowIso()
     );
     return { action: "ignored", status: getActivationStatus() };
@@ -629,7 +629,7 @@ export function recordActivation(source: string, detail: string): {
       uid("act"),
       source,
       "setup_required",
-      `${detail} — no owner face, voice or PIN is configured yet, so DEX MADE cannot verify anyone.`,
+      `${detail} — no owner face, voice or PIN is configured yet, so AURIX cannot verify anyone.`,
       nowIso()
     );
     return { action: "setup_required", status: getActivationStatus() };
@@ -645,7 +645,7 @@ export function recordActivation(source: string, detail: string): {
     uid("act"),
     source,
     "authentication_required",
-    `${detail} — DEX MADE is locked, owner verification requested.`,
+    `${detail} — AURIX is locked, owner verification requested.`,
     ts
   );
   return { action: "authenticate", status: getActivationStatus() };
@@ -679,7 +679,7 @@ export function clearPendingActivation(): void {
   db.prepare(`DELETE FROM pending_activation WHERE id = 1`).run();
 }
 
-/** DEX MADE can only ask for verification once the owner has a credential. */
+/** AURIX can only ask for verification once the owner has a credential. */
 function hasAnyCredential(): boolean {
   const enrollment = getEnrollmentSummary();
   return enrollment.face.enrolled || enrollment.voice.enrolled || getSecurityStatus().hasPin;

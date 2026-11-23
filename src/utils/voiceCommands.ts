@@ -84,7 +84,7 @@ const SECTION_COMMANDS: SectionCommand[] = [
     label: "Personal Authentication",
     keywords: ["personal authentication", "biometrics", "identity", "face recognition", "voice authentication"],
   },
-  { section: "teach", label: "Teach DEX MADE", keywords: ["teach aurix", "visual learning", "training mode", "teach"] },
+  { section: "teach", label: "Teach AURIX", keywords: ["teach aurix", "visual learning", "training mode", "teach"] },
   {
     section: "training",
     label: "Training Memory",
@@ -113,8 +113,8 @@ function hasPhrase(text: string, phrases: string[]): boolean {
 function clean(text: string): string {
   let out = text.trim().replace(/\s+/g, " ");
   out = out.replace(/^(?:please|kindly)\s+/i, "");
-  out = out.replace(/^(?:hey|ok|okay)\s+dex\s*made\b[,\s]*/i, "");
-  out = out.replace(/^dex\s*made\b[,\s]*/i, "");
+  out = out.replace(/^(?:hey|ok|okay)\s+aurix\b[,\s]*/i, "");
+  out = out.replace(/^aurix\b[,\s]*/i, "");
   out = out.replace(/^(?:can|could|would)\s+you\s+(?:please\s+)?/i, "");
   out = out.replace(/[.?!]+$/g, "");
   return out.trim();
@@ -179,7 +179,7 @@ function parseNote(text: string): VoiceIntent | null {
 }
 
 /**
- * Maps a spoken or typed phrase onto an DEX MADE command intent.
+ * Maps a spoken or typed phrase onto an AURIX command intent.
  * The parser is intentionally local and deterministic so commands work offline.
  */
 export function parseVoiceCommand(raw: string): VoiceIntent {
@@ -194,9 +194,9 @@ export function parseVoiceCommand(raw: string): VoiceIntent {
     return { kind: "action", action: "help", label: "Show commands" };
   }
 
-  // "Hello Dex Made, enter training mode." opens the visual learning workspace.
+  // "Hello AURIX, enter training mode." opens the visual learning workspace.
   if (/\b(?:enter|start|begin|open|launch)\s+(?:the\s+)?(?:teach\s+aurix\s+|training\s+|visual\s+learning\s+)?(?:mode|training)\b/i.test(lower)) {
-    return { kind: "navigate", section: "teach", label: "Teach DEX MADE" };
+    return { kind: "navigate", section: "teach", label: "Teach AURIX" };
   }
 
   const task = parseTask(text);
@@ -269,7 +269,7 @@ export function parseVoiceCommand(raw: string): VoiceIntent {
     return { kind: "navigate", section: section.section, label: section.label };
   }
 
-  return { kind: "ask_ai", text: text.replace(/^dex\s*made\b[,\s]*/i, "").trim(), label: "Ask DEX MADE" };
+  return { kind: "ask_ai", text: text.replace(/^aurix\b[,\s]*/i, "").trim(), label: "Ask AURIX" };
 }
 
 export const VOICE_COMMAND_REFERENCE: Array<{ title: string; commands: string[] }> = [
@@ -298,7 +298,7 @@ export const VOICE_COMMAND_REFERENCE: Array<{ title: string; commands: string[] 
   {
     title: "Identity & learning",
     commands: [
-      "Hello Dex Made, enter training mode",
+      "Hello AURIX, enter training mode",
       "Open personal authentication",
       "Open training memory",
       "Open Chrome and Gmail activation",

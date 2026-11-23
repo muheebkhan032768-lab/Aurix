@@ -9,11 +9,11 @@ export const DEFAULT_VOICE_SHORTCUTS: VoiceShortcuts = {
 };
 
 export const SHORTCUT_LABELS: Record<keyof VoiceShortcuts, string> = {
-  pushToTalk: "Microphone toggle (press to start, press again to send)",
+  pushToTalk: "Push to talk (hold)",
   cancel: "Cancel recording / stop speech",
   continuous: "Toggle continuous listening",
   activate: "Activate voice assistant",
-  mute: "Mute or unmute DEX MADE voice",
+  mute: "Mute or unmute AURIX voice",
 };
 
 const MODIFIER_KEYS = ["Control", "Shift", "Alt", "Meta", "OS"];

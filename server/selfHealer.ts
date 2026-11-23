@@ -23,7 +23,6 @@ import {
   seedIfNeeded,
 } from "./db";
 import { detectLocalOllamaModels } from "./offlineBrain";
-import { hasAnyGeminiKey } from "./geminiPool";
 
 const execAsync = promisify(exec);
 const BACKUP_DIR = path.resolve(process.cwd(), "data", "backups");
@@ -93,7 +92,7 @@ export async function createSnapshotBackup(reason = "Manual Snapshot"): Promise<
   fs.writeFileSync(zipPath, buf);
   const stat = fs.statSync(zipPath);
 
-  addAuditLog("SELF_HEAL_BACKUP", "DEX MADE Self-Healer", `Created snapshot backup ${filename} (${reason})`, "info");
+  addAuditLog("SELF_HEAL_BACKUP", "AURIX Self-Healer", `Created snapshot backup ${filename} (${reason})`, "info");
 
   return {
     id: filename,
@@ -119,14 +118,14 @@ export async function restoreBackupById(backupId: string): Promise<{ ok: boolean
     if (settingsEntry) {
       const parsed = JSON.parse(await settingsEntry.async("string"));
       saveAppSettings({ ...DEFAULT_APP_SETTINGS, ...parsed });
-      addAuditLog("BACKUP_RESTORED", "DEX MADE Self-Healer", `Restored settings & verified snapshot from ${cleanId}`, "warning");
+      addAuditLog("BACKUP_RESTORED", "AURIX Self-Healer", `Restored settings & verified snapshot from ${cleanId}`, "warning");
       return {
         ok: true,
         detail: `Verified snapshot integrity (${Object.keys(zip.files).length} entries) and restored safe settings from ${cleanId}.`,
       };
     }
 
-    addAuditLog("BACKUP_VERIFIED", "DEX MADE Self-Healer", `Verified archive ${cleanId} (${Object.keys(zip.files).length} files) without overwriting active code.`, "info");
+    addAuditLog("BACKUP_VERIFIED", "AURIX Self-Healer", `Verified archive ${cleanId} (${Object.keys(zip.files).length} files) without overwriting active code.`, "info");
     return {
       ok: true,
       detail: `Verified baseline archive ${cleanId} (${Object.keys(zip.files).length} files ready).`,
@@ -263,7 +262,7 @@ export async function runSelfHealAudit(options?: {
   }
 
   // Check AI Engine (Gemini Key + Local Ollama + Offline Knowledge)
-  const hasGemini = hasAnyGeminiKey();
+  const hasGemini = Boolean(process.env.GEMINI_API_KEY);
   const ollama = await detectLocalOllamaModels(8);
   const aiHealth: SubsystemHealthStatus = hasGemini || ollama.reachable ? "healthy" : "warning";
   const aiDetail = hasGemini
@@ -358,7 +357,7 @@ export async function runSelfHealAudit(options?: {
     fs.mkdirSync(sandboxDir, { recursive: true });
     fs.writeFileSync(
       path.join(sandboxDir, "am_veyronix_notes.md"),
-      "# AM VEYRONIX Workspace\n\nManaged by DEX MADE 2.0 for Abdul Muheeb.\n",
+      "# AM VEYRONIX Workspace\n\nManaged by AURIX 2.0 for Abdul Muheeb.\n",
       "utf8"
     );
     repairLog.push("Initialized missing ./workspace_files sandbox directory.");
@@ -521,7 +520,7 @@ export async function runSelfHealAudit(options?: {
   if (repairedInRun > 0 || options?.deepCodeScan || options?.reason) {
     addAuditLog(
       "SELF_HEAL_RUN",
-      "DEX MADE Self-Healer",
+      "AURIX Self-Healer",
       `${options?.reason || "12-Step Watchdog"}: ${overallStatus} (detected=${problems.length}, repaired=${repairedInRun}, failed=${failedInRun})`,
       hasIssue ? "warning" : "info"
     );

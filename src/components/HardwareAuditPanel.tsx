@@ -58,7 +58,7 @@ export function HardwareAuditPanel() {
           </div>
           <h2 className="mt-1 text-lg font-bold text-[#202938] dark:text-white">Hardware Compatibility Report</h2>
           <p className="mt-1 text-xs text-[#64748B] dark:text-slate-400">
-            Measured live from the machine running DEX MADE — every figure below is read from the host, none are estimated.
+            Measured live from the machine running AURIX — every figure below is read from the host, none are estimated.
           </p>
         </div>
 

@@ -1,12 +1,6 @@
 import React from "react";
 
-export type CompanionVisualState =
-  | "idle"
-  | "listening"
-  | "processing"
-  | "thinking"
-  | "speaking"
-  | "error";
+export type CompanionVisualState = "idle" | "listening" | "processing" | "speaking" | "error";
 
 interface VoiceCompanionFigureProps {
   state: CompanionVisualState;
@@ -18,8 +12,7 @@ interface VoiceCompanionFigureProps {
 const LABELS: Record<CompanionVisualState, string> = {
   idle: "Ready",
   listening: "Listening",
-  processing: "Processing",
-  thinking: "Thinking",
+  processing: "Thinking",
   speaking: "Speaking",
   error: "Needs attention",
 };
@@ -28,18 +21,16 @@ const STATUS_STYLES: Record<CompanionVisualState, string> = {
   idle: "bg-slate-500",
   listening: "bg-[#06B6D4]",
   processing: "bg-[#D6AD60]",
-  thinking: "bg-[#147DFF]",
   speaking: "bg-[#10B981]",
   error: "bg-rose-500",
 };
 
 /**
- * DEX MADE's on-screen presence: a small animated figure that shows whether it is
+ * AURIX's on-screen presence: a small animated figure that shows whether it is
  * listening, thinking or speaking, and speaks the last reply back to you.
  */
 export function VoiceCompanionFigure({ state, caption, open, onToggle }: VoiceCompanionFigureProps) {
-  const active =
-    state === "listening" || state === "speaking" || state === "processing" || state === "thinking";
+  const active = state === "listening" || state === "speaking" || state === "processing";
   const bubble = caption?.trim();
 
   return (
@@ -59,7 +50,7 @@ export function VoiceCompanionFigure({ state, caption, open, onToggle }: VoiceCo
           className={`hidden sm:inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-[#0F1724]/95 backdrop-blur px-2.5 py-1 text-[10px] font-semibold text-[#202938] dark:text-slate-200 shadow-sm`}
         >
           <span className={`w-1.5 h-1.5 rounded-full ${STATUS_STYLES[state]} ${active ? "animate-pulse" : ""}`} />
-          DEX MADE · {LABELS[state]}
+          AURIX · {LABELS[state]}
         </span>
 
         <button

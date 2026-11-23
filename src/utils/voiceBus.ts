@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export type VoiceSessionState = "idle" | "listening" | "processing" | "thinking" | "speaking" | "error";
+export type VoiceSessionState = "idle" | "listening" | "processing" | "speaking" | "error";
 
 export type MicPermission = "granted" | "denied" | "prompt" | "unknown";
 

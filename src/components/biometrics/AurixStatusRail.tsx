@@ -45,12 +45,12 @@ export function AurixStatusRail() {
 
   return (
     <div className="pointer-events-none fixed bottom-3 left-3 z-30 hidden max-w-[min(94vw,760px)] flex-wrap items-center gap-1.5 md:flex">
-      <Pill active={runtime.serverOnline} tone={runtime.serverOnline ? "emerald" : "rose"} icon={runtime.serverOnline ? Wifi : WifiOff} label={runtime.serverOnline ? "DEX MADE online" : "DEX MADE offline"} />
+      <Pill active={runtime.serverOnline} tone={runtime.serverOnline ? "emerald" : "rose"} icon={runtime.serverOnline ? Wifi : WifiOff} label={runtime.serverOnline ? "AURIX online" : "AURIX offline"} />
       <Pill
         active={verified}
         tone={setupMode ? "slate" : verified ? "emerald" : "amber"}
         icon={verified ? ShieldCheck : Lock}
-        label={setupMode ? "Setup mode" : verified ? "Owner verified" : "DEX MADE locked"}
+        label={setupMode ? "Setup mode" : verified ? "Owner verified" : "AURIX locked"}
       />
       <Pill active={cameraOn || cameraPaused} tone={cameraOn ? "rose" : "amber"} icon={cameraOn || cameraPaused ? Camera : CameraOff} label={cameraOn ? "Camera active" : cameraPaused ? "Camera paused" : "Camera off"} />
       <Pill active={micOn} tone="rose" icon={micOn ? Mic : MicOff} label={micOn ? "Microphone active" : "Microphone off"} />

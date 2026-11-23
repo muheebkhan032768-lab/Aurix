@@ -64,7 +64,7 @@ export function HomeView({
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 text-balance">
-              Good day, {owner.name}. DEX MADE intelligence is ready.
+              Good day, {owner.name}. AURIX intelligence is ready.
             </h1>
             <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
               Unified workspace for {company.name} operations, isolated website architecture, voice synthesis, file vision, and native Windows desktop engineering.
@@ -73,7 +73,7 @@ export function HomeView({
 
           <form onSubmit={handleSubmit} className="mt-6">
             <label htmlFor="aurix-quick-command" className="sr-only">
-              Ask DEX MADE anything
+              Ask AURIX anything
             </label>
             <div className="flex flex-col sm:flex-row gap-3">
               <input
@@ -81,14 +81,14 @@ export function HomeView({
                 type="text"
                 value={quickInput}
                 onChange={(e) => setQuickInput(e.target.value)}
-                placeholder="Ask DEX MADE about AM NEXORA, code architecture, business plans, or research..."
+                placeholder="Ask AURIX about AM NEXORA, code architecture, business plans, or research..."
                 className="flex-1 bg-slate-50 dark:bg-[#070B12] border border-slate-200 dark:border-slate-700/80 rounded-lg px-4 py-3 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
               <button
                 type="submit"
                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
-                <span>Engage DEX MADE</span>
+                <span>Engage AURIX</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -127,14 +127,14 @@ export function HomeView({
           <div className="w-36 h-36 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700/80 bg-[#070B12] flex items-center justify-center">
             <img
               src="/src/assets/images/aurix_core_emblem_1795088206132.jpg"
-              alt="DEX MADE precision geometric AI core"
+              alt="AURIX precision geometric AI core"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
             />
           </div>
           <div className="mt-4">
             <div className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
-              DEX MADE Core
+              AURIX Core
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Voice: {settings.voiceName} (Male) · Language: {settings.language}

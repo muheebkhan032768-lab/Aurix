@@ -8,7 +8,7 @@ import {
 } from "./db";
 
 /**
- * 100% Free Local & Offline AI Brain for DEX MADE 2.0.
+ * 100% Free Local & Offline AI Brain for AURIX 2.0.
  * 1) Probes live Ollama instance (http://127.0.0.1:11434/api/tags) without faking models.
  * 2) Selects compatible local model based on real host RAM.
  * 3) Falls back cleanly to deterministic local SQLite intelligence & cybersecurity engine.
@@ -102,7 +102,7 @@ export function answerOfflineWithKnowledge(prompt: string, language: AurixLangua
     q.includes("owasp")
   ) {
     return `Offline Cybersecurity Advisory for ${owner.name}:
-1. Parameterize every SQL query (like DEX MADE SQLite prepared statements) to prevent SQL injection, and sanitize untrusted HTML to stop XSS.
+1. Parameterize every SQL query (like AURIX SQLite prepared statements) to prevent SQL injection, and sanitize untrusted HTML to stop XSS.
 2. Hash local credentials with Argon2id or scrypt + random salt (never plain SHA-256 or hardcoded keys).
 3. Keep Windows Defender Firewall active, disable unused inbound SMB/RDP ports (445, 3389), enforce TLS 1.3 for AM NEXORA and AM DIGITAL HUB, and treat uploaded files strictly as untrusted data.`;
   }
@@ -129,7 +129,7 @@ Pending Tasks: ${matchedSite.pendingTasks || "None recorded"}
   }
 
   if (q.includes("error") || q.includes("heal") || q.includes("fix") || q.includes("bug")) {
-    return `DEX MADE 12-Step Self-Healer is active offline. I verified your local SQLite records (${websites.length} websites, ${projects.length} projects), workspace sandbox, and backup snapshots. Open System > Self-Healer or say "run self heal" to inspect full diagnostics.`;
+    return `AURIX 12-Step Self-Healer is active offline. I verified your local SQLite records (${websites.length} websites, ${projects.length} projects), workspace sandbox, and backup snapshots. Open System > Self-Healer or say "run self heal" to inspect full diagnostics.`;
   }
 
   if (language === "Urdu") {

@@ -471,7 +471,7 @@ export function SelfHealView() {
             AI Code &amp; Runtime Error Auto-Diagnoser (Online Gemini or Offline Engine)
           </h2>
           <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">
-            Paste any exception, stack trace, or broken code snippet — DEX MADE identifies root cause, security risk, and patched replacement code.
+            Paste any exception, stack trace, or broken code snippet — AURIX identifies root cause, security risk, and patched replacement code.
           </p>
         </div>
 

@@ -2,7 +2,7 @@
  * Local model delivery for the on-device vision pipeline.
  *
  * MediaPipe task models are downloaded once into data/models and served from
- * the DEX MADE server, so the browser never talks to a third-party model host and
+ * the AURIX server, so the browser never talks to a third-party model host and
  * inference stays local after the first fetch.
  */
 import fs from "node:fs";
@@ -38,7 +38,7 @@ async function downloadModel(name: string): Promise<string> {
   if (fs.existsSync(target) && fs.statSync(target).size > 1024) return target;
   if (!fs.existsSync(MODEL_DIR)) fs.mkdirSync(MODEL_DIR, { recursive: true });
   const source = MODEL_SOURCES[name];
-  if (!source) throw new Error(`Unknown DEX MADE vision model: ${name}`);
+  if (!source) throw new Error(`Unknown AURIX vision model: ${name}`);
 
   const response = await fetch(source);
   if (!response.ok) throw new Error(`Model download failed for ${name}: HTTP ${response.status}`);

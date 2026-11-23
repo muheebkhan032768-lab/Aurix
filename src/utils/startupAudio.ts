@@ -1,10 +1,8 @@
 /**
- * Warm cinematic startup sound for DEX MADE, synthesized with the Web Audio
- * API (no samples, nothing copyrighted).
- *
- * Shape: a soft air swell and a slowly opening pad in A major, one gentle
- * sub-bass bloom as the name lands, then a single slow bell melody. Deliberately
- * no sharp impacts or repeated short beeps.
+ * Cinematic sci-fi startup sound synthesizer using Web Audio API.
+ * Features: tension whoosh riser -> sudden sub-bass impact & metallic emergence ->
+ * cyan sweep harmonic -> futuristic digital activation chime.
+ * 100% procedural, zero copyrighted samples.
  */
 export interface StartupAudioController {
   isSuspended: boolean;
@@ -31,13 +29,13 @@ export function playProceduralStartupSound(
   const ctx = new AudioCtx();
   const master = ctx.createGain();
   const comp = ctx.createDynamicsCompressor();
-  comp.threshold.setValueAtTime(-18, ctx.currentTime);
-  comp.knee.setValueAtTime(22, ctx.currentTime);
-  comp.ratio.setValueAtTime(3, ctx.currentTime);
-  comp.attack.setValueAtTime(0.02, ctx.currentTime);
-  comp.release.setValueAtTime(0.4, ctx.currentTime);
+  comp.threshold.setValueAtTime(-14, ctx.currentTime);
+  comp.knee.setValueAtTime(18, ctx.currentTime);
+  comp.ratio.setValueAtTime(4, ctx.currentTime);
+  comp.attack.setValueAtTime(0.005, ctx.currentTime);
+  comp.release.setValueAtTime(0.25, ctx.currentTime);
 
-  const normalizedVol = Math.max(0, Math.min(1, volumePercent / 100)) * 0.5;
+  const normalizedVol = Math.max(0, Math.min(1, volumePercent / 100)) * 0.52;
   master.gain.setValueAtTime(0.0001, ctx.currentTime);
   master.connect(comp);
   comp.connect(ctx.destination);
@@ -45,7 +43,8 @@ export function playProceduralStartupSound(
   const totalDur = Math.max(4, durationSeconds);
   const scale = totalDur / 8;
 
-  const noiseLength = Math.floor(ctx.sampleRate * Math.min(4, 3.4 * scale));
+  // Create reusable filtered noise buffer for cinematic air whoosh & impact transient
+  const noiseLength = Math.floor(ctx.sampleRate * Math.min(4, 3.2 * scale));
   const noiseBuffer = ctx.createBuffer(1, noiseLength, ctx.sampleRate);
   const noiseData = noiseBuffer.getChannelData(0);
   for (let i = 0; i < noiseLength; i++) {
@@ -55,95 +54,143 @@ export function playProceduralStartupSound(
   const scheduleComposition = (startAt: number) => {
     master.gain.cancelScheduledValues(startAt);
     master.gain.setValueAtTime(0.0001, startAt);
-    master.gain.exponentialRampToValueAtTime(normalizedVol, startAt + 0.9);
-    master.gain.setValueAtTime(normalizedVol, startAt + Math.max(1.2, totalDur - 2.2));
-    master.gain.exponentialRampToValueAtTime(0.0001, startAt + totalDur - 0.1);
+    master.gain.exponentialRampToValueAtTime(normalizedVol, startAt + 0.35);
+    master.gain.setValueAtTime(normalizedVol, startAt + 6.4 * scale);
+    master.gain.exponentialRampToValueAtTime(0.0001, startAt + totalDur - 0.08);
 
-    // Air swell — a slow, soft breath of filtered noise opening up.
-    const air = ctx.createBufferSource();
-    air.buffer = noiseBuffer;
-    const airFilter = ctx.createBiquadFilter();
-    airFilter.type = "bandpass";
-    airFilter.Q.setValueAtTime(1.1, startAt);
-    airFilter.frequency.setValueAtTime(240, startAt);
-    airFilter.frequency.exponentialRampToValueAtTime(1500, startAt + 2.6 * scale);
-    const airGain = ctx.createGain();
-    airGain.gain.setValueAtTime(0.0001, startAt);
-    airGain.gain.exponentialRampToValueAtTime(0.09, startAt + 1.8 * scale);
-    airGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 3.4 * scale);
-    air.connect(airFilter);
-    airFilter.connect(airGain);
-    airGain.connect(master);
-    air.start(startAt);
-    air.stop(startAt + 3.5 * scale);
+    // PHASE 1 (0.0s -> 1.95s): Deep Sub Tension + Rising Cinematic Air Whoosh
+    const whoosh = ctx.createBufferSource();
+    whoosh.buffer = noiseBuffer;
+    const whooshFilter = ctx.createBiquadFilter();
+    whooshFilter.type = "bandpass";
+    whooshFilter.Q.setValueAtTime(2.6, startAt);
+    whooshFilter.frequency.setValueAtTime(120, startAt);
+    whooshFilter.frequency.exponentialRampToValueAtTime(3400, startAt + 1.92 * scale);
 
-    // Warm pad in A major, slowly opening its filter as the name resolves.
-    const padFreqs = [110.0, 164.81, 220.0, 277.18];
-    const padFilter = ctx.createBiquadFilter();
-    padFilter.type = "lowpass";
-    padFilter.frequency.setValueAtTime(420, startAt);
-    padFilter.frequency.linearRampToValueAtTime(1900, startAt + 3.1 * scale);
-    padFilter.frequency.linearRampToValueAtTime(900, startAt + totalDur);
-    padFilter.connect(master);
+    const whooshGain = ctx.createGain();
+    whooshGain.gain.setValueAtTime(0.0001, startAt);
+    whooshGain.gain.exponentialRampToValueAtTime(0.32, startAt + 1.85 * scale);
+    whooshGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 2.25 * scale);
 
-    padFreqs.forEach((freq, index) => {
+    whoosh.connect(whooshFilter);
+    whooshFilter.connect(whooshGain);
+    whooshGain.connect(master);
+    whoosh.start(startAt);
+    whoosh.stop(startAt + 2.35 * scale);
+
+    // Rising turbine/energy synth leading into the impact
+    const riser = ctx.createOscillator();
+    const riserGain = ctx.createGain();
+    riser.type = "sawtooth";
+    riser.frequency.setValueAtTime(55, startAt + 0.1 * scale);
+    riser.frequency.exponentialRampToValueAtTime(220, startAt + 1.95 * scale);
+
+    const riserLp = ctx.createBiquadFilter();
+    riserLp.type = "lowpass";
+    riserLp.frequency.setValueAtTime(180, startAt);
+    riserLp.frequency.exponentialRampToValueAtTime(1800, startAt + 1.95 * scale);
+
+    riserGain.gain.setValueAtTime(0.0001, startAt);
+    riserGain.gain.exponentialRampToValueAtTime(0.18, startAt + 1.88 * scale);
+    riserGain.gain.exponentialRampToValueAtTime(0.0001, startAt + 2.1 * scale);
+
+    riser.connect(riserLp);
+    riserLp.connect(riserGain);
+    riserGain.connect(master);
+    riser.start(startAt);
+    riser.stop(startAt + 2.15 * scale);
+
+    // PHASE 2 (1.95s): SUDDEN CINEMATIC EMERGENCE IMPACT ("Something massive appears")
+    const impactAt = startAt + 1.95 * scale;
+
+    // 2A. Deep Sub-Bass Drop Boom (135Hz -> 34Hz)
+    const boom = ctx.createOscillator();
+    const boomGain = ctx.createGain();
+    boom.type = "sine";
+    boom.frequency.setValueAtTime(140, impactAt);
+    boom.frequency.exponentialRampToValueAtTime(34, impactAt + 0.42 * scale);
+
+    boomGain.gain.setValueAtTime(0.0001, impactAt);
+    boomGain.gain.exponentialRampToValueAtTime(0.75, impactAt + 0.018);
+    boomGain.gain.exponentialRampToValueAtTime(0.0001, impactAt + 1.65 * scale);
+
+    boom.connect(boomGain);
+    boomGain.connect(master);
+    boom.start(impactAt);
+    boom.stop(impactAt + 1.75 * scale);
+
+    // 2B. Crisp Mechanical/Metallic Snap Burst at Impact
+    const snap = ctx.createBufferSource();
+    snap.buffer = noiseBuffer;
+    const snapHp = ctx.createBiquadFilter();
+    snapHp.type = "highpass";
+    snapHp.frequency.setValueAtTime(1400, impactAt);
+    const snapGain = ctx.createGain();
+    snapGain.gain.setValueAtTime(0.36, impactAt);
+    snapGain.gain.exponentialRampToValueAtTime(0.0001, impactAt + 0.28 * scale);
+
+    snap.connect(snapHp);
+    snapHp.connect(snapGain);
+    snapGain.connect(master);
+    snap.start(impactAt);
+    snap.stop(impactAt + 0.35 * scale);
+
+    // 2C. Lush Metallic Sci-Fi Chord Swell (D3, A3, E4, F#4)
+    const chordFreqs = [146.83, 220.0, 329.63, 369.99];
+    const chordFilter = ctx.createBiquadFilter();
+    chordFilter.type = "lowpass";
+    chordFilter.frequency.setValueAtTime(2400, impactAt);
+    chordFilter.frequency.exponentialRampToValueAtTime(650, startAt + totalDur);
+    chordFilter.connect(master);
+
+    chordFreqs.forEach((freq, idx) => {
       const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = index < 2 ? "triangle" : "sine";
-      osc.frequency.setValueAtTime(freq, startAt);
-      osc.detune.setValueAtTime((index - 1.5) * 4, startAt);
-      gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.16 : 0.09, startAt + 1.6 * scale);
-      gain.gain.setValueAtTime(index === 0 ? 0.16 : 0.09, startAt + Math.max(1.8, totalDur - 2.4));
-      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + totalDur - 0.15);
-      osc.connect(gain);
-      gain.connect(padFilter);
-      osc.start(startAt);
+      const g = ctx.createGain();
+      osc.type = idx < 2 ? "triangle" : "sine";
+      osc.frequency.setValueAtTime(freq, impactAt);
+      osc.detune.setValueAtTime((idx - 1.5) * 6, impactAt);
+      g.gain.setValueAtTime(0.0001, impactAt);
+      g.gain.exponentialRampToValueAtTime(idx === 0 ? 0.24 : 0.14, impactAt + 0.08);
+      g.gain.exponentialRampToValueAtTime(0.0001, startAt + totalDur - 0.15);
+      osc.connect(g);
+      g.connect(chordFilter);
+      osc.start(impactAt);
       osc.stop(startAt + totalDur);
     });
 
-    // One gentle sub-bass bloom where the wordmark lands — rounded, no click.
-    const bloomAt = startAt + 1.5 * scale;
-    const bloom = ctx.createOscillator();
-    const bloomGain = ctx.createGain();
-    bloom.type = "sine";
-    bloom.frequency.setValueAtTime(88, bloomAt);
-    bloom.frequency.exponentialRampToValueAtTime(55, bloomAt + 1.4 * scale);
-    bloomGain.gain.setValueAtTime(0.0001, bloomAt);
-    bloomGain.gain.exponentialRampToValueAtTime(0.22, bloomAt + 0.22);
-    bloomGain.gain.exponentialRampToValueAtTime(0.0001, bloomAt + 2.0 * scale);
-    bloom.connect(bloomGain);
-    bloomGain.connect(master);
-    bloom.start(bloomAt);
-    bloom.stop(bloomAt + 2.1 * scale);
+    // PHASE 3 (4.15s -> 5.8s): Electric Cyan Sweep Scanner + Digital Activation Chimes
+    const sweepAt = startAt + 4.15 * scale;
+    const sweepOsc = ctx.createOscillator();
+    const sweepGain = ctx.createGain();
+    sweepOsc.type = "sine";
+    sweepOsc.frequency.setValueAtTime(380, sweepAt);
+    sweepOsc.frequency.exponentialRampToValueAtTime(1180, sweepAt + 1.15 * scale);
+    sweepGain.gain.setValueAtTime(0.0001, sweepAt);
+    sweepGain.gain.exponentialRampToValueAtTime(0.14, sweepAt + 0.35 * scale);
+    sweepGain.gain.exponentialRampToValueAtTime(0.0001, sweepAt + 1.35 * scale);
+    sweepOsc.connect(sweepGain);
+    sweepGain.connect(master);
+    sweepOsc.start(sweepAt);
+    sweepOsc.stop(sweepAt + 1.45 * scale);
 
-    // Slow bell melody (A4 → C#5 → E5) with long, soft decays.
-    const bells = [
-      { freq: 440.0, at: startAt + 2.7 * scale, amp: 0.13 },
-      { freq: 554.37, at: startAt + 3.4 * scale, amp: 0.11 },
-      { freq: 659.25, at: startAt + 4.15 * scale, amp: 0.1 },
+    // Crisp dual-tone activation chime as tagline settles
+    const chimes = [
+      { freq: 587.33, at: startAt + 4.95 * scale, amp: 0.22 }, // D5
+      { freq: 880.0, at: startAt + 5.18 * scale, amp: 0.26 }, // A5
+      { freq: 1174.66, at: startAt + 5.42 * scale, amp: 0.15 }, // D6
     ];
-    bells.forEach((bell) => {
-      const fundamental = ctx.createOscillator();
-      const partial = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const partialGain = ctx.createGain();
-      fundamental.type = "sine";
-      fundamental.frequency.setValueAtTime(bell.freq, bell.at);
-      partial.type = "sine";
-      partial.frequency.setValueAtTime(bell.freq * 2.01, bell.at);
-      partialGain.gain.setValueAtTime(0.22, bell.at);
-      gain.gain.setValueAtTime(0.0001, bell.at);
-      gain.gain.exponentialRampToValueAtTime(bell.amp, bell.at + 0.06);
-      gain.gain.exponentialRampToValueAtTime(0.0001, Math.min(startAt + totalDur, bell.at + 2.6 * scale));
-      fundamental.connect(gain);
-      partial.connect(partialGain);
-      partialGain.connect(gain);
-      gain.connect(master);
-      fundamental.start(bell.at);
-      partial.start(bell.at);
-      fundamental.stop(Math.min(startAt + totalDur, bell.at + 2.7 * scale));
-      partial.stop(Math.min(startAt + totalDur, bell.at + 2.7 * scale));
+    chimes.forEach((c) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(c.freq, c.at);
+      g.gain.setValueAtTime(0.0001, c.at);
+      g.gain.exponentialRampToValueAtTime(c.amp, c.at + 0.025);
+      g.gain.exponentialRampToValueAtTime(0.0001, Math.min(startAt + totalDur, c.at + 2.1 * scale));
+      osc.connect(g);
+      g.connect(master);
+      osc.start(c.at);
+      osc.stop(Math.min(startAt + totalDur, c.at + 2.2 * scale));
     });
   };
 

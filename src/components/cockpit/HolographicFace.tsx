@@ -6,7 +6,7 @@ interface HolographicFaceProps {
   state: VoiceSessionState;
   /** Live microphone energy 0..1. */
   level: number;
-  /** The line DEX MADE is speaking right now. */
+  /** The line AURIX is speaking right now. */
   reply: string;
   /** Character offset inside `reply` currently being voiced, -1 when silent. */
   spokenChars: number;
@@ -18,7 +18,6 @@ const STATE_ACCENT: Record<VoiceSessionState, string> = {
   idle: "#00D9FF",
   listening: "#00D9FF",
   processing: "#147DFF",
-  thinking: "#147DFF",
   speaking: "#2FE9C6",
   error: "#FB7185",
 };
@@ -26,8 +25,7 @@ const STATE_ACCENT: Record<VoiceSessionState, string> = {
 const STATE_LABEL: Record<VoiceSessionState, string> = {
   idle: "STANDBY",
   listening: "LISTENING",
-  processing: "PROCESSING",
-  thinking: "THINKING",
+  processing: "THINKING",
   speaking: "SPEAKING",
   error: "ATTENTION",
 };
@@ -71,7 +69,7 @@ export function HolographicFace({ state, level, reply, spokenChars, calm = false
   return (
     <section
       className="nexus-panel relative overflow-hidden rounded-2xl px-3 py-3"
-      aria-label="DEX MADE holographic face"
+      aria-label="AURIX holographic face"
       data-testid="holographic-face"
       data-voice-state={state}
       data-viseme={viseme}
@@ -89,7 +87,7 @@ export function HolographicFace({ state, level, reply, spokenChars, calm = false
       </div>
 
       <div className={`relative mx-auto mt-1 w-full max-w-[220px] ${calm ? "" : "aurix-holo"}`}>
-        <svg viewBox="0 0 240 300" className="h-auto w-full" role="img" aria-label="DEX MADE holographic head">
+        <svg viewBox="0 0 240 300" className="h-auto w-full" role="img" aria-label="AURIX holographic head">
           <defs>
             <radialGradient id="holo-glow" cx="50%" cy="45%" r="55%">
               <stop offset="0%" stopColor={accent} stopOpacity="0.3" />

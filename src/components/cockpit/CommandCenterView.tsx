@@ -52,7 +52,6 @@ const VOICE_STATE_LABEL: Record<string, string> = {
   idle: "SYSTEM READY",
   listening: "LISTENING",
   processing: "PROCESSING",
-  thinking: "THINKING",
   speaking: "SPEAKING",
   error: "MIC ATTENTION",
 };
@@ -83,7 +82,7 @@ function spokenGreeting(language: AurixLanguage, firstName: string): string {
     return `${salutation}, ${firstName}। ऑरिक्स ऑनलाइन है, सभी सिस्टम तैयार हैं। आज मैं आपकी क्या सहायता करूँ?`;
   }
   const period = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  return `${period}, ${firstName}. DEX MADE is online. All systems are ready. How may I assist you today?`;
+  return `${period}, ${firstName}. AURIX is online. All systems are ready. How may I assist you today?`;
 }
 
 function effectiveMode(settings: AppSettings, telemetry: SystemTelemetry): CockpitMode {
@@ -151,7 +150,7 @@ export function CommandCenterView({
   const pushToTalkLabel = formatShortcut(settings.voiceShortcuts?.pushToTalk || "Space");
 
   const quickActions: Array<{ label: string; hint: string; icon: React.ReactNode; section: AurixSectionId }> = [
-    { label: "Ask DEX MADE", hint: "Conversation", icon: <Sparkles className="w-3.5 h-3.5" />, section: "chat" },
+    { label: "Ask AURIX", hint: "Conversation", icon: <Sparkles className="w-3.5 h-3.5" />, section: "chat" },
     { label: "Voice", hint: "Speech engine", icon: <Mic className="w-3.5 h-3.5" />, section: "voice" },
     { label: "Developer", hint: "Code workspace", icon: <Code2 className="w-3.5 h-3.5" />, section: "developer" },
     { label: "Automation", hint: "Approved actions", icon: <Bot className="w-3.5 h-3.5" />, section: "automation" },
@@ -168,7 +167,7 @@ export function CommandCenterView({
       <div className="nexus-panel-soft flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
         <div className="min-w-0">
           <p className="text-[8px] font-mono uppercase tracking-[0.28em] text-[#00F2FF]/70">
-            DEX MADE — Personal AI Assistant
+            AURIX — Personal AI Assistant
           </p>
           <h1 className="font-display text-base font-bold tracking-wide text-white sm:text-lg">
             {greetingFor(new Date())}, {firstName}.
@@ -315,7 +314,7 @@ export function CommandCenterView({
       {/* Blueprint deck: exploded architecture + signal path + module registry */}
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div className="grid min-w-0 gap-3">
-          <section className="nexus-panel rounded-2xl px-4 py-3" aria-label="DEX MADE core reactor">
+          <section className="nexus-panel rounded-2xl px-4 py-3" aria-label="AURIX core reactor">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-[#A9C8D5]">Core reactor</h2>
               <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-[#5B7185]">
@@ -368,7 +367,7 @@ export function CommandCenterView({
       <CockpitVoiceBar settings={settings} onSignal={handleSignal} />
 
       <div className="flex items-center justify-between gap-3 px-1 text-[9px] font-mono uppercase tracking-[0.2em] text-[#3F5567]">
-        <span className="truncate">DEX MADE/ core/ voice/ brain/ memory/ agents/ tools/ security/ interface/</span>
+        <span className="truncate">AURIX/ core/ voice/ brain/ memory/ agents/ tools/ security/ interface/</span>
         <span className="shrink-0">Powered by AM VEYRONIX</span>
       </div>
     </div>

@@ -1,5 +1,5 @@
 /**
- * Camera lifecycle for DEX MADE.
+ * Camera lifecycle for AURIX.
  *
  * One stream at a time, always user-initiated, always released when stopped so
  * the OS camera indicator turns off. The returned status is what the UI shows —

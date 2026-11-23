@@ -1,5 +1,5 @@
 /**
- * Viseme mapping for DEX MADE's holographic face.
+ * Viseme mapping for AURIX's holographic face.
  *
  * A viseme is the mouth shape a sound produces. The face does not need a full
  * phoneme engine: mapping the character that is being spoken right now onto a

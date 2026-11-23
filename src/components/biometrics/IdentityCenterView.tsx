@@ -166,7 +166,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Voice enrollment failed.");
       setVoiceSamples([]);
-      setMessage({ tone: "ok", text: "Voice profile enrolled. Lock DEX MADE and verify to test your match score." });
+      setMessage({ tone: "ok", text: "Voice profile enrolled. Lock AURIX and verify to test your match score." });
       await onRefresh();
     } catch (err) {
       setMessage({ tone: "error", text: err instanceof Error ? err.message : "Voice enrollment failed." });
@@ -216,7 +216,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
             </div>
             <h1 className="mt-1 font-display text-lg font-bold tracking-wide text-white">Owner Identity & Biometrics</h1>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#94A8B8]">
-              Face <span className="text-[#A9C8D5]">or</span> voice unlocks DEX MADE. Templates are encrypted on this machine and matched locally by the DEX MADE server — they are never returned to the browser.
+              Face <span className="text-[#A9C8D5]">or</span> voice unlocks AURIX. Templates are encrypted on this machine and matched locally by the AURIX server — they are never returned to the browser.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -228,7 +228,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
               }`}
             >
               {session.status === "unlocked" ? <ShieldCheck className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-              {session.status === "unlocked" ? `Owner verified${session.method ? ` · ${session.method}` : ""}` : "DEX MADE locked"}
+              {session.status === "unlocked" ? `Owner verified${session.method ? ` · ${session.method}` : ""}` : "AURIX locked"}
             </span>
             <button type="button" onClick={onLockNow} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 px-3 py-1.5 text-[11px] text-[#A9C8D5] hover:bg-white/5 cursor-pointer">
               <Lock className="h-3.5 w-3.5" /> Lock now
@@ -279,7 +279,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
           {camera.error && <p className="mt-2 text-[11px] text-rose-300">{camera.error}</p>}
           <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-[#05080D]/50 px-3 py-2 text-[10px] leading-relaxed text-[#94A8B8]">
             <input type="checkbox" checked={faceConsent} onChange={(e) => setFaceConsent(e.target.checked)} className="mt-0.5 accent-[#00D9FF]" />
-            <span>I allow DEX MADE to open the camera and create a face template for me on this device.</span>
+            <span>I allow AURIX to open the camera and create a face template for me on this device.</span>
           </label>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -320,7 +320,7 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
           </label>
           <label className="mt-2 flex cursor-pointer items-start gap-2 rounded-xl border border-white/10 bg-[#05080D]/50 px-3 py-2 text-[10px] leading-relaxed text-[#94A8B8]">
             <input type="checkbox" checked={voiceConsent} onChange={(e) => setVoiceConsent(e.target.checked)} className="mt-0.5 accent-[#147DFF]" />
-            <span>I allow DEX MADE to open the microphone and create a speaker template for me. Only MFCC features are kept — no audio recording is stored.</span>
+            <span>I allow AURIX to open the microphone and create a speaker template for me. Only MFCC features are kept — no audio recording is stored.</span>
           </label>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
@@ -360,9 +360,9 @@ export function IdentityCenterView({ snapshot, ownerName, onRefresh, onLockNow, 
       <Card>
         <h2 className="text-sm font-semibold text-white">Authentication policy</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <Toggle label="Face authentication" hint="Allow face verification to unlock DEX MADE." checked={draft.faceEnabled} onChange={(v) => setDraft({ ...draft, faceEnabled: v })} />
-          <Toggle label="Voice authentication" hint="Allow voice verification to unlock DEX MADE." checked={draft.voiceEnabled} onChange={(v) => setDraft({ ...draft, voiceEnabled: v })} />
-          <Toggle label="Require verification at boot" hint="DEX MADE starts locked and asks for the owner." checked={draft.requireBiometricOnBoot} onChange={(v) => setDraft({ ...draft, requireBiometricOnBoot: v })} />
+          <Toggle label="Face authentication" hint="Allow face verification to unlock AURIX." checked={draft.faceEnabled} onChange={(v) => setDraft({ ...draft, faceEnabled: v })} />
+          <Toggle label="Voice authentication" hint="Allow voice verification to unlock AURIX." checked={draft.voiceEnabled} onChange={(v) => setDraft({ ...draft, voiceEnabled: v })} />
+          <Toggle label="Require verification at boot" hint="AURIX starts locked and asks for the owner." checked={draft.requireBiometricOnBoot} onChange={(v) => setDraft({ ...draft, requireBiometricOnBoot: v })} />
           <Toggle label="Require challenge phrase" hint="Random phrase per attempt — replay protection for voice." checked={draft.requireChallengePhrase} onChange={(v) => setDraft({ ...draft, requireChallengePhrase: v })} />
           <Toggle label="Cloud vision labeling" hint="Send a captured image to Gemini for a suggested object name. Off = fully local." checked={draft.sendImagesToCloud} onChange={(v) => setDraft({ ...draft, sendImagesToCloud: v })} />
           <Toggle label="Start with Windows" hint="Preference flag for the desktop startup script (see Chrome & Gmail Activation)." checked={draft.autoStartWithWindows} onChange={(v) => setDraft({ ...draft, autoStartWithWindows: v })} />
