@@ -1,17 +1,21 @@
 import { GoogleGenAI, type GenerateContentParameters, type GenerateContentResponse } from "@google/genai";
 
 /**
- * AURIX four-key Gemini failover pool.
+ * AURIX Gemini failover pool.
  *
- * Every Gemini request in the app goes through `getPooledGeminiClient()`, which
- * routes it to the highest-priority healthy key and automatically moves on when
- * a key is rate limited, out of quota, revoked or temporarily unavailable.
+ * Every Gemini request in the app goes through `getPooledGeminiClient()`.
+ * Two independent axes are protected:
  *
- * Key order (priority):
- *   1. GEMINI_API_KEY_1  (falls back to the pre-existing GEMINI_API_KEY)
- *   2. GEMINI_API_KEY_2
- *   3. GEMINI_API_KEY_3
- *   4. GEMINI_API_KEY_4
+ *   1. Keys — GEMINI_API_KEY_1 (or the pre-existing GEMINI_API_KEY) first, then
+ *      _2, _3 and _4. A revoked key is taken out of rotation; a quota or
+ *      transient failure only cools that key down.
+ *   2. Models — a model can be out of quota (or retired) for *every* key at
+ *      once, because free-tier quota is counted per Google project and model.
+ *      Rotating keys then changes nothing, so each model has an explicit,
+ *      compatible fallback ladder.
+ *
+ * Failure handling is per (key, model) pair: a key that is out of quota on the
+ * heavy reasoning model stays usable on the fast model.
  *
  * Nothing here ever returns a full key to the client: the status endpoint only
  * exposes a masked identifier.
@@ -19,7 +23,28 @@ import { GoogleGenAI, type GenerateContentParameters, type GenerateContentRespon
 
 export type KeyRole = "Primary" | "Secondary" | "Third Backup" | "Final Backup";
 
-export type FailureKind = "quota" | "invalid_key" | "transient" | "other";
+export type FailureKind =
+  | "quota"
+  | "invalid_key"
+  | "transient"
+  | "model_unavailable"
+  | "bad_request"
+  | "other";
+
+export type KeyStatus = "active" | "cooldown" | "unavailable";
+
+interface ModelRuntime {
+  cooldownUntil: number | null;
+  consecutiveFailures: number;
+  lastError: string | null;
+  lastErrorAt: string | null;
+  lastErrorKind: FailureKind | null;
+  lastSuccessAt: string | null;
+  requests: number;
+  successes: number;
+  failures: number;
+  lastResponseMs: number | null;
+}
 
 export interface GeminiKeyState {
   slot: number;
@@ -27,12 +52,12 @@ export interface GeminiKeyState {
   role: KeyRole;
   apiKey: string;
   masked: string;
-  status: "active" | "cooldown" | "unavailable";
-  cooldownUntil: number | null;
+  /** `unavailable` means Google rejected the credential itself. */
+  status: KeyStatus;
+  models: Map<string, ModelRuntime>;
   requests: number;
   successes: number;
   failures: number;
-  consecutiveFailures: number;
   lastSuccessAt: string | null;
   lastErrorAt: string | null;
   lastError: string | null;
@@ -46,25 +71,106 @@ const SLOT_ENV_NAMES: Array<{ slot: number; names: string[]; role: KeyRole }> = 
   { slot: 4, names: ["GEMINI_API_KEY_4"], role: "Final Backup" },
 ];
 
-/** Cooldown windows. Quota recovers slowly, transient errors quickly. */
-const COOLDOWN_MS: Record<Exclude<FailureKind, "other">, number> = {
-  quota: 60_000,
-  transient: 15_000,
-  invalid_key: 30 * 60_000,
+/**
+ * Compatible model fallbacks, in order.
+ *
+ * Free-tier Gemini quota is granted per model, so a model that has hit its
+ * daily allowance for the project must be replaced, not retried on another key.
+ * Every entry here accepts the same request shape as its parent (text, vision,
+ * thinking config, JSON schema output). `gemini-3.8-flash` is deliberately not
+ * listed: in this deployment it stalls for over 45s, which would be worse than
+ * a fast fallback to `gemini-3.5-flash`.
+ */
+const MODEL_LADDERS: Record<string, string[]> = {
+  "gemini-4-hydrogen": ["gemini-3.5-flash", "gemini-3.1-flash-lite"],
+  "gemini-3.8-flash": ["gemini-3.5-flash", "gemini-3.1-flash-lite"],
+  "gemini-3.5-flash": ["gemini-3.1-flash-lite"],
+  "gemini-3.1-flash-lite": ["gemini-3.5-flash"],
+  "gemini-3.8-flash-tts": ["gemini-3.8-flash-lite-tts", "gemini-3.1-flash-tts-preview"],
+  "gemini-3.8-flash-lite-tts": ["gemini-3.1-flash-tts-preview"],
+  // Transcription has a single compatible model; a 404 is reported, never faked.
+  "gemini-3.5-transcribe": [],
 };
-const MAX_COOLDOWN_MS = 10 * 60_000;
+
+/** The full ladder for a requested model, starting with the model itself. */
+export function buildModelLadder(model: string): string[] {
+  const seen = new Set<string>();
+  const ladder: string[] = [];
+  const walk = (current: string) => {
+    if (seen.has(current)) return;
+    seen.add(current);
+    ladder.push(current);
+    for (const next of MODEL_LADDERS[current] ?? []) walk(next);
+  };
+  walk(model);
+  return ladder;
+}
+
+/** Cooldown windows. Quota recovers slowly, transient errors quickly. */
+const COOLDOWN_MS: Record<FailureKind, number> = {
+  quota: 60_000,
+  invalid_key: 30 * 60_000,
+  transient: 15_000,
+  model_unavailable: 30 * 60_000,
+  bad_request: 0,
+  other: 0,
+};
+const DAILY_QUOTA_COOLDOWN_MS = 15 * 60_000;
+const MAX_COOLDOWN_MS = 30 * 60_000;
 const ATTEMPTS_PER_KEY = 2;
 const BACKOFF_BASE_MS = 400;
+const DEFAULT_TIMEOUT_MS = 45_000;
+const TTS_TIMEOUT_MS = 90_000;
+
+export const ALL_ROUTES_DOWN_MESSAGE =
+  "AURIX is temporarily unable to connect to its AI services. All configured API routes are currently unavailable. Please try again shortly.";
 
 /** Recent quota failures, used to detect keys sharing one Google quota pool. */
 const recentQuotaFailures: Array<{ slot: number; at: number }> = [];
 const SHARED_POOL_WINDOW_MS = 10 * 60_000;
+
+/** Models Google reported as retired/unknown — shared by every key. */
+const modelOutages = new Map<string, number>();
+
+let lastSuccess: { at: string; model: string; slot: number; masked: string; ms: number } | null = null;
+let lastFailure: {
+  at: string;
+  model: string;
+  slot: number;
+  masked: string;
+  kind: FailureKind;
+  message: string;
+} | null = null;
 
 const states = new Map<number, GeminiKeyState>();
 
 function maskKey(key: string): string {
   const tail = key.slice(-4);
   return `••••••••${tail}`;
+}
+
+function emptyModelRuntime(): ModelRuntime {
+  return {
+    cooldownUntil: null,
+    consecutiveFailures: 0,
+    lastError: null,
+    lastErrorAt: null,
+    lastErrorKind: null,
+    lastSuccessAt: null,
+    requests: 0,
+    successes: 0,
+    failures: 0,
+    lastResponseMs: null,
+  };
+}
+
+function modelRuntime(key: GeminiKeyState, model: string): ModelRuntime {
+  let runtime = key.models.get(model);
+  if (!runtime) {
+    runtime = emptyModelRuntime();
+    key.models.set(model, runtime);
+  }
+  return runtime;
 }
 
 function resolveKey(slot: number, names: string[]): { envName: string; apiKey: string } | null {
@@ -94,11 +200,10 @@ export function getConfiguredKeys(): GeminiKeyState[] {
       apiKey: resolved.apiKey,
       masked: maskKey(resolved.apiKey),
       status: "active",
-      cooldownUntil: null,
+      models: new Map(),
       requests: existing?.requests ?? 0,
       successes: existing?.successes ?? 0,
       failures: existing?.failures ?? 0,
-      consecutiveFailures: 0,
       lastSuccessAt: existing?.lastSuccessAt ?? null,
       lastErrorAt: null,
       lastError: null,
@@ -112,18 +217,6 @@ export function getConfiguredKeys(): GeminiKeyState[] {
 
 export function hasAnyGeminiKey(): boolean {
   return getConfiguredKeys().length > 0;
-}
-
-function isEligible(key: GeminiKeyState, now = Date.now()): boolean {
-  if (key.status === "active") return true;
-  if (key.cooldownUntil && key.cooldownUntil <= now) {
-    // Automatic recovery check: the key gets another chance.
-    key.status = "active";
-    key.cooldownUntil = null;
-    key.consecutiveFailures = 0;
-    return true;
-  }
-  return false;
 }
 
 function readStatus(error: unknown): number | null {
@@ -151,7 +244,13 @@ function errorText(error: unknown): string {
   }
 }
 
-/** Distinguishes a real quota/rate limit from a generic failure. */
+/** True when the caller cancelled the request (AbortController / timeout). */
+function isCancellation(error: unknown): boolean {
+  const name = (error as { name?: string })?.name;
+  return name === "AbortError" || name === "TimeoutError" || /aborted|cancelled|canceled/i.test(errorText(error));
+}
+
+/** Distinguishes quota, credential, model and request failures. */
 export function classifyGeminiError(error: unknown): FailureKind {
   const text = errorText(error);
   const status = readStatus(error);
@@ -163,6 +262,18 @@ export function classifyGeminiError(error: unknown): FailureKind {
     /PERMISSION_DENIED|UNAUTHENTICATED|API_KEY_INVALID|API key not valid|invalid api key|revoked/i.test(text)
   ) {
     return "invalid_key";
+  }
+  if (
+    status === 404 ||
+    /NOT_FOUND|is not found|no longer available|not supported for generateContent|unsupported model/i.test(text)
+  ) {
+    return "model_unavailable";
+  }
+  if (
+    status === 400 ||
+    /INVALID_ARGUMENT|FAILED_PRECONDITION|invalid request|bad request/i.test(text)
+  ) {
+    return "bad_request";
   }
   if (
     status === 429 ||
@@ -185,6 +296,20 @@ export function classifyGeminiError(error: unknown): FailureKind {
   return "other";
 }
 
+/** Google's own `retryDelay` hint, when the error carries one. */
+function parseRetryDelayMs(error: unknown): number | null {
+  const text = errorText(error);
+  const match =
+    text.match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/) || text.match(/retry[-_ ]?after["\s:]+(\d+)/i);
+  if (!match) return null;
+  const seconds = Number(match[1]);
+  return Number.isFinite(seconds) ? Math.min(Math.max(seconds, 1) * 1000, MAX_COOLDOWN_MS) : null;
+}
+
+function isDailyQuotaError(error: unknown): boolean {
+  return /per day|PerDay|requests per day|limit:\s*0\b/i.test(errorText(error));
+}
+
 function noteQuotaFailure(slot: number) {
   const now = Date.now();
   recentQuotaFailures.push({ slot, at: now });
@@ -193,30 +318,72 @@ function noteQuotaFailure(slot: number) {
   }
 }
 
-function recordSuccess(key: GeminiKeyState) {
+function recordSuccess(key: GeminiKeyState, model: string, durationMs: number) {
+  const nowIso = new Date().toISOString();
   key.requests += 1;
   key.successes += 1;
-  key.consecutiveFailures = 0;
-  key.status = "active";
-  key.cooldownUntil = null;
-  key.lastSuccessAt = new Date().toISOString();
+  key.lastSuccessAt = nowIso;
+  const runtime = modelRuntime(key, model);
+  runtime.requests += 1;
+  runtime.successes += 1;
+  runtime.consecutiveFailures = 0;
+  runtime.cooldownUntil = null;
+  runtime.lastSuccessAt = nowIso;
+  runtime.lastResponseMs = durationMs;
+  lastSuccess = { at: nowIso, model, slot: key.slot, masked: key.masked, ms: durationMs };
 }
 
-function recordFailure(key: GeminiKeyState, error: unknown, kind: FailureKind) {
+function recordFailure(key: GeminiKeyState, model: string, error: unknown, kind: FailureKind) {
+  const nowIso = new Date().toISOString();
+  const message = errorText(error).slice(0, 300);
   key.requests += 1;
   key.failures += 1;
-  key.consecutiveFailures += 1;
-  key.lastErrorAt = new Date().toISOString();
-  key.lastError = errorText(error).slice(0, 300);
+  key.lastErrorAt = nowIso;
+  key.lastError = message;
   key.lastErrorKind = kind;
 
-  if (kind === "other") return;
+  const runtime = modelRuntime(key, model);
+  runtime.requests += 1;
+  runtime.failures += 1;
+  runtime.consecutiveFailures += 1;
+  runtime.lastErrorAt = nowIso;
+  runtime.lastError = message;
+  runtime.lastErrorKind = kind;
 
-  const base = COOLDOWN_MS[kind];
-  const scaled = kind === "quota" ? Math.min(base * 2 ** (key.consecutiveFailures - 1), MAX_COOLDOWN_MS) : base;
-  key.cooldownUntil = Date.now() + scaled;
-  key.status = kind === "invalid_key" ? "unavailable" : "cooldown";
-  if (kind === "quota") noteQuotaFailure(key.slot);
+  lastFailure = { at: nowIso, model, slot: key.slot, masked: key.masked, kind, message };
+
+  if (kind === "bad_request" || kind === "other") return;
+
+  if (kind === "invalid_key") {
+    key.status = "unavailable";
+    runtime.cooldownUntil = Date.now() + COOLDOWN_MS.invalid_key;
+    return;
+  }
+
+  if (kind === "model_unavailable") {
+    modelOutages.set(model, Date.now() + COOLDOWN_MS.model_unavailable);
+    runtime.cooldownUntil = Date.now() + COOLDOWN_MS.model_unavailable;
+    return;
+  }
+
+  if (kind === "quota") {
+    noteQuotaFailure(key.slot);
+    const hinted = parseRetryDelayMs(error);
+    const base = isDailyQuotaError(error) ? DAILY_QUOTA_COOLDOWN_MS : COOLDOWN_MS.quota;
+    const scaled = Math.min(
+      (hinted ?? base) * 2 ** Math.min(runtime.consecutiveFailures - 1, 4),
+      MAX_COOLDOWN_MS
+    );
+    runtime.cooldownUntil = Date.now() + scaled;
+    return;
+  }
+
+  // Transient: short cooldown, exponential per consecutive failure.
+  const scaled = Math.min(
+    COOLDOWN_MS.transient * 2 ** Math.min(runtime.consecutiveFailures - 1, 4),
+    MAX_COOLDOWN_MS
+  );
+  runtime.cooldownUntil = Date.now() + scaled;
 }
 
 function sleep(ms: number) {
@@ -240,23 +407,6 @@ export class GeminiNotConfiguredError extends Error {
   }
 }
 
-function friendlyExhaustedMessage(keys: GeminiKeyState[]): string {
-  const configured = keys.length;
-  const quota = keys.filter((k) => k.lastErrorKind === "quota").length;
-  const invalid = keys.filter((k) => k.lastErrorKind === "invalid_key").length;
-  const reasons: string[] = [];
-  if (invalid) reasons.push(`${invalid} key${invalid > 1 ? "s" : ""} rejected by Google (invalid or revoked)`);
-  if (quota) reasons.push(`${quota} key${quota > 1 ? "s" : ""} out of quota or rate limited`);
-  if (!reasons.length) reasons.push("every key is temporarily cooling down after provider errors");
-  const shared = isSharedQuotaSuspected();
-  return [
-    `All ${configured} AURIX Gemini key${configured > 1 ? "s are" : " is"} unavailable right now — ${reasons.join(", ")}.`,
-    shared
-      ? "Your keys look like they share one Google project quota, so switching keys cannot add capacity until that quota resets."
-      : "AURIX will retry automatically once a key recovers, or you can add a fresh key in Settings > Secrets.",
-  ].join(" ");
-}
-
 export function isSharedQuotaSuspected(): boolean {
   const now = Date.now();
   const distinct = new Set(
@@ -265,69 +415,139 @@ export function isSharedQuotaSuspected(): boolean {
   return distinct.size >= 2;
 }
 
-/** Runs one operation against the healthiest available key, in priority order. */
+function friendlyExhaustedMessage(keys: GeminiKeyState[], ladder: string[]): string {
+  const quota = keys.filter((k) => k.lastErrorKind === "quota").length;
+  const invalid = keys.filter((k) => k.status === "unavailable").length;
+  const missingModel = ladder.filter((m) => (modelOutages.get(m) ?? 0) > Date.now());
+  const reasons: string[] = [];
+  if (invalid) reasons.push(`${invalid} key${invalid > 1 ? "s" : ""} rejected by Google (invalid or revoked)`);
+  if (quota) reasons.push(`${quota} key${quota > 1 ? "s" : ""} out of quota or rate limited`);
+  if (missingModel.length) reasons.push(`model unavailable: ${missingModel.join(", ")}`);
+  if (!reasons.length) reasons.push("every route is cooling down after provider errors");
+
+  const details = [
+    `Tried ${ladder.join(" → ")} on ${keys.length} key${keys.length === 1 ? "" : "s"} — ${reasons.join(", ")}.`,
+    isSharedQuotaSuspected()
+      ? "The keys appear to share one Google project quota, so switching keys cannot add capacity until that quota resets."
+      : "AURIX will retry automatically once a route recovers.",
+  ];
+  return `${ALL_ROUTES_DOWN_MESSAGE} ${details.join(" ")}`;
+}
+
+interface FailoverOptions {
+  /** Model ladder; the requested model is always first. */
+  models?: string[];
+  timeoutMs?: number;
+}
+
+function createClient(apiKey: string, timeoutMs: number): GoogleGenAI {
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      // v1beta exposes every model this app uses (chat, transcribe, TTS).
+      apiVersion: "v1beta",
+      headers: { "User-Agent": "aistudio-build" },
+      // The SDK aborts the HTTP request itself when this elapses, so a stalled
+      // provider cannot pin a request open indefinitely.
+      timeout: timeoutMs,
+    },
+  });
+}
+
+/**
+ * Runs one operation through the key × model matrix.
+ *
+ * Order: preferred model on every healthy key, then the next model in the
+ * ladder on every healthy key, and so on. Permanent request errors are thrown
+ * at once; cancellations are re-thrown without marking any route unhealthy.
+ */
 export async function runWithGeminiFailover<T>(
-  operation: (ai: GoogleGenAI, key: GeminiKeyState) => Promise<T>
+  operation: (ai: GoogleGenAI, key: GeminiKeyState, model: string) => Promise<T>,
+  options: FailoverOptions = {}
 ): Promise<T> {
   const keys = getConfiguredKeys();
   if (!keys.length) throw new GeminiNotConfiguredError();
 
-  let sawEligible = false;
+  const ladder = options.models?.length ? options.models : ["gemini-4-hydrogen", "gemini-3.5-flash", "gemini-3.1-flash-lite"];
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const now = Date.now();
+  let attempted = false;
 
-  for (const key of keys) {
-    if (!isEligible(key)) continue;
-    sawEligible = true;
+  for (const model of ladder) {
+    if ((modelOutages.get(model) ?? 0) > now) continue;
 
-    for (let attempt = 1; attempt <= ATTEMPTS_PER_KEY; attempt += 1) {
-      try {
-        const ai = new GoogleGenAI({
-          apiKey: key.apiKey,
-          httpOptions: {
-            // v1beta exposes every model this app uses (chat, transcribe, TTS).
-            apiVersion: "v1beta",
-            headers: { "User-Agent": "aistudio-build" },
-          },
-        });
-        const result = await operation(ai, key);
-        recordSuccess(key);
-        return result;
-      } catch (error) {
-        const kind = classifyGeminiError(error);
-        if (kind === "other") {
-          // A malformed request or an unknown model would fail on every key,
-          // so surface it instead of cycling through the pool.
-          recordFailure(key, error, kind);
-          throw error;
-        }
-        recordFailure(key, error, kind);
-        // A revoked key never recovers on retry, and a rate-limited key gains
-        // nothing from an immediate second attempt — move to the next key.
-        if (kind === "invalid_key" || kind === "quota") break;
-        if (attempt < ATTEMPTS_PER_KEY) {
-          await sleep(BACKOFF_BASE_MS * 2 ** (attempt - 1));
+    for (const key of keys) {
+      // Google reported this model as retired/unknown: no other key can serve it.
+      if ((modelOutages.get(model) ?? 0) > Date.now()) break;
+      if (key.status === "unavailable") continue;
+      const runtime = modelRuntime(key, model);
+      if (runtime.cooldownUntil && runtime.cooldownUntil > Date.now()) continue;
+      attempted = true;
+
+      for (let attempt = 1; attempt <= ATTEMPTS_PER_KEY; attempt += 1) {
+        const started = Date.now();
+        try {
+          const ai = createClient(key.apiKey, timeoutMs);
+          const result = await operation(ai, key, model);
+          recordSuccess(key, model, Date.now() - started);
+          return result;
+        } catch (error) {
+          if (isCancellation(error)) throw error;
+          const kind = classifyGeminiError(error);
+
+          if (kind === "bad_request" || kind === "other") {
+            // A malformed request would fail on every key and every model, so
+            // report it instead of cycling through the pool.
+            recordFailure(key, model, error, kind);
+            throw error;
+          }
+
+          recordFailure(key, model, error, kind);
+
+          // A revoked key, an exhausted model or a model Google no longer
+          // serves gains nothing from an immediate retry: move on.
+          if (kind === "invalid_key" || kind === "quota" || kind === "model_unavailable") break;
+
+          if (attempt < ATTEMPTS_PER_KEY) {
+            const hinted = parseRetryDelayMs(error);
+            await sleep(hinted ?? BACKOFF_BASE_MS * 2 ** (attempt - 1));
+          }
         }
       }
     }
   }
 
-  if (!sawEligible) {
-    throw new GeminiKeysExhaustedError(friendlyExhaustedMessage(keys));
+  if (!attempted) {
+    // Every route is cooling down: still a real outage, never a silent answer.
+    throw new GeminiKeysExhaustedError(friendlyExhaustedMessage(keys, ladder));
   }
-  throw new GeminiKeysExhaustedError(friendlyExhaustedMessage(keys));
+  throw new GeminiKeysExhaustedError(friendlyExhaustedMessage(keys, ladder));
 }
 
 /**
  * Drop-in replacement for `new GoogleGenAI(...)`. Every `models.generateContent`
  * call is routed through the failover pool, so all existing call sites keep
- * working unchanged.
+ * working unchanged and gain the model fallback ladder automatically.
  */
 export function getPooledGeminiClient(): GoogleGenAI {
   return {
     models: {
-      generateContent: (params: GenerateContentParameters) =>
-        runWithGeminiFailover((ai) => ai.models.generateContent(params)),
+      generateContent: (params: GenerateContentParameters) => {
+        const ladder = buildModelLadder(params.model);
+        const timeoutMs = /tts/i.test(params.model) ? TTS_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+        return runWithGeminiFailover(
+          (ai, _key, model) => ai.models.generateContent({ ...params, model }),
+          { models: ladder, timeoutMs }
+        );
+      },
     },
   } as unknown as GoogleGenAI;
+}
+
+export interface GeminiModelCooldown {
+  model: string;
+  kind: FailureKind | null;
+  remainingSeconds: number;
 }
 
 export interface GeminiKeyPublicStatus {
@@ -337,7 +557,7 @@ export interface GeminiKeyPublicStatus {
   masked: string;
   /** Slot number of an earlier key holding the exact same secret, if any. */
   duplicateOfSlot: number | null;
-  status: "active" | "cooldown" | "unavailable" | "missing";
+  status: KeyStatus | "missing";
   requests: number;
   successes: number;
   failures: number;
@@ -345,9 +565,10 @@ export interface GeminiKeyPublicStatus {
   lastError: string | null;
   lastErrorKind: FailureKind | null;
   cooldownRemainingSeconds: number;
+  modelCooldowns: GeminiModelCooldown[];
 }
 
-export function getGeminiPoolStatus() {
+export function getGeminiPoolStatus(preferredModel?: string) {
   const now = Date.now();
   const configured = getConfiguredKeys();
   const bySlot = new Map(configured.map((k) => [k.slot, k]));
@@ -355,6 +576,7 @@ export function getGeminiPoolStatus() {
     const earlier = configured.find((other) => other.slot < key.slot && other.apiKey === key.apiKey);
     return earlier ? earlier.slot : null;
   };
+
   const keys: GeminiKeyPublicStatus[] = SLOT_ENV_NAMES.map((entry) => {
     const key = bySlot.get(entry.slot);
     if (!key) {
@@ -372,39 +594,78 @@ export function getGeminiPoolStatus() {
         lastError: null,
         lastErrorKind: null,
         cooldownRemainingSeconds: 0,
+        modelCooldowns: [],
       };
     }
-    const cooling = key.status !== "active" && key.cooldownUntil && key.cooldownUntil > now;
+
+    const modelCooldowns: GeminiModelCooldown[] = [...key.models.entries()]
+      .filter(([, runtime]) => runtime.cooldownUntil && runtime.cooldownUntil > now)
+      .map(([model, runtime]) => ({
+        model,
+        kind: runtime.lastErrorKind,
+        remainingSeconds: Math.ceil(((runtime.cooldownUntil as number) - now) / 1000),
+      }))
+      .sort((a, b) => b.remainingSeconds - a.remainingSeconds);
+
+    // A key counts as active while it can still serve at least one model of the
+    // preferred ladder; otherwise the fallback route that actually answers would
+    // be reported as unavailable.
+    const ladder = preferredModel ? buildModelLadder(preferredModel) : [];
+    const ladderModelFree =
+      ladder.length > 0
+        ? ladder.some((model) => !modelCooldowns.some((c) => c.model === model))
+        : modelCooldowns.length === 0;
+
+    let status: KeyStatus = "active";
+    if (key.status === "unavailable") {
+      status = "unavailable";
+    } else if (!ladderModelFree) {
+      status = "cooldown";
+    }
+    const preferredCooling = preferredModel
+      ? modelCooldowns.find((c) => c.model === preferredModel)
+      : undefined;
+
     return {
       slot: key.slot,
       envName: key.envName,
       role: key.role,
       masked: key.masked,
       duplicateOfSlot: findDuplicate(key),
-      status: key.status,
+      status,
       requests: key.requests,
       successes: key.successes,
       failures: key.failures,
       lastSuccessAt: key.lastSuccessAt,
       lastError: key.lastError,
       lastErrorKind: key.lastErrorKind,
-      cooldownRemainingSeconds: cooling ? Math.ceil(((key.cooldownUntil as number) - now) / 1000) : 0,
+      cooldownRemainingSeconds: (preferredCooling ?? modelCooldowns[0])?.remainingSeconds ?? 0,
+      modelCooldowns,
     };
   });
 
-  const active = keys.find((k) => k.status === "active");
+  const healthy = keys.filter((k) => k.status === "active");
+  const current = healthy[0] ?? keys.find((k) => k.status === "cooldown");
+
   return {
     provider: "Google Gemini",
     configuredKeys: configured.length,
-    currentKeySlot: active ? active.slot : null,
-    currentKeyMasked: active ? active.masked : null,
+    preferredModel: preferredModel ?? null,
+    currentKeySlot: current && current.status !== "missing" ? current.slot : null,
+    currentKeyMasked: current && current.status !== "missing" ? current.masked : null,
+    activeModel: lastSuccess?.model ?? null,
+    lastResponseMs: lastSuccess?.ms ?? null,
     keys,
-    lastSuccessfulRequestAt:
-      configured
-        .map((k) => k.lastSuccessAt)
-        .filter((v): v is string => Boolean(v))
-        .sort()
-        .pop() || null,
+    lastSuccessfulRequestAt: lastSuccess?.at ?? null,
+    lastError: lastFailure
+      ? {
+          at: lastFailure.at,
+          model: lastFailure.model,
+          masked: lastFailure.masked,
+          kind: lastFailure.kind,
+          message: lastFailure.message,
+        }
+      : null,
     quota: {
       officialQuotaApiAvailable: false,
       note:
@@ -415,70 +676,104 @@ export function getGeminiPoolStatus() {
   };
 }
 
-/** Clears a key's cooldown so the next request tries it again. */
+/** Clears a key's cooldowns so the next request tries it again. */
 export function resetGeminiKey(slot: number): boolean {
   const key = states.get(slot);
   if (!key) return false;
   key.status = "active";
-  key.cooldownUntil = null;
-  key.consecutiveFailures = 0;
   key.lastError = null;
   key.lastErrorKind = null;
+  for (const runtime of key.models.values()) {
+    runtime.cooldownUntil = null;
+    runtime.consecutiveFailures = 0;
+    runtime.lastError = null;
+    runtime.lastErrorKind = null;
+  }
   return true;
 }
 
 /**
- * Controlled per-key probe used by the dashboard. Sends the smallest possible
- * request with the configured model so the owner can see which keys are live.
+ * Controlled per-key probe used by the dashboard. Walks the model ladder so the
+ * owner sees which model each key can actually answer with, not just whether
+ * the preferred model happens to be in quota.
  */
-export async function testGeminiKeys(model: string) {
+export async function testGeminiKeys(preferredModel: string) {
   const keys = getConfiguredKeys();
+  const ladder = buildModelLadder(preferredModel);
   const results = await Promise.all(
     SLOT_ENV_NAMES.map(async (entry) => {
       const key = keys.find((k) => k.slot === entry.slot);
       if (!key) {
-        return { slot: entry.slot, role: entry.role, masked: "not configured", ok: false, detail: "No key configured for this slot." };
-      }
-      try {
-        const ai = new GoogleGenAI({
-          apiKey: key.apiKey,
-          httpOptions: { apiVersion: "v1beta", headers: { "User-Agent": "aistudio-build" } },
-        });
-        const response = await ai.models.generateContent({
-          model,
-          contents: "Reply with the single word OK.",
-          config: { maxOutputTokens: 8, temperature: 0 },
-        });
-        recordSuccess(key);
         return {
           slot: entry.slot,
           role: entry.role,
-          masked: key.masked,
-          ok: true,
-          detail: `Model "${model}" answered${response.text ? "" : " (empty reply)"}.`,
+          masked: "not configured",
+          ok: false,
+          model: null,
+          detail: "No key configured for this slot.",
         };
-      } catch (error) {
-        const kind = classifyGeminiError(error);
-        recordFailure(key, error, kind);
-        const detail =
-          kind === "invalid_key"
-            ? "Key rejected by Google (invalid or revoked)."
-            : kind === "quota"
-              ? "Quota or rate limit reached for this key."
-              : kind === "transient"
-                ? "Provider temporarily unavailable."
-                : `Request failed: ${errorText(error).slice(0, 180)}`;
-        return { slot: entry.slot, role: entry.role, masked: key.masked, ok: false, detail };
       }
+
+      const notes: string[] = [];
+      for (const model of ladder) {
+        const started = Date.now();
+        try {
+          const ai = createClient(key.apiKey, DEFAULT_TIMEOUT_MS);
+          const response = await ai.models.generateContent({
+            model,
+            contents: "Reply with the single word OK.",
+            config: { maxOutputTokens: 8, temperature: 0 },
+          });
+          recordSuccess(key, model, Date.now() - started);
+          const suffix = notes.length ? ` (after ${notes.join("; ")})` : "";
+          return {
+            slot: entry.slot,
+            role: entry.role,
+            masked: key.masked,
+            ok: true,
+            model,
+            detail: `Connected via ${model}${response.text ? "" : " (empty reply)"}${suffix}.`,
+          };
+        } catch (error) {
+          const kind = classifyGeminiError(error);
+          recordFailure(key, model, error, kind);
+          notes.push(
+            `${model}: ${
+              kind === "invalid_key"
+                ? "key rejected (invalid or revoked)"
+                : kind === "quota"
+                  ? "quota or rate limit reached"
+                  : kind === "model_unavailable"
+                    ? "model unavailable"
+                    : kind === "transient"
+                      ? "provider temporarily unavailable"
+                      : errorText(error).slice(0, 120)
+            }`
+          );
+          if (kind === "invalid_key" || kind === "bad_request") break;
+        }
+      }
+
+      return {
+        slot: entry.slot,
+        role: entry.role,
+        masked: key.masked,
+        ok: false,
+        model: null,
+        detail: notes.join("; ") || "No compatible model answered.",
+      };
     })
   );
-  return { model, results, status: getGeminiPoolStatus() };
+  return { model: preferredModel, results, status: getGeminiPoolStatus(preferredModel) };
 }
 
 /** For tests and diagnostics: forget every cached key state. */
 export function resetGeminiPoolState() {
   states.clear();
   recentQuotaFailures.length = 0;
+  modelOutages.clear();
+  lastSuccess = null;
+  lastFailure = null;
 }
 
 export type { GenerateContentResponse };

@@ -15,17 +15,28 @@ interface KeyStatusRow {
   failures: number;
   lastSuccessAt: string | null;
   lastError: string | null;
-  lastErrorKind: "quota" | "invalid_key" | "transient" | "other" | null;
+  lastErrorKind: "quota" | "invalid_key" | "transient" | "model_unavailable" | "bad_request" | "other" | null;
   cooldownRemainingSeconds: number;
+  modelCooldowns?: { model: string; kind: string | null; remainingSeconds: number }[];
 }
 
 interface PoolStatus {
   provider: string;
   configuredKeys: number;
+  preferredModel: string | null;
+  activeModel: string | null;
+  lastResponseMs: number | null;
   currentKeySlot: number | null;
   currentKeyMasked: string | null;
   keys: KeyStatusRow[];
   lastSuccessfulRequestAt: string | null;
+  lastError: {
+    at: string;
+    model: string;
+    masked: string;
+    kind: string;
+    message: string;
+  } | null;
   quota: {
     officialQuotaApiAvailable: boolean;
     note: string;
@@ -130,7 +141,7 @@ export function ApiKeysPanel() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
           <p className="text-[11px] uppercase tracking-wide text-[#64748B]">Keys configured</p>
           <p className="text-lg font-bold text-[#202938] dark:text-white">
@@ -146,12 +157,37 @@ export function ApiKeysPanel() {
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+          <p className="text-[11px] uppercase tracking-wide text-[#64748B]">Active model</p>
+          <p className="text-sm font-semibold text-[#202938] dark:text-white font-mono break-all">
+            {status?.activeModel ?? status?.preferredModel ?? "—"}
+          </p>
+          {status?.activeModel && status.preferredModel && status.activeModel !== status.preferredModel && (
+            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
+              Fallback from {status.preferredModel}
+            </p>
+          )}
+        </div>
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+          <p className="text-[11px] uppercase tracking-wide text-[#64748B]">Response time</p>
+          <p className="text-sm font-semibold text-[#202938] dark:text-white tabular-nums">
+            {typeof status?.lastResponseMs === "number" ? `${status.lastResponseMs} ms` : "—"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
           <p className="text-[11px] uppercase tracking-wide text-[#64748B]">Last successful request</p>
           <p className="text-sm font-semibold text-[#202938] dark:text-white">
             {formatWhen(status?.lastSuccessfulRequestAt ?? null)}
           </p>
         </div>
       </div>
+
+      {status?.lastError && (
+        <p className="text-[11px] text-[#64748B] dark:text-slate-400">
+          <span className="font-semibold text-rose-600 dark:text-rose-400">Last error</span>{" "}
+          {formatWhen(status.lastError.at)} · {status.lastError.masked} · {status.lastError.model} ·{" "}
+          {status.lastError.kind} — {status.lastError.message.slice(0, 160)}
+        </p>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
@@ -186,8 +222,13 @@ export function ApiKeysPanel() {
                     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${style.className}`}>
                       {style.label}
                     </span>
-                    {key.cooldownRemainingSeconds > 0 && (
-                      <p className="text-[11px] text-[#64748B] mt-1">{key.cooldownRemainingSeconds}s left</p>
+                    {(key.modelCooldowns ?? []).length > 0 && (
+                      <p className="text-[11px] text-[#64748B] mt-1">
+                        {(key.modelCooldowns ?? [])
+                          .slice(0, 2)
+                          .map((c) => `${c.model}: ${Math.max(1, Math.ceil(c.remainingSeconds / 60))}m`)
+                          .join(" · ")}
+                      </p>
                     )}
                     {key.status !== "active" && key.status !== "missing" && (
                       <button

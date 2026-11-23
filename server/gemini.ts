@@ -1,5 +1,10 @@
 import { GoogleGenAI, ThinkingLevel, Type, type GenerateContentResponse } from "@google/genai";
-import { getPooledGeminiClient } from "./geminiPool";
+import {
+  ALL_ROUTES_DOWN_MESSAGE,
+  buildModelLadder,
+  getPooledGeminiClient,
+  runWithGeminiFailover,
+} from "./geminiPool";
 import type {
   AurixLanguage,
   ChatMessage,
@@ -141,15 +146,8 @@ function buildVoiceSystemPrompt(language?: AurixLanguage): string {
 - Be warm, composed and precise. Never invent facts, credentials or capabilities.`;
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(label)), ms);
-  });
-  return Promise.race([promise, timeout]).finally(() => {
-    if (timer) clearTimeout(timer);
-  });
-}
+/** Spoken replies are abandoned after this long and re-asked on the next route. */
+const VOICE_DEADLINE_MS = 8000;
 
 export async function chatWithAurix(params: {
   history: ChatMessage[];
@@ -185,8 +183,10 @@ export async function chatWithAurix(params: {
     return { text: offline, modelUsed: "offline-knowledge-engine", thinkingLevel: "LOCAL" };
   }
 
+  const controller = params.fast ? new AbortController() : null;
+  const deadline = controller ? setTimeout(() => controller.abort(), VOICE_DEADLINE_MS) : null;
+
   try {
-    const ai = getClient();
     const thinkingEnum = mapThinkingLevel(model, depth);
     const contents = [
       ...params.history.slice(params.fast ? -2 : -14).map((m) => ({
@@ -196,39 +196,44 @@ export async function chatWithAurix(params: {
       { role: "user" as const, parts: [{ text: params.userMessage }] },
     ];
 
-    const request = ai.models.generateContent({
-      model,
-      contents,
-      config: {
-        systemInstruction,
-        ...(params.fast ? { maxOutputTokens: 220, temperature: 0.6 } : {}),
-        ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
+    // The pool reports the route that actually answered, so the stored message
+    // never claims the preferred model when a fallback served the reply.
+    const { response, servedModel } = await runWithGeminiFailover(
+      async (ai, _key, candidate) => {
+        const result = await ai.models.generateContent({
+          model: candidate,
+          contents,
+          config: {
+            systemInstruction,
+            ...(params.fast ? { maxOutputTokens: 220, temperature: 0.6 } : {}),
+            ...(thinkingEnum ? { thinkingConfig: { thinkingLevel: thinkingEnum } } : {}),
+            ...(controller ? { abortSignal: controller.signal } : {}),
+          },
+        });
+        return { response: result, servedModel: candidate };
       },
-    });
-
-    // A spoken reply never waits longer than a couple of seconds; the catch
-    // below then answers from the offline brain instead of leaving the user
-    // waiting on the model.
-    const response: GenerateContentResponse = params.fast
-      ? await withTimeout(request, 5000, "AURIX voice reply timed out.")
-      : await request;
+      { models: buildModelLadder(model), timeoutMs: params.fast ? VOICE_DEADLINE_MS : undefined }
+    );
 
     const text = response.text?.trim();
     if (!text) {
       throw new Error("AURIX received an empty response from the model.");
     }
-    return { text, modelUsed: model, thinkingLevel: depth };
-  } catch {
-    // Free Local Ollama fallback -> Built-in Offline Brain fallback
+    return { text, modelUsed: servedModel, thinkingLevel: depth };
+  } catch (error) {
+    // A local model produces a real answer; a canned offline reply would
+    // pretend the cloud routes worked, so a genuine outage is reported instead.
     const localOllama = await tryFreeLocalOllama(params.userMessage, systemInstruction);
     if (localOllama) {
       return { text: localOllama, modelUsed: "local-ollama-free", thinkingLevel: "LOCAL" };
     }
-    const offline = answerOfflineWithKnowledge(
-      params.userMessage,
-      params.language || settings.language
-    );
-    return { text: offline, modelUsed: "offline-knowledge-engine", thinkingLevel: "LOCAL" };
+    if (controller?.signal.aborted) {
+      throw new Error("AURIX could not reach its AI services in time. Please try again shortly.");
+    }
+    if (error instanceof Error && error.message.trim()) throw error;
+    throw new Error(ALL_ROUTES_DOWN_MESSAGE);
+  } finally {
+    if (deadline) clearTimeout(deadline);
   }
 }
 

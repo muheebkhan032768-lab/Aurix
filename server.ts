@@ -5,7 +5,7 @@ import path from "node:path";
 import express from "express";
 import JSZip from "jszip";
 import { createServer as createViteServer } from "vite";
-import type { SystemTelemetry } from "./src/types/aurix";
+import type { AurixLanguage, SystemTelemetry, ThinkingDepth } from "./src/types/aurix";
 import {
   addAuditLog,
   addDesktopActionLog,
@@ -56,6 +56,8 @@ import {
   transcribeAudioInput,
 } from "./server/gemini";
 import {
+  GeminiKeysExhaustedError,
+  GeminiNotConfiguredError,
   getGeminiPoolStatus,
   hasAnyGeminiKey,
   resetGeminiKey,
@@ -239,7 +241,9 @@ async function startServer() {
   });
 
   // Gemini four-key failover pool — masked identifiers only, never a full key.
-  app.get("/api/ai/keys", (_req, res) => res.json(getGeminiPoolStatus()));
+  app.get("/api/ai/keys", (_req, res) =>
+    res.json(getGeminiPoolStatus(getAppSettings().activeModel || "gemini-4-hydrogen"))
+  );
 
   app.post("/api/ai/keys/test", async (_req, res) => {
     try {
@@ -293,55 +297,84 @@ async function startServer() {
     res.json(getConversationMessages(req.params.id));
   });
 
+  const runChatRequest = async (payload: {
+    conversationId?: string;
+    message: string;
+    model?: "gemini-4-hydrogen" | "gemini-3.1-flash-lite";
+    language?: AurixLanguage;
+    thinkingLevel?: ThinkingDepth;
+    scopedWebsite?: string;
+    mode?: string;
+  }) => {
+    const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode } = payload;
+    const settings = getAppSettings();
+    const activeConvId = ensureConversation(
+      conversationId,
+      message,
+      mode || "chat",
+      model || settings.activeModel,
+      language || settings.language
+    );
+    const history = getConversationMessages(activeConvId);
+    const userMsg = addMessage({
+      conversationId: activeConvId,
+      role: "user",
+      content: message,
+      language: language || settings.language,
+    });
+
+    const aiReply = await chatWithAurix({
+      history,
+      userMessage: message,
+      model,
+      language,
+      thinkingLevel,
+      scopedWebsite,
+    });
+
+    const assistantMsg = addMessage({
+      conversationId: activeConvId,
+      role: "assistant",
+      content: aiReply.text,
+      modelUsed: aiReply.modelUsed,
+      language: language || settings.language,
+      thinkingLevel: aiReply.thinkingLevel,
+    });
+
+    return {
+      conversationId: activeConvId,
+      userMessage: userMsg,
+      assistantMessage: assistantMsg,
+      conversations: listConversations(),
+    };
+  };
+
+  // One in-flight reply per (conversation, message): a double submit or a
+  // retried request joins the request already running instead of asking
+  // Gemini twice for the same answer.
+  const inFlightChats = new Map<string, Promise<unknown>>();
+
   app.post("/api/chat", async (req, res) => {
+    const { conversationId, message } = req.body || {};
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "Message text is required." });
+    }
+
+    const dedupeKey = `${conversationId || "new"}::${message.trim()}`;
+    let pending = inFlightChats.get(dedupeKey);
+    if (!pending) {
+      pending = runChatRequest(req.body).finally(() => inFlightChats.delete(dedupeKey));
+      inFlightChats.set(dedupeKey, pending);
+    }
+
     try {
-      const { conversationId, message, model, language, thinkingLevel, scopedWebsite, mode } = req.body;
-      if (!message || typeof message !== "string") {
-        return res.status(400).json({ error: "Message text is required." });
-      }
-      const settings = getAppSettings();
-      const activeConvId = ensureConversation(
-        conversationId,
-        message,
-        mode || "chat",
-        model || settings.activeModel,
-        language || settings.language
-      );
-      const history = getConversationMessages(activeConvId);
-      const userMsg = addMessage({
-        conversationId: activeConvId,
-        role: "user",
-        content: message,
-        language: language || settings.language,
-      });
-
-      const aiReply = await chatWithAurix({
-        history,
-        userMessage: message,
-        model,
-        language,
-        thinkingLevel,
-        scopedWebsite,
-      });
-
-      const assistantMsg = addMessage({
-        conversationId: activeConvId,
-        role: "assistant",
-        content: aiReply.text,
-        modelUsed: aiReply.modelUsed,
-        language: language || settings.language,
-        thinkingLevel: aiReply.thinkingLevel,
-      });
-
-      res.json({
-        conversationId: activeConvId,
-        userMessage: userMsg,
-        assistantMessage: assistantMsg,
-        conversations: listConversations(),
-      });
+      res.json(await pending);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "AI chat request failed.";
-      res.status(500).json({ error: msg });
+      // An exhausted pool is a temporary outage, not a broken request.
+      const status =
+        err instanceof GeminiKeysExhaustedError || err instanceof GeminiNotConfiguredError ? 503 : 500;
+      res.status(status).json({ error: msg });
     }
   });
 
