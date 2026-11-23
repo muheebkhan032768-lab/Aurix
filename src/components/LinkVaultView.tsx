@@ -373,7 +373,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
         <LinkFavicon url={link.url} name={link.name} />
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{link.name}</h3>
-          <p className="truncate text-[11px] font-mono text-slate-500 dark:text-slate-400">{hostnameOf(link.url)}</p>
+          <p className="truncate text-[11px] font-mono text-slate-700 dark:text-slate-300">{hostnameOf(link.url)}</p>
         </div>
         <button
           type="button"
@@ -390,11 +390,11 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
         <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10.5px] font-medium text-cyan-700 dark:text-cyan-300">
           {link.category}
         </span>
-        <span className="text-[10.5px] text-slate-400">Added {formatDate(link.createdAt)}</span>
+        <span className="text-[10.5px] text-slate-600 dark:text-slate-400">Added {formatDate(link.createdAt)}</span>
       </div>
 
       {link.description && (
-        <p className="line-clamp-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">{link.description}</p>
+        <p className="line-clamp-2 text-xs leading-relaxed text-slate-800 dark:text-slate-200">{link.description}</p>
       )}
 
       {link.tags.length > 0 && (
@@ -470,7 +470,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
           </span>
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Link Vault</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-700 dark:text-slate-300">
               Every website you save here is permanent, searchable and openable by text or voice.
             </p>
           </div>
@@ -520,7 +520,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
             key={stat.label}
             className="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800/80 dark:bg-[#0D1420]"
           >
-            <div className="text-[10.5px] font-mono uppercase tracking-[0.14em] text-slate-400">{stat.label}</div>
+            <div className="text-[10.5px] font-mono uppercase tracking-[0.14em] text-slate-600 dark:text-slate-400">{stat.label}</div>
             <div className="mt-1 text-xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">{stat.value}</div>
           </div>
         ))}
@@ -598,7 +598,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
       {/* Favourites section */}
       {!favouritesOnly && favourites.length > 0 && (
         <section className="space-y-3">
-          <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+          <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
             Favourites
           </h2>
@@ -608,7 +608,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
 
       {/* All links */}
       <section className="space-y-3">
-        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">
           <Link2 className="h-3.5 w-3.5" />
           {favouritesOnly ? "Favourite links" : "All saved links"}
         </h2>
@@ -619,7 +619,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
             <h3 className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
               {links.length === 0 ? "Your vault is empty" : "No links match those filters"}
             </h3>
-            <p className="mx-auto mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">
+            <p className="mx-auto mt-1 max-w-sm text-xs text-slate-700 dark:text-slate-300">
               {links.length === 0
                 ? "Add your first website once — DEX MADE will open it for you by text or voice from then on."
                 : "Try a different search term, category or clear the filters."}
@@ -672,7 +672,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
             </div>
 
             <div className="mt-4 space-y-3">
-              <label className="block text-xs text-slate-500 dark:text-slate-400">
+              <label className="block text-xs text-slate-700 dark:text-slate-300">
                 <span>Website Name *</span>
                 <input
                   type="text"
@@ -683,7 +683,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 />
               </label>
 
-              <label className="block text-xs text-slate-500 dark:text-slate-400">
+              <label className="block text-xs text-slate-700 dark:text-slate-300">
                 <span>Website URL *</span>
                 <input
                   type="text"
@@ -693,12 +693,12 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                   placeholder="https://www.facebook.com/"
                   className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-900 focus:border-cyan-500 focus:outline-none dark:border-slate-700 dark:bg-[#070B12] dark:text-slate-100"
                 />
-                <span className="mt-1 block text-[10.5px] text-slate-400">
+                <span className="mt-1 block text-[10.5px] text-slate-600 dark:text-slate-400">
                   http and https only. Other schemes are rejected for safety.
                 </span>
               </label>
 
-              <label className="block text-xs text-slate-500 dark:text-slate-400">
+              <label className="block text-xs text-slate-700 dark:text-slate-300">
                 <span>Category</span>
                 <select
                   value={form.category}
@@ -722,7 +722,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               </label>
 
               {form.category === "__custom" && (
-                <label className="block text-xs text-slate-500 dark:text-slate-400">
+                <label className="block text-xs text-slate-700 dark:text-slate-300">
                   <span>Custom Category Name</span>
                   <input
                     type="text"
@@ -734,7 +734,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 </label>
               )}
 
-              <label className="block text-xs text-slate-500 dark:text-slate-400">
+              <label className="block text-xs text-slate-700 dark:text-slate-300">
                 <span>Description</span>
                 <textarea
                   rows={2}
@@ -745,7 +745,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 />
               </label>
 
-              <label className="block text-xs text-slate-500 dark:text-slate-400">
+              <label className="block text-xs text-slate-700 dark:text-slate-300">
                 <span>Custom Tags (comma separated)</span>
                 <input
                   type="text"
@@ -756,7 +756,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
                 />
               </label>
 
-              <label className="block text-xs text-slate-500 dark:text-slate-400">
+              <label className="block text-xs text-slate-700 dark:text-slate-300">
                 <span>Notes</span>
                 <textarea
                   rows={2}
@@ -841,24 +841,24 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
 
             <dl className="mt-4 space-y-2.5 text-xs">
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-400">Category</dt>
+                <dt className="text-slate-600 dark:text-slate-400">Category</dt>
                 <dd className="text-right text-slate-700 dark:text-slate-200">{modal.link.category}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-400">Favourite</dt>
+                <dt className="text-slate-600 dark:text-slate-400">Favourite</dt>
                 <dd className="text-right text-slate-700 dark:text-slate-200">{modal.link.isFavourite ? "Yes" : "No"}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-400">Added</dt>
+                <dt className="text-slate-600 dark:text-slate-400">Added</dt>
                 <dd className="text-right text-slate-700 dark:text-slate-200">{formatDate(modal.link.createdAt)}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-slate-400">Updated</dt>
+                <dt className="text-slate-600 dark:text-slate-400">Updated</dt>
                 <dd className="text-right text-slate-700 dark:text-slate-200">{formatDate(modal.link.updatedAt)}</dd>
               </div>
               {modal.link.tags.length > 0 && (
                 <div>
-                  <dt className="text-slate-400">Tags</dt>
+                  <dt className="text-slate-600 dark:text-slate-400">Tags</dt>
                   <dd className="mt-1 flex flex-wrap gap-1">
                     {modal.link.tags.map((tag) => (
                       <span key={tag} className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -870,13 +870,13 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               )}
               {modal.link.description && (
                 <div>
-                  <dt className="text-slate-400">Description</dt>
+                  <dt className="text-slate-600 dark:text-slate-400">Description</dt>
                   <dd className="mt-1 text-slate-700 dark:text-slate-200">{modal.link.description}</dd>
                 </div>
               )}
               {modal.link.notes && (
                 <div>
-                  <dt className="text-slate-400">Notes</dt>
+                  <dt className="text-slate-600 dark:text-slate-400">Notes</dt>
                   <dd className="mt-1 whitespace-pre-wrap text-slate-700 dark:text-slate-200">{modal.link.notes}</dd>
                 </div>
               )}
@@ -911,7 +911,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
             <h2 id="link-delete-title" className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Delete “{modal.link.name}”?
             </h2>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-700 dark:text-slate-300">
               This removes the saved link permanently. Your browser history and the website itself are not affected.
             </p>
             <div className="mt-4 flex items-center justify-end gap-2">
@@ -954,7 +954,7 @@ export function LinkVaultView({ links, onRefreshLinks }: LinkVaultViewProps) {
               </button>
             </div>
 
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-slate-700 dark:text-slate-300">
               Paste a Link Vault export, a JSON array of links, or a Chrome bookmarks file. Nothing is saved until you
               confirm the preview.
             </p>
